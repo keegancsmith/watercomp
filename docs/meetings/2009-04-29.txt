@@ -1,0 +1,26 @@
+Julian is doing:
+- Encoding of state
+- Decode of state
+- Compression of state
+- Decompression of state
+- Implementation of reference schemes and use of standard compression technique
+- Prediction scheme.
+- Possibly bounding volume.
+- I/O of compressed/uncompressed data
+
+Min-Young is doing:
+- I/O of uncompressed data.
+- Quantisation of space
+- Visualisation
+- User evaluation of the visualisations
+
+Keegan is doing:
+- Bond Extraction
+- Graph Representation
+- Part of encoding
+- Some proof of encoding optimality or near optimality or something
+
+From what I recall
+- Julian's literature survey is on Compression
+- Min-Young's literature survey is on visualisation techniques(?) of molecules.
+- Keegan's literature survey is on Point cloud compression.
