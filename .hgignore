@@ -5,3 +5,6 @@ syntax: glob
 *.toc
 *.bbl
 *.blg
+*.nav
+*.out
+*.snm
