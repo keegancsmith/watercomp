@@ -1,0 +1,295 @@
+\documentclass[twocolumn,a4paper]{article}
+
+\usepackage{natbib}
+\bibliographystyle{abbrvnat}
+% \bibliographystyle{plain}
+
+\lefthyphenmin 5
+\righthyphenmin 5
+
+\title{Techniques for visualising point cloud data \\ Literature survey}
+\author{Min-Young Wu}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Molecular data is composed of many interconnected atoms and interacting
+molecules, this poses a problem for visualisation: how do you effectively
+visualise a large number of objects in 3D space? The complex diagrams that arise
+from basic visualisation techniques will be hard to analyse and identify
+structures due to the large number of objects and extraneous data.
+
+Although there are several different visualisation techniques that have been
+developed, how they cope with many objects in 3D space will need to be
+evaluated. Another aspect that is often neglected is the temporal aspect, data
+changes over time and this should also be reflected in the visualisation.
+
+In order to get some perspective on what some of the existing visualisation
+techniques are, this paper will look at some of the molecular modelling and
+visualisation techniques, as well as some general visualisation techniques
+applicable to molecular data.
+\end{abstract}
+
+
+\section{Introduction}
+
+Information visualisation techniques are very domain specific; one type of
+visualisation may work well for a specific scenario, but will work quite poorly
+when applied to another domain. The problem domain that this literature survey
+is aiming to investigate is on how to effectively visualise point cloud data
+that is being constantly updated. Some of the issues that will be need to be
+investigated will be the level of detail chosen, how time is handled in the
+visualisation and how easily it will be to see what is happening (such as
+interactions with objects).
+
+This literature survey will thus concentrate on molecular modelling and
+visualisation techniques, but will also include some general volume rendering
+and clutter reduction techniques as they do have some relevance to visualising
+point cloud data.
+
+Section 2 will identify and briefly introduce several molecular visualisation
+techniques. While section 3 will focus on general visualisation techniques with
+regards to volume visualisation and clutter reduction. Possible applications
+will also be noted with regards to point cloud visualisation.
+
+
+\section{Molecular modelling and visualisation techniques}
+
+As will be seen, the most significant problem for visualising molecular data is
+the amount of data available and how to represent them so as not to clutter up
+the display. Some of the molecular visualisation techniques focuses on
+simplifying the models, by analysing the data to identify structures; while some
+exclude certain data from the visualisation. Either way, a more simplified image
+is presented so as to make it easier and quicker to understand.
+
+The more specific visualisation techniques (ribbon, paper chain and twister) are
+designed for very specific molecular objects, thus they will not be easily
+extendable to point cloud data. They can however be used to see what kind of
+analysis can be done on data to simplify and help identify structures.
+
+It is worth mentioning the Visual Molecular Dynamics \citep{humphrey96} program,
+which is a commonly used visualisation package aimed at displaying, animating
+and analysing large biomolecular systems \citep{VMD}. VMD provides many
+different visualisation techniques and modes that can be combined so that
+multiple different techniques are used for a single display. VMD does support
+and use some of the visualisation techniques that will be mentioned later in
+this paper.
+
+\subsection*{Ball-and-stick}
+The ball-and-stick model is the classical approach to displaying molecular
+structure. Colour coded spheres are used to represent the atoms, while cylinders
+are used to represent the bonds between them. This model is used to emphasise
+the molecular connectivity of the atoms. This is the simplest of approaches to
+molecular visualisation and is also used when all the detail is required,
+typically for looking at bond information and reaction sites.
+
+The problem with this model is that it does not handle large numbers of atoms
+and bonds very well. By having all the atoms and bonds visible, the image
+quickly becomes crowded and overall structure is obscured. Occlusion of other
+atoms often occurs which may hide important information. Ball-and-stick diagrams
+are typically not used for large or many molecules as it typically produces the
+most cluttered diagrams, making it very difficult to understand and analyse.
+
+\subsection*{CPK}
+The CPK (Corey-Pauling-Koltun) \citep{corey53} representation simplifies the
+ball-and-stick model by doing away with cylinders for bonds; instead, the
+spheres used for the atoms are enlarged to encompass the bonds. The `atoms' now
+overlap with one another, covering up where the bonds would be.
+
+Removing the bonds from the model representation simplifies the display and
+allows for the overall shape and contour to be easily seen. Although this model
+has simplified the ball-and-stick model, it does not highlight any structures,
+it has only removed the bond information. The later molecular visualisation
+techniques in this paper do highlight certain molecular structures.
+
+The CPK representation also suffers from not being able to visualise large
+numbers of molecules. As each of the atoms has been enlarged, each molecule
+essentially occupies more space than the ball-and-stick model; with the
+molecules being opaque, this causes large areas to be occluded from sight, which
+may hide important information and make it hard to analyse an entire system.
+
+\subsection*{Ribbon}
+The ribbon model \citep{richardson81}, \citep{carson87} was designed to
+highlight the structure of protein molecules by fitting a curved surface to the
+backbone of the molecule. This allows for the shape of the protein molecule to
+be easily seen and followed.
+
+This proved to be highly effective at highlighting the structure of proteins;
+unfortunately this approach is not as effective when applied to non-protein
+molecules such as carbohydrates and lipids, where the molecular structure is
+different. Thus, the traditional ball-and-stick and CPK models do still get
+used for carbohydrate and lipid molecules.
+
+\subsection*{Paper chain}
+The paper chain visualisation technique \citep{kuttel06} focuses on highlighting
+ring structures in carbohydrate molecules. Ring structures are first identified
+and then are displayed using a ring polyhedron.
+
+This significantly simplifies the carbohydrate molecules by only showing the
+carbohydrate rings, which would of otherwise been obscured by the other
+visualisations (ball-and-stick and CPK). The ball-and-stick model can still be
+overlayed on the paper chain diagram to provide detailed information if needed.
+
+\subsection*{Twister}
+The twister visualisation technique \citep{kuttel06} follows from the paper
+chain technique by highlighting the relative orientations of the identified
+carbohydrate rings. Each carbohydrate ring is represented by a disc, which is
+then connected to another disc with a ribbon. The ribbon will follow the
+orientation from one ring to another, thus showing how the rings are connected
+to one another.
+
+This is similar to the ribbon model for proteins in that it shows the overall
+shape of the molecule quite effectively. Previously, following the shape and
+twisting of the carbohydrate molecules would be very difficult as that would be
+obscured by all the atoms that make up the carbohydrate molecule.
+
+
+\section{General data visualisation techniques}
+
+There has been considerably more research done in general data visualisation
+techniques than that of molecular visualisations. The most relevant areas of
+research to point cloud visualisation: volume visualisation and clutter
+reduction, will be looked at in this section. Possible applications and uses
+with regards to point cloud data will be mentioned and noted with the different
+techniques.
+
+\subsection*{Volume visualisation}
+Traditional volume visualisation techniques work on volumes of data, such as
+those gotten from CT and MRI scans. The main uses of such data would be surface
+extraction, finding the shape of the volume; and volume rendering, rendering the
+volume such that the volume in its entirety is visible. These techniques can be
+applied to point cloud data, although the uses would be quite specific.
+
+This paper will only mention the basic different techniques and will not provide
+much detail on the individual algorithms. There has also been significant
+advances in each of the techniques \citep{brodlie01}, which will not be
+mentioned in this paper.
+
+\subsubsection*{Surface extraction}
+Surface extraction is for determining the surface of the volume that is of
+interest. The marching cubes algorithm \citep{lorensen87} is the classical
+approach for surface extraction. The algorithm works by examining each cell in
+the volume (a cube) and determining whether it is part of the interested in
+volume or not. A surface can then be determined by combining all the cells which
+intersect with the volume boundary.
+
+Surface extraction allows for the shape of the volume to be extracted and be
+easily seen, this is somewhat analogous to the CPK model in that regard. Surface
+extraction can be adapted to molecular data to provide a simpler and smoothed
+view of the molecule, so that the shape and contours can be more plainly seen;
+which may of otherwise been obscured by the individual atoms.
+
+This technique can also be used to identify volumes of space where points are
+missing, thus highlighting these areas. However, the basic algorithm would need
+to be adapted significantly to cope with large open spaces.
+
+\subsubsection*{Volume rendering}
+The second volume visualisation technique is volume rendering, it aims to
+visualise the entire volume instead of a subset. This is done by modelling the
+data as a translucent gel so that you are able to see through the volume, while
+still being able to see what is in the volume at the same time.
+
+There are two main approaches to volume rendering; the first is working from the
+image plane to the volume, this is called image order processing. Ray casting is
+the classical approach to this as proposed by \citet{levoy88}. Object order
+processing is working from the volume to the image plane. The classical approach
+to this is splatting \citep{westover89}. Hybrid methods have been developed to
+take advantage of both approaches.
+
+The advantage of volume rendering is being able to visualise the entire volume
+at once, but does come at the cost increased complexity and computation. There
+are potential uses for volume rendering within a molecular environment if there
+is a need to see molecular structure which may otherwise be obscured by other
+molecules or atoms. However, often the problem is too much information rather
+than obscuring information.
+
+Volume rendering may be useful in point cloud visualisations as this would
+enable the entire volume to be `visible', hence dealing with the potential
+problem of having many occluding entities. The computation costs involved with
+such a visualisation technique would have to weighed with the benefits that this
+approach would provide.
+
+\subsection*{Clutter reduction}
+Shneiderman provides a visual information-seeking mantra \citep{shneiderman96}:
+``overview first, zoom and filter, then details on demand'', in which clutter
+reduction techniques fit in quite well. The mantra provides a general hierarchy
+of tasks that is to be applied to information visualisation, in which clutter
+reduction plays an important role.
+
+\citet{ellis07} provides a taxonomy containing many clutter reduction techniques
+against many criteria. With clutter reduction, a balance between removing too
+much and too little information must be made. Removing too much or too little
+would make visualisation of little use.
+
+With regards to visualising point cloud data, filtering, opacity and topological
+distortion may be the most useful clutter reduction techniques.
+
+Filtering is only displaying certain items fulfilling a criteria. This can be
+used to only show items in a certain area or locus of interest, irrelevant items
+can be removed and not clutter up the display. This may be useful for removing
+uninterested in occluding objects and only show points at important areas, such
+at where there is interaction occurring.
+
+Opacity is changing the translucency of items to highlight or hide things. This
+is similar to filtering in that irrelevant items are partially or entirely
+hidden, highlighting only the important parts. The advantage of opacity over
+filtering is that the other information is not entirely removed, it is still
+available if needed and can be used to hint at contextual information. Opacity
+can also be adapted to show temporal information, where the previous frame is
+rendered along with the current frame, but at a lower opacity; this would have a
+similar effect to motion blur.
+
+Topological distortion is changing the view so that certain areas are larger.
+Thus highlighting and bringing to focus the relevant area, while de-emphasising
+the other areas. The distortion can either be uniform (zooming), or can be
+non-uniform (fish-eye effect).
+
+Clutter reduction techniques has the most potential for point cloud
+visualisation as there is a need to be able to visualise many objects in 3D
+space, however care must be taken to not remove important and relevant
+information. It should be noted that the clutter reduction techniques are not
+all mutually exclusive, many of the techniques can be used to complement and be
+layered on top of one another.
+
+
+\section{Conclusion}
+This paper has gone through some visualisation techniques, each with their own
+advantages and disadvantages. Visualisation techniques are all quite specific
+and are designed for their respective scenarios, fulfilling their respective
+requirements and taking advantage of specific domain knowledge; as a result,
+they are not easily generalisable into other areas.
+
+Molecular modelling is a specific instance of the information visualisation
+problem, where the requirement is to be able to easily identify certain
+structures. Different types of molecules will each have their own specific
+characteristics and structures, this knowledge can be taken advantage of in the
+different visualisation techniques: ribbon diagrams are useful for proteins,
+paper chain and twister for carbohydrates, while ball-and-stick and CPK for
+general molecular visualisations.
+
+General visualisation techniques address a slightly different problem; the
+problem being solved is how to be able to visualise the data effectively and
+not necessarily to identify and highlight certain structures. Identifying the
+structures is often domain specific and thus approaches are not easily
+extendable to their domains, thus the main concern is how to enable easy
+exploration of the data.
+
+None of the techniques touched on, handle a temporal aspect explicitly. If a
+temporal dimension were to be added, all the techniques would just treat each
+frame separately and regenerate the visualisation given the new set of data.
+This approach would not be ideal if some inter-frame visualisation coherence is
+desired. This aspect in information visualisation is quite lacking and thus ways
+of visualising temporal information will need to be developed.
+
+There is no one solution for all visualisation needs, however approaches and
+ideas can be taken from different visualisation areas. Although the problems
+may not be identical, there will be some overlapping requirements and concerns.
+As mentioned in the introduction, visualisation techniques are very domain
+specific, with their own requirements and concerns.
+
+
+\bibliography{visualisation_min}
+
+\end{document}
