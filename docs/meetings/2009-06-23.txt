@@ -1,0 +1,36 @@
+Minutes of Meeting on 23 June 2009
+
+=======
+General
+=======
+
+- An Interface for each of our components to interact
+  should be agreed upon.
+  
+- Regular meetings should be held: Once every 2 weeks.
+
+- Talk to Michelle about Water Connectivity
+
+=============
+Julian's Work
+=============
+
+- Implementation of Omeltchenko Compression Scheme 
+  with metrics for performance: time, space and 
+  compression rate. (About 3 weeks)
+
+- Find Carbohydra source or other existing code for I/O
+  of data.
+  
+- Investigate an Arithmetic Library to use.
+
+=============
+Keegan's Work
+=============
+
+- Implementation of Gandoin and Devilliers Compression
+  Scheme with metrics for performance: time, space 
+  and compression rate. (About 3 weeks)
+  
+- Investigate ANN - Approximate Nearest Neighbour
+  Library for Water Bond Extraction
