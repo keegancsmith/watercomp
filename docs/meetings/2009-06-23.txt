@@ -1,0 +1,39 @@
+Minutes of Meeting on 23 of June 2009
+
+=======
+General
+=======
+
+- Agree on an Interface for each component to
+  interact with.
+  
+- Talk to Michelle about Bond Extraction.
+
+- Have regular meetings once every 2 weeks.
+
+
+=============
+Julian's Work
+=============
+
+- Implement Omeltchenko scheme for compression
+  of molecular data with metrics on performance:
+  space, time and compression rate. About 3 weeks.
+  
+- Investigate Carbohydra/other library for
+  I/O of Molecular Data
+  
+- Investigate Arithmetic Libraries to use
+  with project.
+  
+=============
+Keegan's Work
+=============
+
+- Implement Gandoin and Devilliers Scheme for 
+  compression of molecular data with metrics
+  on performance: space, time and compression
+  rate. About 3 weeks.
+  
+- Investigate ANN: Approximate Nearest Neighbour
+  Library for Bond Extraction.
