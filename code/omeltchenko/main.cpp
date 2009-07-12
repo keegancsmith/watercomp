@@ -133,9 +133,9 @@ int main(int argc, char** argv)
             
             // Write uncompressed atoms
             write_dcdstep(fd, frame_no, reader.get_istart() + reader.get_nsavc()*frame_no, reader.get_atoms(), xs, ys, zs, NULL, 1);
-            
-            printf("End processing\n");
         }
+        
+        printf("End processing\n");
         
         fio_fclose(fd);
         delete [] xs;

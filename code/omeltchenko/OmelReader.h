@@ -3,12 +3,13 @@
 #include <queue>
 #include <vector>
 #include "Atom.h"
+#include "OmelDecoder.h"
 
 class OmelReader
 {
     public:
         /* Constructs a Omeltchenko reader object to read from the specified file. */
-        OmelReader(const char* filename, int in_initial_l = 3, int in_delta_l = 2, int in_max_adapt_initial_l = 32, int in_max_adapt_delta_l = 32);
+        OmelReader(const char* filename, int in_initial_l = 3, int in_delta_l = 2, int in_max_adapt_initial_l = 32, int in_max_adapt_delta_l = 32) : in_file(fopen(filename, "rb")), frames_left(0), atoms(0), istart(0), nsavc(1), delta(1.0), octree_index_decoder(in_file, &bit_buffer), array_index_decoder(in_file, &bit_buffer) {};
         
         /* Starts the reading process. */
         void start_read();
@@ -35,10 +36,7 @@ class OmelReader
         FILE* in_file;
         
         /* Reads an unsigned 32-bit integer */
-        unsigned int read_uncompressed_int();
-        
-        /* Reads an compressed unsigned 32-bit integer */
-        unsigned int read_compressed_int();
+        unsigned int read_uint32();
         
         /* Reads a bit from the stream */
         bool get_bit();
@@ -55,26 +53,12 @@ class OmelReader
         /* Number of atoms in each frame */
         int atoms;
         
-        /* The number of bits initially allocated to storing a number */
-        int initial_l;
-        
-        /* The number of extra bits allocated to storing a number */
-        int delta_l;
-        
-        /* The current status of adapting the initial allocation of bits */
-        int adapt_initial_l;
-        
-        /* The current status of adapting the extra allocation of bits */
-        int adapt_delta_l;
-        
-        /* Maximum adapt_initial_l until initial_l is changed */
-        int max_adapt_initial_l;
-        
-        /* Maximum adapt_initial_l until delta_l is changed */
-        int max_adapt_delta_l;
-        
         /* Data from the DCD file header */
         int istart;
         int nsavc;
         double delta;
+        
+        /* Decoders */
+        OmelDecoder octree_index_decoder;
+        OmelDecoder array_index_decoder;
 };

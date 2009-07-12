@@ -5,30 +5,10 @@
 #include <limits>
 #include "Atom.h"
 #include "OmelWriter.h"
+#include "OmelEncoder.h"
+
 #include <string>
 using namespace std;
-
-OmelWriter::OmelWriter(const char* filename, int in_initial_l, int in_delta_l, int in_max_adapt_initial_l, int in_max_adapt_delta_l)
-{
-    // Set compression variables
-    initial_l = in_initial_l;
-    delta_l = in_delta_l;
-    max_adapt_initial_l = in_max_adapt_initial_l;
-    max_adapt_delta_l = in_max_adapt_delta_l;
-    adapt_initial_l = 0;
-    adapt_delta_l = 0;
-    
-    // Set frame variables
-    frames_written = 0;
-    atoms = 0;
-    
-    // Open file
-    out_file = fopen(filename, "wb");
-    
-    // Bucket sorting variables
-    sort_num_buckets = 0;
-    sort_buckets = NULL;
-}
 
 OmelWriter::~OmelWriter()
 {
@@ -123,7 +103,7 @@ bool OmelWriter::write_frame(vector<Atom>& atom_list, int x_step_bits, int y_ste
     float z_block_size = ran_z/z_steps;
     
     // Place for the indices to go
-    vector<unsigned int> indices;
+    vector< pair<unsigned int, unsigned int> > indices;
     
     // Correct atoms to have non-negative coords, then quantise and index
     // From [min, max] to [0, ran] to [0, steps-1]
@@ -151,121 +131,41 @@ bool OmelWriter::write_frame(vector<Atom>& atom_list, int x_step_bits, int y_ste
         else
             nz = ran_z - sz < 1e-5 ? z_steps-1 : int(sz/z_block_size);
         
-        indices.push_back(Atom(nx, ny, nz).get_index(x_step_bits, y_step_bits, z_step_bits));
+        unsigned int ind = Atom(nx, ny, nz).get_index(x_step_bits, y_step_bits, z_step_bits); 
+        indices.push_back(pair<unsigned int, unsigned int>(ind, i));
     }
     
     // Sort indices
     sort(indices.begin(), indices.end());
     
     // Each frame has a 288-byte header indicating index bits and bounding box.
-    write_uncompressed_int(x_step_bits);
-    write_uncompressed_int(y_step_bits);
-    write_uncompressed_int(z_step_bits);
-    write_uncompressed_int(*(unsigned int*)(&min_x));
-    write_uncompressed_int(*(unsigned int*)(&min_y));
-    write_uncompressed_int(*(unsigned int*)(&min_z));
-    write_uncompressed_int(*(unsigned int*)(&max_x));
-    write_uncompressed_int(*(unsigned int*)(&max_y));
-    write_uncompressed_int(*(unsigned int*)(&max_z));
+    write_uint32(x_step_bits);
+    write_uint32(y_step_bits);
+    write_uint32(z_step_bits);
+    write_uint32(*(unsigned int*)(&min_x));
+    write_uint32(*(unsigned int*)(&min_y));
+    write_uint32(*(unsigned int*)(&min_z));
+    write_uint32(*(unsigned int*)(&max_x));
+    write_uint32(*(unsigned int*)(&max_y));
+    write_uint32(*(unsigned int*)(&max_z));
         
     // Write the data
-    unsigned int last = indices[0];
-    write_compressed_int(last);
-    
+    octree_index_encoder.write_uint32(indices[0].first);
+    array_index_encoder.write_uint32(indices[0].second);
     for(int i = 1; i < atoms; ++i)
     {
-        unsigned int next = indices[i];
-        write_compressed_int(next - last);
-        last = next;
+        octree_index_encoder.write_uint32(indices[i].first - indices[i-1].first);
+        array_index_encoder.write_uint32(indices[i].second);
     }
     
     return true;
 }
 
-void OmelWriter::write_uncompressed_int(unsigned int num)
+void OmelWriter::write_uint32(unsigned int num)
 {
     // Write bits to our buffer
     for(int i = 0; i < 32; ++i)
         put_bit(num&(1<<i));
-}
-
-void OmelWriter::write_compressed_int(unsigned int num)
-{
-    unsigned int tt = num;
-    int li = num_bits(num);
-    if(li == 0)
-        li = 1;
-    
-    int alloc = initial_l;
-    
-    int adapt_initial_l_minus = 0;  // l being too long
-    int adapt_initial_l_plus = 0;   // l being too short
-    int adapt_delta_l_minus = 0;    // delta_l being too long
-    int adapt_delta_l_plus = 0;     // delta_l being too short
-    
-    if(li <= initial_l)
-    {
-        // enough initial bits - adjust adapting information
-        adapt_initial_l_minus = initial_l - li;
-    }
-    else
-    {
-        // not enough initial bits - adjust adapting information
-        adapt_initial_l_plus = (li - initial_l + delta_l - 1)/delta_l;
-        adapt_delta_l_plus = adapt_initial_l_plus-1;
-        adapt_delta_l_minus = (delta_l - (li - initial_l)%delta_l)%delta_l; // Number of padding bits
-    }
-    
-    do
-    {
-        // Output status bit: 0 = last allocation of bits, 1 = more allocated bits
-        put_bit(li > alloc);
-        
-        // Write bit data
-        for(int i = 0; i < alloc; ++i)
-        {
-            put_bit(num&1);
-            num >>= 1;
-        }
-        
-        li -= alloc;
-        alloc = delta_l;
-        
-    }
-    while(li > 0);
-    
-    // Update the adaptive variables
-    adapt_initial_l += (adapt_initial_l_plus - adapt_initial_l_minus);
-    adapt_delta_l += (adapt_delta_l_plus - adapt_delta_l_minus);
-    
-    // Potentially change allocations based on adaptive variables
-    if(adapt_initial_l >= max_adapt_initial_l)
-    {
-        ++initial_l;
-        adapt_initial_l = 0;
-    }
-    else if(adapt_initial_l <= -max_adapt_initial_l)
-    {
-        --initial_l;
-        adapt_initial_l = 0;
-        
-        if(initial_l < 1)
-            initial_l = 1;
-    }
-    
-    if(adapt_delta_l >= max_adapt_delta_l)
-    {
-        ++delta_l;
-        adapt_delta_l = 0;
-    }
-    else if(adapt_delta_l <= -max_adapt_delta_l)
-    {
-        --delta_l;
-        adapt_delta_l = 0;
-        
-        if(delta_l < 1)
-            delta_l = 1;
-    }
 }
 
 bool OmelWriter::put_bit(bool bit)
@@ -274,19 +174,6 @@ bool OmelWriter::put_bit(bool bit)
     
     if(bit_buffer.size() >= 1024)
         flush();
-}
-
-int OmelWriter::num_bits(unsigned int num)
-{
-    int ans = 1; // 0 needs 1 bit to store
-    
-    while(num > 1)
-    {
-        ++ans;
-        num>>=1;
-    }
-    
-    return ans;
 }
 
 void OmelWriter::sort_indices(vector<unsigned int>& indices)
