@@ -1,0 +1,22 @@
+Minutes of Meeting Friday 10 July 2009
+
+Julian
+======
+
+Interframe - Simple Position, Simple Velocity update. K-th order
+Spatial Divisioning Structure:
+  Look up all atoms within a fixed radius.
+  Only one query per atom per index frame, then throw away.
+  Look at ANN as an experimental platform.
+
+Min-Young 
+=========
+
+Look at DCD Frame Temperatures as a possible metric for quantisations
+
+Keegan
+======
+
+Finish Reference Scheme
+
+Meeting: Friday 12:00 17th July 2009
