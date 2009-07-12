@@ -1,4 +1,4 @@
-#include "dcdplugin.h"
+#include "../dcd_loader/dcdplugin.h"
 #include <cstdio>
 #include <cmath>
 #include <cstdlib>
