@@ -1,4 +1,9 @@
-Minutes of Meeting Friday 10 July 2009
+.. -*- mode: rst -*-
+
+========================================
+ Minutes of Meeting Friday 10 July 2009
+========================================
+
 
 Julian
 ======
@@ -9,7 +14,7 @@ Spatial Divisioning Structure:
   Only one query per atom per index frame, then throw away.
   Look at ANN as an experimental platform.
 
-Min-Young 
+Min-Young
 =========
 
 Look at DCD Frame Temperatures as a possible metric for quantisations
@@ -18,5 +23,3 @@ Keegan
 ======
 
 Finish Reference Scheme
-
-Meeting: Friday 12:00 17th July 2009
