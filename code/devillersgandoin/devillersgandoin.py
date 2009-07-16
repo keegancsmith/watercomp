@@ -8,11 +8,6 @@ This is just an implementation for checking algorithmic correctness. As such
 it works on a simple input format, and doesn't use arithmetic coding on the
 output. A C implementation will follow that will implement it correctly.
 
-The input format is as follows: The first line contains N and b, where N is
-the number of points. The following N lines each contain 3 space seperated
-integers numbers, representing a point's (x, y, z) co-ordinate. Each
-co-ordinate is in the range [0, 2^b)
-
 When a file is decompressed, it won't neccessarily list the points in the same
 order.
 """
@@ -24,102 +19,121 @@ from random import randint
 from bisect import bisect_left
 
 
-def generate(N=10000, b=32):
+def length_squared(S):
+    lengths = (b-a for a,b in S)
+    return reduce(lambda a,b : a * b, lengths, 1)
+
+
+def generate(N=10000, d=3, b=32):
     """
-    Generates a random data containing N points. Can contain duplicates.
+    Generates a random data containing N points. Can contain duplicates. d is
+    the dimension of the points and all points are in the range [0,2**32).
     """
     rand_coord = lambda : randint(0, 2**b)
-    #rand_point = lambda : tuple(randint() for i in xrange(3))
-    rand_point = rand_coord
+    rand_point = lambda : tuple(rand_coord() for i in xrange(d))
     for i in xrange(N):
         yield rand_point()
 
 
-def encode(points, b):
+def encode(points, d=3, b=32):
     """
     A generator which encodes the points. Direct translation from psuedocode
     from the paper.
     """
-    points = sorted(points)
-    length = lambda S : S[1] - S[0]
+    bounding_box = [(0, 2**b)]*d
+    points = list(points)
 
-    # L is a queue of segments and the index range of points in that
-    # segment. The initial segment is [0, 2**b) and contains all the points in
-    # index range [0, len(points))
-    L = [((0, 2**b), (0, len(points)))]
+    # L is a queue of segments and the points in that segment. It also
+    # contains the current dimension to sort by.
+    L = [(bounding_box, points, 0)]
     yield len(points)
     while L:
-        S, S_i = L.pop(0)
-        n = S_i[1] - S_i[0]
+        S, points, dim = L.pop(0)
+        n = len(points)
 
-        mid = (S[0] + S[1]) / 2
-        i = bisect_left(points, mid, S_i[0], S_i[1])
+        points.sort(key=lambda x : x[dim])
+        projection = [x[dim] for x in points]
 
-        S1 = (S[0], mid)
-        n1 = i - S_i[0]
+        mid = (S[dim][0] + S[dim][1]) / 2
+        i = bisect_left(projection, mid)
 
-        S2 = (mid, S[1])
-        n2 = S_i[1] - i
+        S1 = list(S)
+        S1[dim] = (S[dim][0], mid)
+        p1 = points[:i]
+        n1 = len(p1)
+
+        S2 = list(S)
+        S2[dim] = (mid, S[dim][1])
+        p2 = points[i:]
+        n2 = len(p2)
 
         yield n1
 
-        if n1 > 0 and length(S1) > 1:
-            L.append((S1, (S_i[0], i)))
-        if n2 > 0 and length(S2) > 1:
-            L.append((S2, (i, S_i[1])))
+        dim = (dim + 1) % d
+
+        if n1 > 0 and length_squared(S1) > 1:
+            L.append((S1, p1, dim))
+        if n2 > 0 and length_squared(S2) > 1:
+            L.append((S2, p2, dim))
 
 
-def decode(data, b):
+def decode(data, d=3, b=32):
     """
     A generator which dencodes the encoded points. Direct translation from
     psuedocode from the paper. Points will not be in the same order.
     """
+    bounding_box = [(0, 2**b)]*d
+    project_1 = lambda x : tuple(a[0] for a in x)
     data = iter(data)
     N = data.next()
-    length = lambda S : S[1] - S[0]
 
-    # L is a queue of segments and the index range of points in that
-    # segment. The initial segment is [0, 2**b) and contains all the points in
-    # index range [0, N)
-    L = [((0, 2**b), N)]
+    # L is a queue of segments and the points in that segment. It also
+    # contains the current dimension to sort by.
+    L = [(bounding_box, N, 0)]
 
     while L:
-        S, n = L.pop(0)
-        mid = (S[0] + S[1]) / 2
+        S, n, dim = L.pop(0)
+        mid = (S[dim][0] + S[dim][1]) / 2
 
         n1 = data.next()
         n2 = n - n1
 
+        S1 = list(S)
+        S1[dim] = (S[dim][0], mid)
+
+        S2 = list(S)
+        S2[dim] = (mid, S[dim][1])
+
+        dim = (dim + 1) % d
+
         if n1 > 0:
-            S1 = (S[0], mid)
-            if length(S1) <= 1:
+            if length_squared(S1) <= 1:
                 for i in xrange(n1):
-                    yield S[0]
+                    yield project_1(S1)
             else:
-                L.append((S1, n1))
+                L.append((S1, n1, dim))
         if n2 > 0:
-            S2 = (mid, S[1])
-            if length(S2) <= 1:
+            if length_squared(S2) <= 1:
                 for i in xrange(n2):
-                    yield mid
+                    yield project_1(S2)
             else:
-                L.append((S2, n2))
+                L.append((S2, n2, dim))
 
 
-def test(N=10000, b=32, show=False):
+def test(N=10000, d=3, b=32, show=False):
     if hasattr(N, '__iter__'):
-        print "Testing on given data (b=%d)" % b
+        print "Testing on given data (d=%d, b=%d)" % (d, b)
         data = N
     else:
-        print "Testing on random data (N=%d, b=%d)" % (N, b)
+        print "Testing on random data (N=%d, d=%d, b=%d)" % (N, d, b)
         print "Generating..."
-        data = list(generate(N, b))
+        data = list(generate(N, d, b))
 
     print "Encoding..."
-    enc_data = list(encode(data, b))
+    enc_data = list(encode(data, d, b))
 
     print "Decoding..."
-    dec_data = list(decode(enc_data, b))
+    dec_data = list(decode(enc_data, d, b))
 
     if show:
         f = lambda li : ' '.join(map(str, sorted(li)))
@@ -143,17 +157,27 @@ def run_tests():
         if result:
             run_tests.passed += 1
         run_tests.run += 1
-        
-    run_test(5, show=True)
-    run_test([0], 32, True)
-    run_test([0,1,2**32-1], 32, True)
-    run_test([0,0,1,1,1,1,2**32-1,2**32-1,2**32-1], 32, True)
-    run_test(xrange(2**4), 4, True)
-    run_test(xrange(2**15), 15)
+
+    # Converts a list of integers to 1d coords
+    f = lambda li : [(x,) for x in li]
+
+    run_test(5)
+    run_test([(0,0,0)], 3, 32, True)
+    run_test(f([0,1,2**32-1]), 1, 32, True)
+    run_test(f([0,0,1,1,1,1,2**32-1,2**32-1,2**32-1]), 1, 32, True)
+    run_test(f(range(2**4)), 1, 4, True)
+    run_test(f(range(2**15)), 1, 15)
     run_test()
 
     print "Passed %d out of %d" % (run_tests.passed, run_tests.run)
 
 
 if __name__ == "__main__":
+    # 2D Example from paper
+    data = [(0,0),(1,1),(0,2),(1,2),(2,2),(1,3),(2,3)]
+    enc = list(encode(data, 2, 2))
+    dec = decode(enc, 2, 2)
+    assert enc == [7, 5, 2, 0, 1, 1, 2, 1, 0, 1, 1, 1]
+    assert sorted(dec) == sorted(data)
+
     run_tests()
