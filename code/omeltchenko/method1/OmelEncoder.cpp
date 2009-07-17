@@ -1,12 +1,12 @@
-#include "OmelDecoder.h"
 #include <queue>
 #include <cstdio>
+#include "OmelEncoder.h"
 
 using namespace std;
 
-OmelDecoder::OmelDecoder(FILE* out, queue<bool>* buffer, int in_initial_l, int in_delta_l, int in_max_adapt_initial_l, int in_max_adapt_delta_l)
+OmelEncoder::OmelEncoder(FILE* out, queue<bool>* buffer, int in_initial_l, int in_delta_l, int in_max_adapt_initial_l, int in_max_adapt_delta_l)
 {
-    in_file = out;
+    out_file = out;
     
     if(buffer == NULL)
     {
@@ -28,7 +28,7 @@ OmelDecoder::OmelDecoder(FILE* out, queue<bool>* buffer, int in_initial_l, int i
     adapt_delta_l = 0;
 }
 
-OmelDecoder::~OmelDecoder()
+OmelEncoder::~OmelEncoder()
 {
     if(delete_buffer)
         delete bit_buffer;
@@ -36,47 +36,48 @@ OmelDecoder::~OmelDecoder()
     bit_buffer = NULL;
 }
 
-unsigned int OmelDecoder::read_uint32()
+void OmelEncoder::write_uint32(unsigned int num)
 {
-    unsigned int result = 0;
-    int bits_read = 0;
-    bool status;
+    int li = num_bits(num);
+    
     int alloc = initial_l;
     
-    int num_statuses = 0;
     int adapt_initial_l_minus = 0;  // l being too long
     int adapt_initial_l_plus = 0;   // l being too short
     int adapt_delta_l_minus = 0;    // delta_l being too long
     int adapt_delta_l_plus = 0;     // delta_l being too short
-        
-    // Read data
-    do
-    {
-        status = get_bit();
-        
-        for(int i = 0; i < alloc; ++i)
-            result |= (get_bit()<<(bits_read++));
-        
-        alloc = delta_l;
-        
-        ++num_statuses;
-    }
-    while(status);
     
-    if(num_statuses == 1)
+    if(li <= initial_l)
     {
         // enough initial bits - adjust adapting information
-        adapt_initial_l_minus = initial_l - num_bits(result);
+        adapt_initial_l_minus = initial_l - li;
     }
     else
     {
         // not enough initial bits - adjust adapting information
-        adapt_initial_l_plus = num_statuses-1;
-        adapt_delta_l_minus = bits_read - num_bits(result);
-        adapt_delta_l_plus = num_statuses-2;
+        adapt_initial_l_plus = (li - initial_l + delta_l - 1)/delta_l;
+        adapt_delta_l_plus = adapt_initial_l_plus-1;
+        adapt_delta_l_minus = (delta_l - (li - initial_l)%delta_l)%delta_l; // Number of padding bits
+    }
+    
+    do
+    {
+        // Output status bit: 0 = last allocation of bits, 1 = more allocated bits
+        put_bit(li > alloc);
+        
+        // Write bit data
+        for(int i = 0; i < alloc; ++i)
+        {
+            put_bit(num&1);
+            num >>= 1;
+        }
+        
+        li -= alloc;
+        alloc = delta_l;
         
     }
-        
+    while(li > 0);
+    
     // Update the adaptive variables
     adapt_initial_l += (adapt_initial_l_plus - adapt_initial_l_minus);
     adapt_delta_l += (adapt_delta_l_plus - adapt_delta_l_minus);
@@ -109,39 +110,32 @@ unsigned int OmelDecoder::read_uint32()
         if(delta_l < 1)
             delta_l = 1;
     }
-    
-    return result;
 }
 
-int OmelDecoder::read_int32()
+bool OmelEncoder::put_bit(bool bit)
 {
-    bool negative = get_bit();
-    unsigned int tmp = read_uint32();
+    bit_buffer->push(bit);
     
-    if(negative)
-        return -tmp;
-    else
-        return tmp;
+    if(bit_buffer->size() >= 1024)
+        flush();
 }
 
-bool OmelDecoder::get_bit()
+void OmelEncoder::flush()
 {
-    if(bit_buffer->size() == 0)
+    // Flush allfull bytes out to the file
+    while(bit_buffer->size() >= 8)
     {
-        unsigned char tmp;
-        fread(&tmp, sizeof(unsigned char), 1, in_file);
-        
+        unsigned char acc = 0;
         for(int i = 0; i < 8; ++i)
-            bit_buffer->push(tmp&(1<<(7-i)));
+        {
+            acc = (acc << 1) | bit_buffer->front();
+            bit_buffer->pop();
+        }
+        fprintf(out_file, "%c", acc);
     }
-    
-    bool ret_val = bit_buffer->front();
-    bit_buffer->pop();
-    
-    return ret_val;
 }
 
-int OmelDecoder::num_bits(unsigned int num)
+int OmelEncoder::num_bits(unsigned int num)
 {
     int ans = 1; // 0 needs 1 bit to store
     

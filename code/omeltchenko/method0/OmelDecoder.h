@@ -12,9 +12,6 @@ class OmelDecoder
         /* Reads a compressed unsigned 32-bit integer */
         unsigned int read_uint32();
         
-        /* Reads a compressed signed 32-bit integer */
-        int read_int32();
-        
     private:
         
         /* File for saving data to. */

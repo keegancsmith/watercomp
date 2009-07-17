@@ -113,17 +113,6 @@ unsigned int OmelDecoder::read_uint32()
     return result;
 }
 
-int OmelDecoder::read_int32()
-{
-    bool negative = get_bit();
-    unsigned int tmp = read_uint32();
-    
-    if(negative)
-        return -tmp;
-    else
-        return tmp;
-}
-
 bool OmelDecoder::get_bit()
 {
     if(bit_buffer->size() == 0)

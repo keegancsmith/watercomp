@@ -2,23 +2,27 @@
 #include <queue>
 #include <cstdio>
 
-class OmelDecoder
+class OmelEncoder
 {
     public:
-        OmelDecoder(FILE* out, std::queue<bool>* buffer, int in_initial_l = 3, int in_delta_l = 2, int in_max_adapt_initial_l = 32, int in_max_adapt_delta_l = 32);
+        /* 
+         Constructs OmelEncoder stream.
+         If buffer is NULL then the OmelEncoder constructs one.
+         This should only be done if the OmelEncoder is the only
+         thing using the file. Otherwise, shared buffer should
+         be used
+        */
+        OmelEncoder(FILE* out, std::queue<bool>* buffer, int in_initial_l = 3, int in_delta_l = 2, int in_max_adapt_initial_l = 32, int in_max_adapt_delta_l = 32);
         
-        ~OmelDecoder();
+        /* Destructor */
+        ~OmelEncoder();
         
-        /* Reads a compressed unsigned 32-bit integer */
-        unsigned int read_uint32();
-        
-        /* Reads a compressed signed 32-bit integer */
-        int read_int32();
+        /* Writes an compressed unsigned 32-bit integer */
+        void write_uint32(unsigned int num);
         
     private:
-        
         /* File for saving data to. */
-        FILE* in_file;
+        FILE* out_file;
         
         /* Bit buffer that can be shared between multiple instances. */
         std::queue<bool>* bit_buffer;
@@ -45,7 +49,10 @@ class OmelDecoder
         int max_adapt_delta_l;
         
         /* Writes a bit to the stream */
-        bool get_bit();
+        bool put_bit(bool bit);
+        
+        /* Flushes the bit queue*/
+        void flush();
         
         /* Gets the number of bits required to represent the unsigned 32-bit integer */
         int num_bits(unsigned int num);
