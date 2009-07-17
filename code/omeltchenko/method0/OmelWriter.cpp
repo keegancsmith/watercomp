@@ -23,7 +23,6 @@ void OmelWriter::start_write(int ISTART, int NSAVC, double DELTA)
     unsigned int tmp = 0;
     fwrite(&tmp, sizeof(unsigned int), 1, out_file);
     fwrite(&tmp, sizeof(unsigned int), 1, out_file);
-    fwrite(&p_frames, sizeof(unsigned int), 1, out_file);
     
     // Write data to be able to reconstitute the dcd file on decompression
     fwrite(&ISTART, sizeof(int), 1, out_file);
@@ -59,17 +58,15 @@ void OmelWriter::end_write()
 
 bool OmelWriter::write_frame(vector<Atom>& atom_list, int x_step_bits, int y_step_bits, int z_step_bits)
 {
+    // One more frame
+    ++frames_written;
+    
+    // Update Frames and Atoms in file
+    fseek(out_file, 0, SEEK_SET);
     atoms = atom_list.size();
-    
-    // Initialise order stuff
-    if(order.size() != atoms)
-        for(int i = 0; i < atoms; ++i)
-            order.push_back(i);
-    
-    last_frame.swap(second_last_frame);
-    if(last_frame.size() != atoms)
-        last_frame.resize(atoms);
-    
+    fwrite(&atoms, sizeof(unsigned int), 1, out_file);
+    fwrite(&frames_written, sizeof(unsigned int), 1, out_file);
+    fseek(out_file, 0, SEEK_END);
         
     // Find the bounding box of the atoms
     float min_x = numeric_limits<float>::max();
@@ -136,9 +133,10 @@ bool OmelWriter::write_frame(vector<Atom>& atom_list, int x_step_bits, int y_ste
         
         unsigned int ind = Atom(nx, ny, nz).get_index(x_step_bits, y_step_bits, z_step_bits); 
         indices.push_back(pair<unsigned int, unsigned int>(ind, i));
-        
-//         last_frame[i] = ind;
     }
+    
+    // Sort indices
+    sort(indices.begin(), indices.end());
     
     // Each frame has a 288-byte header indicating index bits and bounding box.
     write_uint32(x_step_bits);
@@ -150,111 +148,16 @@ bool OmelWriter::write_frame(vector<Atom>& atom_list, int x_step_bits, int y_ste
     write_uint32(*(unsigned int*)(&max_x));
     write_uint32(*(unsigned int*)(&max_y));
     write_uint32(*(unsigned int*)(&max_z));
-    
-    if(frames_written % p_frames == 0)
-    {
-        // Index frame
-        
-        // Sort indices
-        sort(indices.begin(), indices.end());
-        
-        OmelEncoder order_encoder(out_file, &bit_buffer);
-        OmelEncoder dist_encoder(out_file, &bit_buffer);
-        
-        unsigned int lind = 0;
-        unsigned int counts = 0;
-        
-        for(int i = 0; i < atoms; ++i)
-            if(indices[i].second != order[i])
-            {
-                ++counts;
-                order_encoder.write_uint32(i - lind);
                 
-                int t = indices[i].second;
-                t -= order[i];
-                
-                dist_encoder.write_int32(t);
-                order[i] = indices[i].second;
-                lind = i;
-            }
-        order_encoder.write_uint32(atoms - lind);
-        
-        // We now have the order, add it to last frame vector
-        for(int i = 0; i < atoms; ++i)
-            last_frame[indices[i].second] = indices[i].first;
-                
-        // Write the data
-        octree_index_encoder.write_uint32(indices[0].first);
-        
-        for(int i = 1; i < atoms; ++i)
-        {
-            octree_index_encoder.write_uint32(indices[i].first - indices[i-1].first);
-        }
-    }
-    else if(frames_written % p_frames == 1)
-    {
-        // First P frame, can only use last frame's data
-        // Predict position has not changed.
-//         char buffy[1000];
-//         sprintf(buffy, "PWrite.txt", frames_written);
-//         FILE* ftmp = fopen(buffy, "w");
-        
-        for(int i = 0; i < atoms; ++i)
-        {
-            int tmp = indices[i].first;
-            tmp -= second_last_frame[i];
-            
-//             fprintf(ftmp, "%d %u %u %d\n", i, second_last_frame[i], indices[i].first, tmp);
-            
-            pframe_encoder.write_int32(tmp);
-        }
-        
-//         fclose(ftmp);
-        
-        for(int i = 0; i < atoms; ++i)
-            last_frame[i] = indices[i].first;
-        
-    }
-    else
-    {
-        // Can use last two frame's data.
-        // Predict velocity is constant
-        
-        char buffy[1000];
-        sprintf(buffy, "P Frame %d Write.txt", frames_written);
-        FILE* ftmp;
-        if(frames_written == 3)
-            ftmp = fopen(buffy, "w");
-        
-        for(int i = 0; i < atoms; ++i)
-        {
-            int delta = second_last_frame[i];
-            delta -= last_frame[i];
-            int error = second_last_frame[i] + delta;
-            error -= indices[i].first;
-            
-            pframe_encoder.write_int32(error);
-            
-            if(frames_written == 3)
-                fprintf(ftmp, "%d %u %u %u %d %d %d\n", i, indices[i].first, second_last_frame[i], last_frame[i], error-delta, error, delta);
-        }
-        
-        for(int i = 0; i < atoms; ++i)
-            last_frame[i] = indices[i].first;
-        
-        if(frames_written == 3)
-            fclose(ftmp);
-        
-    }
+    // Write the data
+    octree_index_encoder.write_uint32(indices[0].first);
+    array_index_encoder.write_uint32(indices[0].second);
     
-    // One more frame written
-    ++frames_written;
-    
-    // Update Frames and Atoms in file
-    fseek(out_file, 0, SEEK_SET);
-    fwrite(&atoms, sizeof(unsigned int), 1, out_file);
-    fwrite(&frames_written, sizeof(unsigned int), 1, out_file);
-    fseek(out_file, 0, SEEK_END);
+    for(int i = 1; i < atoms; ++i)
+    {
+        octree_index_encoder.write_uint32(indices[i].first - indices[i-1].first);
+        array_index_encoder.write_uint32(indices[i].second);
+    }
     
     return true;
 }

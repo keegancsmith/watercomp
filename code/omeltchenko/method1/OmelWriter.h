@@ -9,7 +9,7 @@ class OmelWriter
 {
     public:
         /* Constructs a Omeltchenko reader object to read from the specified file. */
-        OmelWriter(const char* filename, int predicted_frames = 500, int in_initial_l = 3, int in_delta_l = 2, int in_max_adapt_initial_l = 32, int in_max_adapt_delta_l = 32) : out_file(fopen(filename, "wb")), p_frames(predicted_frames), frames_written(0), atoms(0), sort_num_buckets(0), sort_buckets(NULL), octree_index_encoder(OmelEncoder(out_file, &bit_buffer)), array_index_encoder(OmelEncoder(out_file, &bit_buffer)), pframe_encoder(OmelEncoder(out_file, &bit_buffer)) {};
+        OmelWriter(const char* filename, int in_initial_l = 3, int in_delta_l = 2, int in_max_adapt_initial_l = 32, int in_max_adapt_delta_l = 32) : out_file(fopen(filename, "wb")), frames_written(0), atoms(0), sort_num_buckets(0), sort_buckets(NULL), octree_index_encoder(OmelEncoder(out_file, &bit_buffer)), array_index_encoder(OmelEncoder(out_file, &bit_buffer)) {};
         
         /* Destructor - deletes the bucket array */
         ~OmelWriter();
@@ -62,16 +62,4 @@ class OmelWriter
         OmelEncoder octree_index_encoder;
         OmelEncoder array_index_encoder;
         
-        /* order[i] = Index in file, starts off as order[i] = i */
-        std::vector<unsigned int> order;
-        
-        /* Number of P frames + 1 */
-        int p_frames;
-        
-        /* Predicted position data - based on last two position data */
-        std::vector<unsigned int> last_frame;
-        std::vector<unsigned int> second_last_frame;
-        
-        /* P Frame encoder */
-        OmelEncoder pframe_encoder;
 };

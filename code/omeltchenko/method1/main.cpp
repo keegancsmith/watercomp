@@ -111,9 +111,9 @@ int main(int argc, char** argv)
         write_dcdheader(fd, "Created by Omelchenko Compressor by VMD plugin.", reader.get_atoms(), reader.get_istart(), reader.get_nsavc(), reader.get_delta(), 0, 1);
         
         // This is a fail way, it involves copying data again, can fix this later.
-        float* xs = new float[reader.get_atoms()];
-        float* ys = new float[reader.get_atoms()];
-        float* zs = new float[reader.get_atoms()];
+        float* xs = new float[1*reader.get_atoms()];
+        float* ys = new float[1*reader.get_atoms()];
+        float* zs = new float[1*reader.get_atoms()];
         vector<Atom> frame;
         
         int frame_no = 0;
