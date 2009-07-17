@@ -8,3 +8,4 @@ syntax: glob
 *.nav
 *.out
 *.snm
+code/dcd_loader
