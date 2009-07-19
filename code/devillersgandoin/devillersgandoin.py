@@ -16,7 +16,6 @@ __author__ = "Keegan Carruthers-Smith"
 
 
 from random import randint
-from bisect import bisect_left
 
 
 def length_squared(S):
@@ -51,20 +50,21 @@ def encode(points, d=3, b=32):
         S, points, dim = L.pop(0)
         n = len(points)
 
-        points.sort(key=lambda x : x[dim])
-        projection = [x[dim] for x in points]
-
         mid = (S[dim][0] + S[dim][1]) / 2
-        i = bisect_left(projection, mid)
+        p1 = []
+        p2 = []
+        for p in points:
+            if p[dim] < mid:
+                p1.append(p)
+            else:
+                p2.append(p)
 
         S1 = list(S)
         S1[dim] = (S[dim][0], mid)
-        p1 = points[:i]
         n1 = len(p1)
 
         S2 = list(S)
         S2[dim] = (mid, S[dim][1])
-        p2 = points[i:]
         n2 = len(p2)
 
         yield n1
