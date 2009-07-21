@@ -23,7 +23,7 @@ struct encode_queue_item_t {
 
 struct decode_queue_item_t {
     segment_t S;
-    int       n;                // There are n points in S
+    coord_t   n;                // There are n points in S
     int       dim;              // The dimension we are currently splitting by
 };
 
@@ -42,7 +42,7 @@ vector<coord_t> encode(const vector<point_t> & points, unsigned int bits)
     queue<encode_queue_item_t> L;
 
     assert(sizeof(coord_t) > bits);
-    
+
     // Initially we look at all points are in [0,2^bits)^DIMENSIONS
     encode_queue_item_t initial;
     initial.points = points;
@@ -87,4 +87,71 @@ vector<coord_t> encode(const vector<point_t> & points, unsigned int bits)
     }
 
     return data;
+}
+
+point_t project_1(const segment_t & S) {
+    point_t r;
+    for (int i = 0; i < DIMENSIONS; i++)
+        r.coords[i] = S.from[i];
+    return r;
+}
+
+vector<point_t> decode(const vector<coord_t> & data, unsigned int bits)
+{
+    vector<point_t> points;
+    queue<decode_queue_item_t> L;
+    size_t i = 0;
+
+    assert(sizeof(coord_t) > bits);
+
+    // Initially we look at all points are in [0,2^bits)^DIMENSIONS
+    decode_queue_item_t initial;
+    initial.n = data[i++];
+    initial.dim = 0;
+    for (int i = 0; i < DIMENSIONS; i++) {
+        initial.S.from[i] = 0;
+        initial.S.to[i]   = 1 << bits;
+    }
+
+    L.push(initial);
+
+    while(!L.empty()) {
+        decode_queue_item_t x = L.front();
+        L.pop();
+        coord_t mid = (x.S.from[x.dim] + x.S.to[x.dim]) / 2;
+
+        decode_queue_item_t left;
+        left.dim = (x.dim + 1) % DIMENSIONS;
+        left.S = x.S;
+        left.S.to[x.dim] = mid;
+
+        decode_queue_item_t right;
+        right.dim = (x.dim + 1) % DIMENSIONS;
+        right.S = x.S;
+        right.S.from[x.dim] = mid;
+
+        left.n = data[i++];
+        right.n = x.n - left.n;
+
+        if (left.n > 0) {
+            if (is_unit(left.S)) {
+                point_t p = project_1(left.S);
+                for (coord_t j = 0; j < left.n; j++)
+                    points.push_back(p);
+            } else {
+                L.push(left);
+            }
+        }
+        if (right.n > 0) {
+            if (is_unit(right.S)) {
+                point_t p = project_1(right.S);
+                for (coord_t j = 0; j < right.n; j++)
+                    points.push_back(p);
+            } else {
+                L.push(right);
+            }
+        }
+    }
+
+    return points;
 }
