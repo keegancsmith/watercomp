@@ -41,7 +41,7 @@ vector<coord_t> encode(const vector<point_t> & points, unsigned int bits)
     vector<coord_t> data;
     queue<encode_queue_item_t> L;
 
-    assert(sizeof(coord_t) > bits);
+    assert(sizeof(coord_t)*8 > bits);
 
     // Initially we look at all points are in [0,2^bits)^DIMENSIONS
     encode_queue_item_t initial;
@@ -102,7 +102,7 @@ vector<point_t> decode(const vector<coord_t> & data, unsigned int bits)
     queue<decode_queue_item_t> L;
     size_t i = 0;
 
-    assert(sizeof(coord_t) > bits);
+    assert(sizeof(coord_t)*8 > bits);
 
     // Initially we look at all points are in [0,2^bits)^DIMENSIONS
     decode_queue_item_t initial;

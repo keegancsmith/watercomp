@@ -7,7 +7,7 @@
 #define DIMENSIONS 3
 #endif
 
-// needs to be unsigned and sizeof(coord_t) >= BITS
+// needs to be unsigned and sizeof(coord_t) > BITS
 typedef unsigned long coord_t;
 
 struct point_t {
