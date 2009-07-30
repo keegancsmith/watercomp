@@ -1,3 +1,5 @@
+// Tests transformation using 2d example from paper
+
 #include "devillersgandoin.h"
 #include <cassert>
 #include <iostream>

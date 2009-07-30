@@ -3,7 +3,9 @@
 
 #include <vector>
 
-#define DIMENSIONS 2
+#ifndef DIMENSIONS
+#define DIMENSIONS 3
+#endif
 
 // needs to be unsigned and sizeof(coord_t) >= BITS
 typedef unsigned long coord_t;
