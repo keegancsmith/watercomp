@@ -24,9 +24,12 @@ using namespace std;
 
 struct point_t_cmp {
     bool operator()(const point_t & a, const point_t & b) const {
-        for (int i = 0; i < DIMENSIONS; i++)
+        for (int i = 0; i < DIMENSIONS; i++) {
             if (a.coords[i] < b.coords[i])
                 return true;
+            else if (a.coords[i] > b.coords[i])
+                return false;
+        }
         return false;
     }
 };
@@ -106,10 +109,11 @@ vector<point_t> generate(int N) {
     vector<point_t> points;
 
     srand(time(0));
+    coord_t mod = 1 << BITS;
     for (int i = 0; i < N; i++) {
         point_t p;
         for (int j = 0; j < DIMENSIONS; j++)
-            p.coords[j] = (coord_t)rand();
+            p.coords[j] = ((coord_t)rand()) % mod;
         points.push_back(p);
     }
 
@@ -126,7 +130,7 @@ int usage() {
 
 
 int main(int argc, char **argv) {
-    if (argc == 1)
+    if (argc < 4)
         return usage();
 
     string cmd = argv[1];
