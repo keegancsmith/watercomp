@@ -9,3 +9,5 @@ syntax: glob
 *.out
 *.snm
 code/dcd_loader
+test_point_compression
+test_transformation

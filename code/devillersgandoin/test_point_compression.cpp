@@ -9,6 +9,8 @@
 
 
 #include "devillersgandoin.h"
+#include "ac.h"
+
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -16,6 +18,7 @@
 #include <cstdlib>
 #include <string>
 #include <ctime>
+#include <cstdio>
 
 using namespace std;
 
@@ -50,16 +53,29 @@ vector<point_t> read_uncompressed(istream & in) {
 }
 
 
-vector<coord_t> read_compressed(istream & in) {
+vector<coord_t> read_compressed(FILE * in) {
     unsigned int N;
     vector<coord_t> data;
+    ac_decoder decoder;
+    ac_model model;
 
-    in.read((char*)&N, sizeof(unsigned int));
+    int read = fread(&N, sizeof(unsigned int), 1, in);
+    assert(read == 1);
+
+    // The upperbound on the number of symbols is |[0, num of points]|
+    ac_decoder_init(&decoder, in);
+    ac_model_init(&model, 256, NULL, 1);
+
     for (unsigned int i = 0; i < N; i++) {
-        coord_t c;
-        in.read((char*)&c, sizeof(coord_t));
+        coord_t c = 0;
+        for (size_t j = 0; j < sizeof(coord_t); j++) {
+            c |= (ac_decode_symbol(&decoder, &model) << (8 * j));
+        }
         data.push_back(c);
     }
+
+    ac_decoder_done(&decoder);
+    ac_model_done(&model);
 
     return data;
 }
@@ -74,12 +90,23 @@ void write_uncompressed(ostream & out, const vector<point_t> & points) {
 }
 
 
-void write_compressed(ostream & out, const vector<coord_t> & data) {
-    unsigned int N = data.size();
+void write_compressed(FILE * out, const vector<coord_t> & data) {
+    ac_encoder encoder;
+    ac_model model;
 
-    out.write((char*)&N, sizeof(unsigned int));
+    unsigned int N = data.size();
+    fwrite(&N, sizeof(unsigned int), 1, out);
+
+    // The upperbound on the number of symbols is |[0, num of points]|
+    ac_encoder_init(&encoder, out);
+    ac_model_init(&model, 256, NULL, 1);
+
     for (unsigned int i = 0; i < N; i++)
-        out.write((char*)&(data[i]), sizeof(coord_t));
+        for (size_t j = 0; j < sizeof(coord_t); j++)
+            ac_encode_symbol(&encoder, &model, (data[i] >> (8 * j)) & 0xFF);
+
+    ac_encoder_done(&encoder);
+    ac_model_done(&model);
 }
 
 
@@ -137,16 +164,20 @@ int main(int argc, char **argv) {
 
     if (cmd == "enc") {
         ifstream fin(argv[2], ios::binary);
-        ofstream fout(argv[3], ios::binary);
+        FILE * fout = fopen(argv[3], "wb");
 
         vector<point_t> points = read_uncompressed(fin);
         write_compressed(fout, encode(points, BITS));
+
+        fclose(fout);
     } else if (cmd == "dec") {
-        ifstream fin(argv[2], ios::binary);
+        FILE * fin = fopen(argv[2], "rb");
         ofstream fout(argv[3], ios::binary);
 
         vector<coord_t> data = read_compressed(fin);
         write_uncompressed(fout, decode(data, BITS));
+
+        fclose(fin);
     } else if (cmd == "same") {
         bool same = test_if_same(argv[2], argv[3]);
 
