@@ -94,7 +94,8 @@ void compress(string dcd_path, string out_path, int quantisation_bits=10) {
 
 
         // Do the devillers and gandoin transformation
-        vector<coord_t> encoded = encode(frame, quantisation_bits);
+        vector<int> perm;
+        vector<coord_t> encoded = encode(frame, perm, quantisation_bits);
         unsigned int size = encoded.size();
 
 
@@ -103,7 +104,14 @@ void compress(string dcd_path, string out_path, int quantisation_bits=10) {
         ac_encode_data(max_box, sizeof(float), 3, &encoder, &model);
         ac_encode_data(&size,   sizeof(unsigned int), 1, &encoder, &model);
 
-        // TODO Encode points permutation
+
+        // Encode points permutation
+        assert(perm.size() == natoms);
+        for (int j = 0; j < natoms; j++) {
+            int c = perm[j];
+            ac_encode_data(&c, sizeof(int), 1, &encoder, &model);
+        }
+
 
         // Write encoded points
         for (size_t j = 0; j < size; j++) {
@@ -128,6 +136,7 @@ void decompress(string in_path, string out_path) {
     ac_model model;
     FILE * fin;
     float * points[3];
+    int * trans;
 
 
     // Setup arithmetic decoders to use in_path
@@ -159,6 +168,7 @@ void decompress(string in_path, string out_path) {
     // Points buffer. Need to store each dimension seperately
     for (int d = 0; d < 3; d++)
         points[d] = new float[natoms];
+    trans = new int[natoms];
 
 
     // Process each frame and write out
@@ -178,7 +188,9 @@ void decompress(string in_path, string out_path) {
             range[d] = max_box[d] - min_box[d];
 
 
-        // TODO read in points permutation
+        // Read in points permutation
+        for (int j = 0; j < natoms; j++)
+            ac_decode_data(trans + j, sizeof(int), 1, &decoder, &model);
 
 
         // Read in encoded data
@@ -200,7 +212,7 @@ void decompress(string in_path, string out_path) {
 
             for (int d = 0; d < 3; d++) {
                 float approx = decoded[j].coords[d] + 0.5;
-                points[d][j] = approx * range[d] / buckets;
+                points[d][trans[j]] = approx * range[d] / buckets;
             }
         }
 
@@ -219,6 +231,7 @@ void decompress(string in_path, string out_path) {
     ac_model_done(&model);
     fclose(fin);
     //fio_close(fd); // Won't compile for some reason
+    delete []trans;
     for (int d = 0; d < 3; d++)
         delete[] points[d];
 }

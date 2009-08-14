@@ -167,7 +167,8 @@ int main(int argc, char **argv) {
         FILE * fout = fopen(argv[3], "wb");
 
         vector<point_t> points = read_uncompressed(fin);
-        write_compressed(fout, encode(points, BITS));
+        vector<int> perm;
+        write_compressed(fout, encode(points, perm, BITS));
 
         fclose(fout);
     } else if (cmd == "dec") {

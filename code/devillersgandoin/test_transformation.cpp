@@ -27,7 +27,8 @@ int main() {
         points.push_back(p);
     }
 
-    vector<coord_t> data = encode(points, 2);
+    vector<int> perm;
+    vector<coord_t> data = encode(points, perm, 2);
     vector<point_t> decoded = decode(data, 2);
 
     for (int i = 0; i < 12; i++)

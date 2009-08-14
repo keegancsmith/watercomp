@@ -36,7 +36,9 @@ bool is_unit(const segment_t & S) {
 }
 
 
-vector<coord_t> encode(const vector<point_t> & points, unsigned int bits)
+vector<coord_t> encode(const vector<point_t> & points,
+                       std::vector<int> & permutation,
+                       unsigned int bits)
 {
     vector<coord_t> data;
     queue<encode_queue_item_t> L;
@@ -80,10 +82,22 @@ vector<coord_t> encode(const vector<point_t> & points, unsigned int bits)
 
         data.push_back(left.points.size());
 
-        if (left.points.size() > 0 && !is_unit(left.S))
-            L.push(left);
-        if (right.points.size() > 0 && !is_unit(right.S))
-            L.push(right);
+        if (left.points.size() > 0) {
+            if (is_unit(left.S)) {
+                for (size_t i = 0; i < left.points.size(); i++)
+                    permutation.push_back(left.points[i].index);
+            } else {
+                L.push(left);
+            }
+        }
+        if (right.points.size() > 0) {
+            if (is_unit(right.S)) {
+                for (size_t i = 0; i < right.points.size(); i++)
+                    permutation.push_back(right.points[i].index);
+            } else {
+                L.push(right);
+            }
+        }
     }
 
     return data;
