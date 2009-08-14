@@ -11,3 +11,4 @@ syntax: glob
 code/dcd_loader
 test_point_compression
 test_transformation
+*dcd

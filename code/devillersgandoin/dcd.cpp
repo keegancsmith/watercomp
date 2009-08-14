@@ -127,7 +127,7 @@ void decompress(string in_path, string out_path) {
     ac_decoder decoder;
     ac_model model;
     FILE * fin;
-    float * points;
+    float * points[3];
 
 
     // Setup arithmetic decoders to use in_path
@@ -144,8 +144,21 @@ void decompress(string in_path, string out_path) {
     int nframes           = header[2];
 
 
-    // Stores points for each frame before outputing
-    points = new float[3 * natoms];
+    // dcd output
+    fio_fd fd;
+    int    istart        = 0;
+    int    nsavc         = 1;
+    double delta         = 1.0;
+    int    with_unitcell = 0;
+    int    charmm        = 1;
+    assert(fio_open(out_path.c_str(), FIO_WRITE, &fd) >= 0);
+    write_dcdheader(fd, "Created by Devillers & Gandoin Compressor.", natoms,
+                    istart, nsavc, delta, with_unitcell, charmm);
+
+
+    // Points buffer. Need to store each dimension seperately
+    for (int d = 0; d < 3; d++)
+        points[d] = new float[natoms];
 
 
     // Process each frame and write out
@@ -187,11 +200,15 @@ void decompress(string in_path, string out_path) {
 
             for (int d = 0; d < 3; d++) {
                 float approx = decoded[j].coords[d] + 0.5;
-                points[3*j+d] = approx * range[d] / buckets;
+                points[d][j] = approx * range[d] / buckets;
             }
         }
 
-        // TODO write points to file
+
+        // Write uncompressed atoms
+        write_dcdstep(fd, i+1, istart + nsavc*(i+1), natoms,
+                      points[0], points[1], points[3], NULL, 1);
+
 
         printf("Done\n");
     }
@@ -201,7 +218,9 @@ void decompress(string in_path, string out_path) {
     ac_decoder_done(&decoder);
     ac_model_done(&model);
     fclose(fin);
-    delete[] points;
+    //fio_close(fd); // Won't compile for some reason
+    for (int d = 0; d < 3; d++)
+        delete[] points[d];
 }
 
 
