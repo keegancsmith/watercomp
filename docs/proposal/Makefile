@@ -8,3 +8,4 @@ proposal.pdf: proposal.tex proposal.bib
 
 slides.pdf: slides.tex
 	pdflatex -halt-on-error slides.tex
+	pdflatex -halt-on-error slides.tex
