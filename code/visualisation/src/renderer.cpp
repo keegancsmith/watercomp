@@ -4,6 +4,8 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 
+#include "frame_data.h"
+
 #define CHECK_GL_ERRORS
 
 Renderer::Renderer(QWidget* parent)
@@ -17,10 +19,13 @@ Renderer::Renderer(QWidget* parent)
     dragging[0] = false;
     dragging[1] = false;
     dragging[2] = false;
+
+    data = new Frame_Data();
 }//constructor
 
 Renderer::~Renderer()
 {
+    delete data;
 }//destructor
 
 QSize Renderer::minimumSizeHint() const
@@ -40,6 +45,11 @@ void Renderer::initializeGL()
 
     glEnable(GL_DEPTH_TEST);
 
+    glPointSize(10.0);
+    glLineWidth(2.0);
+    // glEnable(GL_LINE_SMOOTH)
+    // glEnable(GL_POINT_SMOOTH);
+
     glClearColor(0.0, 0.0, 0.0, 0.0);
 }//initializeGL
 
@@ -53,7 +63,7 @@ void Renderer::resizeGL(int w, int h)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     float near = 0.1f;
-    float far = 100.0f;
+    float far = 1000.0f;
     gluPerspective(60.0f, ratio, near, far);
     glMatrixMode(GL_MODELVIEW);
 
@@ -70,37 +80,46 @@ void Renderer::paintGL()
     glRotatef(rot[0], 0.0f, 1.0f, 0.0f);
     // glRotatef(rot[2], 0.0f, 0.0f, 1.0f);
 
-    glBegin(GL_QUADS);
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glVertex3f(-1.0f,  1.0f, -1.0f);
-    glVertex3f( 1.0f,  1.0f, -1.0f);
-    glVertex3f( 1.0f,  1.0f,  1.0f);
-    glVertex3f(-1.0f,  1.0f,  1.0f);
-    glColor3f(1.0f, 0.0f, 0.0f);
-    glVertex3f(-1.0f,  1.0f, -1.0f);
-    glVertex3f(-1.0f, -1.0f, -1.0f);
-    glVertex3f( 1.0f, -1.0f, -1.0f);
-    glVertex3f( 1.0f,  1.0f, -1.0f);
-    glColor3f(0.0f, 1.0f, 0.0f);
-    glVertex3f(-1.0f,  1.0f, -1.0f);
-    glVertex3f(-1.0f,  1.0f,  1.0f);
-    glVertex3f(-1.0f, -1.0f,  1.0f);
-    glVertex3f(-1.0f, -1.0f, -1.0f);
-    glColor3f(0.0f, 0.0f, 1.0f);
-    glVertex3f(-1.0f,  1.0f,  1.0f);
-    glVertex3f( 1.0f,  1.0f,  1.0f);
-    glVertex3f( 1.0f, -1.0f,  1.0f);
-    glVertex3f(-1.0f, -1.0f,  1.0f);
-    glColor3f(1.0f, 1.0f, 0.0f);
-    glVertex3f( 1.0f,  1.0f,  1.0f);
-    glVertex3f( 1.0f,  1.0f, -1.0f);
-    glVertex3f( 1.0f, -1.0f, -1.0f);
-    glVertex3f( 1.0f, -1.0f,  1.0f);
-    glColor3f(0.0f, 1.0f, 1.0f);
-    glVertex3f( 1.0f, -1.0f, -1.0f);
-    glVertex3f(-1.0f, -1.0f, -1.0f);
-    glVertex3f(-1.0f, -1.0f,  1.0f);
-    glVertex3f( 1.0f, -1.0f,  1.0f);
+    // {
+    // glBegin(GL_QUADS);
+    // glColor3f(1.0f, 1.0f, 1.0f);
+    // glVertex3f(-1.0f,  1.0f, -1.0f);
+    // glVertex3f( 1.0f,  1.0f, -1.0f);
+    // glVertex3f( 1.0f,  1.0f,  1.0f);
+    // glVertex3f(-1.0f,  1.0f,  1.0f);
+    // glColor3f(1.0f, 0.0f, 0.0f);
+    // glVertex3f(-1.0f,  1.0f, -1.0f);
+    // glVertex3f(-1.0f, -1.0f, -1.0f);
+    // glVertex3f( 1.0f, -1.0f, -1.0f);
+    // glVertex3f( 1.0f,  1.0f, -1.0f);
+    // glColor3f(0.0f, 1.0f, 0.0f);
+    // glVertex3f(-1.0f,  1.0f, -1.0f);
+    // glVertex3f(-1.0f,  1.0f,  1.0f);
+    // glVertex3f(-1.0f, -1.0f,  1.0f);
+    // glVertex3f(-1.0f, -1.0f, -1.0f);
+    // glColor3f(0.0f, 0.0f, 1.0f);
+    // glVertex3f(-1.0f,  1.0f,  1.0f);
+    // glVertex3f( 1.0f,  1.0f,  1.0f);
+    // glVertex3f( 1.0f, -1.0f,  1.0f);
+    // glVertex3f(-1.0f, -1.0f,  1.0f);
+    // glColor3f(1.0f, 1.0f, 0.0f);
+    // glVertex3f( 1.0f,  1.0f,  1.0f);
+    // glVertex3f( 1.0f,  1.0f, -1.0f);
+    // glVertex3f( 1.0f, -1.0f, -1.0f);
+    // glVertex3f( 1.0f, -1.0f,  1.0f);
+    // glColor3f(0.0f, 1.0f, 1.0f);
+    // glVertex3f( 1.0f, -1.0f, -1.0f);
+    // glVertex3f(-1.0f, -1.0f, -1.0f);
+    // glVertex3f(-1.0f, -1.0f,  1.0f);
+    // glVertex3f( 1.0f, -1.0f,  1.0f);
+    // glEnd();
+    // }
+
+    glBegin(GL_POINTS);
+    for (int i = 0; i < data->natoms(); i++)
+    {
+        glVertex3dv(data->at(i).pos);
+    }//for
     glEnd();
 
 #ifdef CHECK_GL_ERRORS
@@ -131,6 +150,8 @@ void Renderer::mousePressEvent(QMouseEvent* event)
             lastpos[0] = event->x();
             lastpos[1] = event->y();
             break;
+        default:
+            break;
     }//switch
 }//mousePressEvent
 
@@ -140,6 +161,8 @@ void Renderer::mouseReleaseEvent(QMouseEvent* event)
     {
         case Qt::LeftButton:
             dragging[0] = false;
+            break;
+        default:
             break;
     }//switch
 }//mouseReleaseEvent

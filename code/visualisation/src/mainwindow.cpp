@@ -7,9 +7,10 @@
 #include <QMenuBar>
 #include <QString>
 
-#include <stdio.h>
+#include <string.h>
 
 #include "renderer.h"
+#include "pdb_loader.h"
 
 MainWindow::MainWindow()
 {
@@ -36,6 +37,8 @@ void MainWindow::doOpenFile()
     if (lastLocation->isEmpty())
         return;
     //loadData(*lastLocation);
+    PDB_Loader l;
+    l.load_file(lastLocation->toStdString().c_str(), renderer->data);
 }//doOpenFile
 
 void MainWindow::setupMenu()

@@ -3,8 +3,11 @@
 
 #include <QGLWidget>
 
+class Frame_Data;
+
 class Renderer : public QGLWidget
 {
+    friend class MainWindow;
     public:
         Renderer(QWidget* parent=0);
         ~Renderer();
@@ -27,6 +30,8 @@ class Renderer : public QGLWidget
         float rot[3];
         bool dragging[3];
         int lastpos[2];
+
+        Frame_Data* data;
 };//Renderer
 
 #endif
