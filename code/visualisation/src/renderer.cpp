@@ -1,7 +1,5 @@
 #include "renderer.h"
 
-#include <cmath>
-#include <stdio.h>
 #include <QMouseEvent>
 #include <QWheelEvent>
 
@@ -16,16 +14,14 @@
 Renderer::Renderer(QWidget* parent)
     : QGLWidget(parent)
 {
-    setMouseTracking(true);
-    zoom = 6.0f;
-    // rot[0] = 0;
-    // rot[1] = 0;
-    // rot[2] = 0;
-    rot = new Quaternion();
-    rot->update_matrix();
     dragging[0] = false;
     dragging[1] = false;
     dragging[2] = false;
+
+    setMouseTracking(true);
+    zoom = 6.0f;
+    rot = new Quaternion();
+    rot->update_matrix();
 
     data = new Frame_Data();
 }//constructor
@@ -55,7 +51,7 @@ void Renderer::initializeGL()
 
     glPointSize(10.0);
     glLineWidth(2.0);
-    // glEnable(GL_LINE_SMOOTH)
+    // glEnable(GL_LINE_SMOOTH);
     // glEnable(GL_POINT_SMOOTH);
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -83,57 +79,14 @@ void Renderer::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
+    //setup camera
     glTranslatef(0.0f, 0.0f, -zoom);
     glMultMatrixd(rot->matrix);
-    // glRotatef(DEG(rot->w), rot->x, rot->y, rot->z);
 
-    // double angle = 2 * acos(rot->w);
-    // double s = sqrt(rot->x*rot->x + rot->y*rot->y + rot->z*rot->z);
-    // if (s < 0.001) s = 1;
-    // s = 1 / s;
-    // glRotatef(DEG(angle), rot->x*s, rot->y*s, rot->z*s);
-
-    // glRotatef(rot[1], 1.0f, 0.0f, 0.0f);
-    // glRotatef(rot[0], 0.0f, 1.0f, 0.0f);
-    // glRotatef(rot[2], 0.0f, 0.0f, 1.0f);
-
-    // {
-    // glBegin(GL_QUADS);
-    // glColor3f(1.0f, 1.0f, 1.0f);
-    // glVertex3f(-1.0f,  1.0f, -1.0f);
-    // glVertex3f( 1.0f,  1.0f, -1.0f);
-    // glVertex3f( 1.0f,  1.0f,  1.0f);
-    // glVertex3f(-1.0f,  1.0f,  1.0f);
-    // glColor3f(1.0f, 0.0f, 0.0f);
-    // glVertex3f(-1.0f,  1.0f, -1.0f);
-    // glVertex3f(-1.0f, -1.0f, -1.0f);
-    // glVertex3f( 1.0f, -1.0f, -1.0f);
-    // glVertex3f( 1.0f,  1.0f, -1.0f);
-    // glColor3f(0.0f, 1.0f, 0.0f);
-    // glVertex3f(-1.0f,  1.0f, -1.0f);
-    // glVertex3f(-1.0f,  1.0f,  1.0f);
-    // glVertex3f(-1.0f, -1.0f,  1.0f);
-    // glVertex3f(-1.0f, -1.0f, -1.0f);
-    // glColor3f(0.0f, 0.0f, 1.0f);
-    // glVertex3f(-1.0f,  1.0f,  1.0f);
-    // glVertex3f( 1.0f,  1.0f,  1.0f);
-    // glVertex3f( 1.0f, -1.0f,  1.0f);
-    // glVertex3f(-1.0f, -1.0f,  1.0f);
-    // glColor3f(1.0f, 1.0f, 0.0f);
-    // glVertex3f( 1.0f,  1.0f,  1.0f);
-    // glVertex3f( 1.0f,  1.0f, -1.0f);
-    // glVertex3f( 1.0f, -1.0f, -1.0f);
-    // glVertex3f( 1.0f, -1.0f,  1.0f);
-    // glColor3f(0.0f, 1.0f, 1.0f);
-    // glVertex3f( 1.0f, -1.0f, -1.0f);
-    // glVertex3f(-1.0f, -1.0f, -1.0f);
-    // glVertex3f(-1.0f, -1.0f,  1.0f);
-    // glVertex3f( 1.0f, -1.0f,  1.0f);
-    // glEnd();
-    // }
-
+    //translate to centroid of points (centre of rotations)
     glTranslatef(data->half_size[0], data->half_size[1], data->half_size[2]);
 
+    //draw axes
     glPushMatrix();
     glTranslatef(data->bbox[0][0], data->bbox[0][1], data->bbox[0][2]);
     glBegin(GL_LINES);
@@ -149,6 +102,7 @@ void Renderer::paintGL()
     glEnd();
     glPopMatrix();
 
+    //draw points
     glColor3f(1.0f, 1.0f, 1.0f);
     glBegin(GL_POINTS);
     for (int i = 0; i < data->natoms(); i++)
@@ -166,26 +120,25 @@ void Renderer::paintGL()
 
 void Renderer::resetView()
 {
-    // rot[0] = 0;
-    // rot[1] = 0;
-    // rot[2] = 0;
     rot->reset();
     double side = data->size[0];
     if (data->size[1] > side)
         side = data->size[1];
     //set a default zoom which should cover the entire volume
     zoom = side;
+
+    //TODO? setup projection matrix so that near and far encompass data?
 }//resetView
 
 void Renderer::mouseMoveEvent(QMouseEvent* event)
 {
+    //left drag to rotate
     if (dragging[0])
     {
-        // rot[0] -= lastpos[0] - event->x();
-        // rot[1] -= lastpos[1] - event->y();
         rot->rotate(RAD(lastpos[0]-event->x()), 0, 1, 0);
         rot->rotate(RAD(lastpos[1]-event->y()), 1, 0, 0);
         rot->update_matrix();
+
         lastpos[0] = event->x();
         lastpos[1] = event->y();
         updateGL();

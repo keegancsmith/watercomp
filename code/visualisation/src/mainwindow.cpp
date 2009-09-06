@@ -37,7 +37,7 @@ void MainWindow::doOpenFile()
     *lastLocation = QFileDialog::getOpenFileName(this, tr("Open data"), *lastLocation, tr("All (*.*)"));
     if (lastLocation->isEmpty())
         return;
-    //loadData(*lastLocation);
+
     PDB_Loader l;
     l.load_file(lastLocation->toStdString().c_str(), renderer->data);
     renderer->data->update_bbox();

@@ -89,27 +89,6 @@ void Quaternion::update_matrix()
     double y2 = y*y;
     double z2 = z*z;
 
-    // matrix[0] = 1 - 2*y2 - 2*z2;
-    // matrix[1] = 2*w*y + 2*w*z;
-    // matrix[2] = 2*w*z - 2*w*y;
-    // matrix[3] = 0;
-
-    // matrix[4] = 2*x*y - 2*w*z;
-    // matrix[5] = 1 - 2*x2 - 2*z2;
-    // matrix[6] = 2*y*z - 2*w*x;
-    // matrix[7] = 0;
-
-    // matrix[8] = 2*w*z + 2*w*y;
-    // matrix[9] = 2*y*z - 2*w*x;
-    // matrix[10] = 1 - 2*x2 - 2*y2;
-    // matrix[11] = 0;
-
-    // matrix[12] = 0;
-    // matrix[13] = 0;
-    // matrix[14] = 0;
-    // matrix[15] = 1;
-
-
     matrix[0] = 1 - 2 * (y2 + z2);
     matrix[1] = 2 * (x*y - w*z);
     matrix[2] = 2 * (x*z + w*y);
@@ -130,3 +109,4 @@ void Quaternion::update_matrix()
     matrix[14] = 0;
     matrix[15] = 1;
 }//update_matrix
+
