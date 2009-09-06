@@ -80,7 +80,7 @@ void Renderer::paintGL()
     glLoadIdentity();
 
     //setup camera
-    glTranslatef(0.0f, 0.0f, -zoom);
+    glTranslatef(-data->half_size[0], -data->half_size[1], -zoom);
     glMultMatrixd(rot->matrix);
 
     //translate to centroid of points (centre of rotations)
@@ -125,7 +125,7 @@ void Renderer::resetView()
     if (data->size[1] > side)
         side = data->size[1];
     //set a default zoom which should cover the entire volume
-    zoom = side;
+    zoom = side + data->size[2];
 
     //TODO? setup projection matrix so that near and far encompass data?
 }//resetView

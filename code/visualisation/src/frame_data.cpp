@@ -2,6 +2,15 @@
 
 Frame_Data::Frame_Data()
 {
+    clear();
+}//constructor
+
+Frame_Data::~Frame_Data()
+{
+}//destructor
+
+void Frame_Data::clear()
+{
     _natoms = 0;
     for (int i = 0; i < 3; i++)
     {
@@ -10,11 +19,8 @@ Frame_Data::Frame_Data()
         size[i] = 1;
         half_size[i] = 0;
     }//for
-}//constructor
-
-Frame_Data::~Frame_Data()
-{
-}//destructor
+    data.resize(0);
+}//clear
 
 int Frame_Data::natoms()
 {

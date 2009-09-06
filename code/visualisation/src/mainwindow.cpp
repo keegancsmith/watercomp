@@ -39,6 +39,7 @@ void MainWindow::doOpenFile()
         return;
 
     PDB_Loader l;
+    renderer->data->clear();
     l.load_file(lastLocation->toStdString().c_str(), renderer->data);
     renderer->data->update_bbox();
     renderer->resetView();

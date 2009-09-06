@@ -19,6 +19,8 @@ class Frame_Data
         Frame_Data();
         ~Frame_Data();
 
+        void clear();
+
         int natoms();
         void natoms(int value);
 
