@@ -19,6 +19,8 @@ class Renderer : public QGLWidget
         void resizeGL(int w, int h);
         void paintGL();
 
+        void resetView();
+
     protected:
         void mouseMoveEvent(QMouseEvent* event);
         void mousePressEvent(QMouseEvent* event);

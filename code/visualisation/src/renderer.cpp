@@ -115,6 +115,24 @@ void Renderer::paintGL()
     // glEnd();
     // }
 
+    glTranslatef(data->half_size[0], data->half_size[1], data->half_size[2]);
+
+    glPushMatrix();
+    glTranslatef(data->bbox[0][0], data->bbox[0][1], data->bbox[0][2]);
+    glBegin(GL_LINES);
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glVertex3f(0.0f, 0.0f, 0.0f);
+    glVertex3f(data->size[0], 0.0f, 0.0f);
+    glColor3f(0.0f, 1.0f, 0.0f);
+    glVertex3f(0.0f, 0.0f, 0.0f);
+    glVertex3f(0.0f, data->size[1], 0.0f);
+    glColor3f(0.0f, 0.0f, 1.0f);
+    glVertex3f(0.0f, 0.0f, 0.0f);
+    glVertex3f(0.0f, 0.0f, data->size[2]);
+    glEnd();
+    glPopMatrix();
+
+    glColor3f(1.0f, 1.0f, 1.0f);
     glBegin(GL_POINTS);
     for (int i = 0; i < data->natoms(); i++)
     {
@@ -128,6 +146,18 @@ void Renderer::paintGL()
         fprintf(stderr, "GLError: '%s'\n", gluErrorString(errcode));
 #endif
 }//paintGL
+
+void Renderer::resetView()
+{
+    rot[0] = 0;
+    rot[1] = 0;
+    rot[2] = 0;
+    double side = data->size[0];
+    if (data->size[1] > side)
+        side = data->size[1];
+    //set a default zoom which should cover the entire volume
+    zoom = side;
+}//resetView
 
 void Renderer::mouseMoveEvent(QMouseEvent* event)
 {

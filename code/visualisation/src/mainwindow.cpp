@@ -9,8 +9,9 @@
 
 #include <string.h>
 
-#include "renderer.h"
+#include "frame_data.h"
 #include "pdb_loader.h"
+#include "renderer.h"
 
 MainWindow::MainWindow()
 {
@@ -39,6 +40,9 @@ void MainWindow::doOpenFile()
     //loadData(*lastLocation);
     PDB_Loader l;
     l.load_file(lastLocation->toStdString().c_str(), renderer->data);
+    renderer->data->update_bbox();
+    renderer->resetView();
+    renderer->updateGL();
 }//doOpenFile
 
 void MainWindow::setupMenu()

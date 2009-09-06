@@ -3,6 +3,13 @@
 Frame_Data::Frame_Data()
 {
     _natoms = 0;
+    for (int i = 0; i < 3; i++)
+    {
+        bbox[0][i] = 0;
+        bbox[1][i] = 0;
+        size[i] = 1;
+        half_size[i] = 0;
+    }//for
 }//constructor
 
 Frame_Data::~Frame_Data()
@@ -46,4 +53,34 @@ Atom Frame_Data::at(int index)
         // return NULL;
     return data[index];
 }//at
+
+void Frame_Data::update_bbox()
+{
+    if (_natoms <= 0)
+        return;
+
+    int i, j;
+    for (i = 0; i < 3; i++)
+    {
+        bbox[0][i] = data[0].pos[i];
+        bbox[1][i] = data[0].pos[i];
+    }//for
+
+    for (i = 1; i < _natoms; i++)
+    {
+        for (j = 0; j < 3; j++)
+        {
+            if (data[i].pos[j] < bbox[0][j])
+                bbox[0][j] = data[i].pos[j];
+            if (data[i].pos[j] > bbox[1][j])
+                bbox[1][j] = data[i].pos[j];
+        }//for
+    }//for
+
+    for (i = 0; i < 3; i++)
+    {
+        size[i] = bbox[1][i] - bbox[0][i];
+        half_size[i] = size[i] * 0.5;
+    }//for
+}//update_bbox
 

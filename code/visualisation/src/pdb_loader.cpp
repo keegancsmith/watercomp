@@ -62,6 +62,7 @@ bool PDB_Loader::load_file(const char* filename, Frame_Data* data)
             {
                 printf("OH2: %f %f %f\n", x, y, z);
                 _water_count += 1;
+                a.id = serial;
                 a.pos[0] = x;
                 a.pos[1] = y;
                 a.pos[2] = z;
