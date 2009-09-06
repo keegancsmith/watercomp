@@ -4,6 +4,7 @@
 #include <QGLWidget>
 
 class Frame_Data;
+class Quaternion;
 
 class Renderer : public QGLWidget
 {
@@ -29,9 +30,11 @@ class Renderer : public QGLWidget
 
     private:
         float zoom;
-        float rot[3];
+        //float rot[3];
         bool dragging[3];
         int lastpos[2];
+
+        Quaternion* rot;
 
         Frame_Data* data;
 };//Renderer

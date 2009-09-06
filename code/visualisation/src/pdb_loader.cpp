@@ -60,7 +60,7 @@ bool PDB_Loader::load_file(const char* filename, Frame_Data* data)
             sscanf(line, "%s %i %s %s %i %lf %lf %lf", field, &serial, name, resname, &resseq, &x, &y, &z);
             if (strcmp("OH2", name) == 0)
             {
-                printf("OH2: %f %f %f\n", x, y, z);
+                // printf("OH2: %f %f %f\n", x, y, z);
                 _water_count += 1;
                 a.id = serial;
                 a.pos[0] = x;

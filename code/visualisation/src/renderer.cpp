@@ -1,10 +1,15 @@
 #include "renderer.h"
 
+#include <cmath>
 #include <stdio.h>
 #include <QMouseEvent>
 #include <QWheelEvent>
 
 #include "frame_data.h"
+#include "quaternion.h"
+
+#define RAD(x) ((x) * 0.0174532925199433)
+#define DEG(x) ((x) * 57.295779513082323)
 
 #define CHECK_GL_ERRORS
 
@@ -13,9 +18,11 @@ Renderer::Renderer(QWidget* parent)
 {
     setMouseTracking(true);
     zoom = 6.0f;
-    rot[0] = 0;
-    rot[1] = 0;
-    rot[2] = 0;
+    // rot[0] = 0;
+    // rot[1] = 0;
+    // rot[2] = 0;
+    rot = new Quaternion();
+    rot->update_matrix();
     dragging[0] = false;
     dragging[1] = false;
     dragging[2] = false;
@@ -25,6 +32,7 @@ Renderer::Renderer(QWidget* parent)
 
 Renderer::~Renderer()
 {
+    delete rot;
     delete data;
 }//destructor
 
@@ -76,8 +84,17 @@ void Renderer::paintGL()
     glLoadIdentity();
 
     glTranslatef(0.0f, 0.0f, -zoom);
-    glRotatef(rot[1], 1.0f, 0.0f, 0.0f);
-    glRotatef(rot[0], 0.0f, 1.0f, 0.0f);
+    glMultMatrixd(rot->matrix);
+    // glRotatef(DEG(rot->w), rot->x, rot->y, rot->z);
+
+    // double angle = 2 * acos(rot->w);
+    // double s = sqrt(rot->x*rot->x + rot->y*rot->y + rot->z*rot->z);
+    // if (s < 0.001) s = 1;
+    // s = 1 / s;
+    // glRotatef(DEG(angle), rot->x*s, rot->y*s, rot->z*s);
+
+    // glRotatef(rot[1], 1.0f, 0.0f, 0.0f);
+    // glRotatef(rot[0], 0.0f, 1.0f, 0.0f);
     // glRotatef(rot[2], 0.0f, 0.0f, 1.0f);
 
     // {
@@ -149,9 +166,10 @@ void Renderer::paintGL()
 
 void Renderer::resetView()
 {
-    rot[0] = 0;
-    rot[1] = 0;
-    rot[2] = 0;
+    // rot[0] = 0;
+    // rot[1] = 0;
+    // rot[2] = 0;
+    rot->reset();
     double side = data->size[0];
     if (data->size[1] > side)
         side = data->size[1];
@@ -163,8 +181,11 @@ void Renderer::mouseMoveEvent(QMouseEvent* event)
 {
     if (dragging[0])
     {
-        rot[0] -= lastpos[0] - event->x();
-        rot[1] -= lastpos[1] - event->y();
+        // rot[0] -= lastpos[0] - event->x();
+        // rot[1] -= lastpos[1] - event->y();
+        rot->rotate(RAD(lastpos[0]-event->x()), 0, 1, 0);
+        rot->rotate(RAD(lastpos[1]-event->y()), 1, 0, 0);
+        rot->update_matrix();
         lastpos[0] = event->x();
         lastpos[1] = event->y();
         updateGL();
