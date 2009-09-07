@@ -28,8 +28,10 @@ class Frame_Data
         //meaning that natoms will be incremented
         void append(Atom a);
         bool set(int index, Atom a);
-        Atom operator[](int index);
-        Atom at(int index);
+        Atom& operator[](int index);
+        Atom& at(int index);
+
+        void update(int index, double x, double y, double z);
 
         void update_bbox();
 

@@ -77,8 +77,6 @@ void Renderer::resizeGL(int w, int h)
     float far = 1000.0f;
     gluPerspective(60.0f, ratio, near, far);
     glMatrixMode(GL_MODELVIEW);
-
-    // updateGL();
 }//resizeGL
 
 void Renderer::paintGL()
@@ -213,6 +211,5 @@ void Renderer::wheelEvent(QWheelEvent* event)
 {
     int numsteps = event->delta() / (8 * 15);
     zoom -= numsteps;
-    // updateGL();
 }//wheelEvent
 

@@ -15,7 +15,8 @@ PlaybackControl::PlaybackControl(QWidget* parent)
     slider->setMinimum(0);
     slider->setOrientation(Qt::Horizontal);
     slider->setTracking(true);
-    connect(slider, SIGNAL(valueChanged(int)), this, SIGNAL(setFrame(int)));
+    connect(slider, SIGNAL(valueChanged(int)), this, SIGNAL(frameChange(int)));
+    connect(slider, SIGNAL(valueChanged(int)), this, SLOT(setFrame(int)));
     mainLayout->addWidget(slider);
 
     lowerLayout = new QHBoxLayout();
@@ -29,8 +30,9 @@ PlaybackControl::PlaybackControl(QWidget* parent)
 
     timer = new QTimer(this);
     timer->setSingleShot(false);
-    connect(timer, SIGNAL(timeout()), this, SIGNAL(tick()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(timerTick()));
 
+    _frame = 0;
     tps(60);
     playClicked();
     totalFrames(0);
@@ -67,6 +69,20 @@ void PlaybackControl::totalFrames(int value)
     slider->setMaximum(_totalFrames);
 }//totalFrames
 
+int PlaybackControl::frame()
+{
+    return _frame;
+}//frame
+
+void PlaybackControl::setFrame(int value)
+{
+    if (_frame == value) return;
+    if (value < 0) value = 0;
+    if (value >= _totalFrames) value = _totalFrames - 1;
+    _frame = value;
+    slider->setValue(_frame);
+}//setFrame
+
 
 void PlaybackControl::playClicked()
 {
@@ -84,4 +100,18 @@ void PlaybackControl::playClicked()
         emit pause();
     }//else
 }//playClicked
+
+void PlaybackControl::timerTick()
+{
+    slider->setValue(_frame + 1);
+    emit tick();
+
+    if (_frame == _totalFrames)
+    {
+        playing = true;
+        playClicked();
+        return;
+    }//if
+}//timerTick
+
 

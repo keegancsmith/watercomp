@@ -1,7 +1,7 @@
 #ifndef DCD_LOADER_H
 #define DCD_LOADER_H
 
-#include "dcdplugin.h"
+class Frame_Data;
 
 // wrap up the dcd loader
 class DCD_Loader
@@ -11,20 +11,24 @@ class DCD_Loader
         ~DCD_Loader();
 
         int frame();
-        void frame(int value);
+        bool frame(int value);
+        int totalFrames();
 
-        bool load_file(const char* filename);
+        bool load_dcd_file(const char* filename);
+        bool load_dcd_frame(Frame_Data* data);
 
     private:
         int _frame;
         int _numframes;
         int _natoms;
+        int header_size;
+        long long extrablocksize;
+        long long ndims;
+        long long firstframesize;
+        long long framesize;
 
-        dcdhandle* _dcd;
-        molfile_timestep_t _dcd_frame_data;
+        void* _dcd;
 
-        bool load_dcd_file(const char* filename);
-        bool load_dcd_frame();
 };//DCD_Loader
 
 #endif

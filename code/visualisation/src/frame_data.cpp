@@ -48,17 +48,24 @@ bool Frame_Data::set(int index, Atom a)
     return true;
 }//set
 
-Atom Frame_Data::operator[](int index)
+Atom& Frame_Data::operator[](int index)
 {
     return at(index);
 }//operator[]
 
-Atom Frame_Data::at(int index)
+Atom& Frame_Data::at(int index)
 {
     // if ((index < 0) || (index >= _natoms))
         // return NULL;
     return data[index];
 }//at
+
+void Frame_Data::update(int index, double x, double y, double z)
+{
+    data[index].pos[0] = x;
+    data[index].pos[1] = y;
+    data[index].pos[2] = z;
+}//update
 
 void Frame_Data::update_bbox()
 {

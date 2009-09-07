@@ -4,11 +4,13 @@
 #include <QFileDialog>
 #include <QMenu>
 #include <QMenuBar>
+#include <QRegExp>
 #include <QString>
 #include <QVBoxLayout>
 
 #include <string.h>
 
+#include "dcd_loader.h"
 #include "frame_data.h"
 #include "pdb_loader.h"
 #include "playback_control.h"
@@ -27,16 +29,22 @@ MainWindow::MainWindow()
     centralLayout->addWidget(renderer);
 
     playbackControl = new PlaybackControl(centralWidget);
+    playbackControl->tps(10);
     connect(playbackControl, SIGNAL(tick()), this, SLOT(doTick()));
+    connect(playbackControl, SIGNAL(frameChange(int)), this, SLOT(setFrame(int)));
     centralLayout->addWidget(playbackControl);
 
     setCentralWidget(centralWidget);
     resize(600, 480);
+
+    dcd = NULL;
 }//constructor
 
 MainWindow::~MainWindow()
 {
     delete lastLocation;
+    if (dcd != NULL)
+        delete dcd;
 }//destructor
 
 
@@ -48,17 +56,30 @@ void MainWindow::doOpenFile()
 
     PDB_Loader l;
     data->clear();
-    l.load_file(lastLocation->toStdString().c_str(), data);
+    if (!l.load_file(lastLocation->toStdString().c_str(), data))
+        return;
     data->update_bbox();
     renderer->resetView();
-    // renderer->updateGL();
+
+    if (dcd == NULL)
+        delete dcd;
+    dcd = new DCD_Loader();
+    dcd->load_dcd_file(lastLocation->replace(QRegExp(".pdb$"), ".dcd").toStdString().c_str());
+    playbackControl->totalFrames(dcd->totalFrames());
 }//doOpenFile
 
 void MainWindow::doTick()
 {
-    //update data
-    // renderer->updateGL();
+    if (dcd == NULL)
+        return;
+    dcd->load_dcd_frame(data);
 }//doTick
+
+void MainWindow::setFrame(int value)
+{
+    if (dcd->frame(value))
+        dcd->load_dcd_frame(data);
+}//setFrame
 
 
 void MainWindow::setupMenu()

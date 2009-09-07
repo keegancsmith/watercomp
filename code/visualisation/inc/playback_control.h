@@ -19,6 +19,8 @@ class PlaybackControl : public QWidget
         int tps();
         void tps(int value);
 
+        int frame();
+
         int totalFrames();
         void totalFrames(int value);
 
@@ -26,10 +28,14 @@ class PlaybackControl : public QWidget
         void play();
         void pause();
         void tick();
+        void frameChange(int value);
+
+    public slots:
         void setFrame(int value);
 
     private slots:
         void playClicked();
+        void timerTick();
 
     private:
         QVBoxLayout* mainLayout;
@@ -41,6 +47,7 @@ class PlaybackControl : public QWidget
 
         QTimer* timer;
         int _tps;
+        int _frame;
         int _totalFrames;
 };//PlaybackControl
 

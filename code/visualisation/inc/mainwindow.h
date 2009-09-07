@@ -8,6 +8,7 @@ class QMenu;
 class QString;
 class QVBoxLayout;
 
+class DCD_Loader;
 class Frame_Data;
 class PlaybackControl;
 class Renderer;
@@ -24,11 +25,14 @@ class MainWindow : public QMainWindow
         void doOpenFile();
         void doTick();
 
+        void setFrame(int value);
+
     private:
         QString* lastLocation;
         QWidget* centralWidget;
         QVBoxLayout* centralLayout;
 
+        DCD_Loader* dcd;
         Frame_Data* data;
         PlaybackControl* playbackControl;
         Renderer* renderer;
