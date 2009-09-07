@@ -2,6 +2,7 @@
 #define RENDERER
 
 #include <QGLWidget>
+#include <QTimer>
 
 class Frame_Data;
 class Quaternion;
@@ -22,6 +23,9 @@ class Renderer : public QGLWidget
 
         void resetView();
 
+        int tps();
+        void tps(int value);
+
     protected:
         void mouseMoveEvent(QMouseEvent* event);
         void mousePressEvent(QMouseEvent* event);
@@ -34,8 +38,10 @@ class Renderer : public QGLWidget
         bool dragging[3];
         int lastpos[2];
 
-        Quaternion* rot;
+        int _tps;
+        QTimer* timer;
 
+        Quaternion* rot;
         Frame_Data* data;
 };//Renderer
 

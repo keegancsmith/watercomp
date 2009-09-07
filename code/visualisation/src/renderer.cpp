@@ -24,6 +24,13 @@ Renderer::Renderer(QWidget* parent)
     rot->update_matrix();
 
     data = new Frame_Data();
+
+    timer = new QTimer(this);
+    timer->setSingleShot(false);
+    connect(timer, SIGNAL(timeout()), this, SLOT(updateGL()));
+
+    tps(60);
+    timer->start();
 }//constructor
 
 Renderer::~Renderer()
@@ -71,7 +78,7 @@ void Renderer::resizeGL(int w, int h)
     gluPerspective(60.0f, ratio, near, far);
     glMatrixMode(GL_MODELVIEW);
 
-    updateGL();
+    // updateGL();
 }//resizeGL
 
 void Renderer::paintGL()
@@ -130,6 +137,21 @@ void Renderer::resetView()
     //TODO? setup projection matrix so that near and far encompass data?
 }//resetView
 
+
+int Renderer::tps()
+{
+    return _tps;
+}//tps
+
+void Renderer::tps(int value)
+{
+    if (value < 0) return;
+    _tps = value;
+    if (value == 0) timer->stop();
+    else timer->setInterval(1000 / _tps);
+}//tps
+
+
 void Renderer::mouseMoveEvent(QMouseEvent* event)
 {
     //left drag to rotate
@@ -141,8 +163,16 @@ void Renderer::mouseMoveEvent(QMouseEvent* event)
 
         lastpos[0] = event->x();
         lastpos[1] = event->y();
-        updateGL();
     }//if
+    else if (dragging[2])
+    {
+        rot->rotate(RAD(lastpos[0]-event->x()), 0, 0, 1);
+        //rot->rotate(-RAD(lastpos[1]-event->y()), 0, 0, 1);
+        rot->update_matrix();
+
+        lastpos[0] = event->x();
+        lastpos[1] = event->y();
+    }//else
 }//mouseMoveEvent
 
 void Renderer::mousePressEvent(QMouseEvent* event)
@@ -151,6 +181,11 @@ void Renderer::mousePressEvent(QMouseEvent* event)
     {
         case Qt::LeftButton:
             dragging[0] = true;
+            lastpos[0] = event->x();
+            lastpos[1] = event->y();
+            break;
+        case Qt::RightButton:
+            dragging[2] = true;
             lastpos[0] = event->x();
             lastpos[1] = event->y();
             break;
@@ -166,6 +201,9 @@ void Renderer::mouseReleaseEvent(QMouseEvent* event)
         case Qt::LeftButton:
             dragging[0] = false;
             break;
+        case Qt::RightButton:
+            dragging[2] = false;
+            break;
         default:
             break;
     }//switch
@@ -175,6 +213,6 @@ void Renderer::wheelEvent(QWheelEvent* event)
 {
     int numsteps = event->delta() / (8 * 15);
     zoom -= numsteps;
-    updateGL();
+    // updateGL();
 }//wheelEvent
 
