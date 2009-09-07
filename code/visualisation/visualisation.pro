@@ -14,6 +14,7 @@ HEADERS += \
             inc/mainwindow.h \
             inc/renderer.h \
             inc/pdb_loader.h \
+            inc/playback_control.h \
             inc/quaternion.h \
 
 SOURCES += \
@@ -23,4 +24,5 @@ SOURCES += \
             src/mainwindow.cpp \
             src/renderer.cpp \
             src/pdb_loader.cpp \
+            src/playback_control.cpp \
             src/quaternion.cpp \

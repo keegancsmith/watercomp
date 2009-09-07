@@ -2,27 +2,34 @@
 
 #include <QAction>
 #include <QFileDialog>
-#include <QHBoxLayout>
 #include <QMenu>
 #include <QMenuBar>
 #include <QString>
+#include <QVBoxLayout>
 
 #include <string.h>
 
 #include "frame_data.h"
 #include "pdb_loader.h"
+#include "playback_control.h"
 #include "renderer.h"
 
 MainWindow::MainWindow()
 {
     setupMenu();
     lastLocation = new QString("");
+
     centralWidget = new QWidget(this);
-    centralLayout = new QHBoxLayout(centralWidget);
+    centralLayout = new QVBoxLayout(centralWidget);
 
-    renderer = new Renderer(this);
-
+    renderer = new Renderer(centralWidget);
+    data = renderer->data;
     centralLayout->addWidget(renderer);
+
+    playbackControl = new PlaybackControl(centralWidget);
+    connect(playbackControl, SIGNAL(tick()), this, SLOT(doTick()));
+    centralLayout->addWidget(playbackControl);
+
     setCentralWidget(centralWidget);
     resize(600, 480);
 }//constructor
@@ -32,6 +39,7 @@ MainWindow::~MainWindow()
     delete lastLocation;
 }//destructor
 
+
 void MainWindow::doOpenFile()
 {
     *lastLocation = QFileDialog::getOpenFileName(this, tr("Open data"), *lastLocation, tr("All (*.*)"));
@@ -39,12 +47,19 @@ void MainWindow::doOpenFile()
         return;
 
     PDB_Loader l;
-    renderer->data->clear();
-    l.load_file(lastLocation->toStdString().c_str(), renderer->data);
-    renderer->data->update_bbox();
+    data->clear();
+    l.load_file(lastLocation->toStdString().c_str(), data);
+    data->update_bbox();
     renderer->resetView();
-    renderer->updateGL();
+    // renderer->updateGL();
 }//doOpenFile
+
+void MainWindow::doTick()
+{
+    //update data
+    // renderer->updateGL();
+}//doTick
+
 
 void MainWindow::setupMenu()
 {
@@ -62,3 +77,4 @@ void MainWindow::setupMenu()
     fileMenu->addSeparator();
     fileMenu->addAction(quitAction);
 }//setupMenu
+

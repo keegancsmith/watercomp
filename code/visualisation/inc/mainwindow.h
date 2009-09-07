@@ -4,9 +4,12 @@
 #include <QMainWindow>
 
 class QAction;
-class QHBoxLayout;
 class QMenu;
 class QString;
+class QVBoxLayout;
+
+class Frame_Data;
+class PlaybackControl;
 class Renderer;
 
 class MainWindow : public QMainWindow
@@ -19,11 +22,15 @@ class MainWindow : public QMainWindow
 
     private slots:
         void doOpenFile();
+        void doTick();
 
     private:
         QString* lastLocation;
         QWidget* centralWidget;
-        QHBoxLayout* centralLayout;
+        QVBoxLayout* centralLayout;
+
+        Frame_Data* data;
+        PlaybackControl* playbackControl;
         Renderer* renderer;
 
         QMenu* fileMenu;
