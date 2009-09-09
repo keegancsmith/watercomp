@@ -2,6 +2,7 @@
 
 -- General
 DCDReader :: DCDFile -> Int -> Frame
+PDBReader :: PDBFile -> AtomInformation*
 Quantiser :: Frame -> QuantisedFrame - Done, barring testing
 Transform :: PDBInfo -> QuantisedFrame -> ByteStream
 
