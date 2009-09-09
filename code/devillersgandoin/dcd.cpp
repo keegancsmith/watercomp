@@ -78,7 +78,7 @@ void compress(string dcd_path, string out_path, int quantisation_bits=10) {
 
             float buckets = 1 << quantisation_bits;
             for (int d = 0; d < 3; d++) {
-                float scaled = timestep.coords[3*j+d] * buckets / range[d];
+                float scaled = (timestep.coords[3*j+d] - min_box[d]) * buckets / range[d];
                 if (scaled < 0.5)
                     scaled = 0.5;
                 else if (scaled >= buckets - 0.5)
@@ -86,7 +86,7 @@ void compress(string dcd_path, string out_path, int quantisation_bits=10) {
 
                 p.coords[d] = (unsigned int) scaled;
 
-                assert(p.coords[d] < (1 << quantisation_bits));
+                assert(p.coords[d] < buckets);
             }
 
             frame.push_back(p);
@@ -212,14 +212,14 @@ void decompress(string in_path, string out_path) {
 
             for (int d = 0; d < 3; d++) {
                 float approx = decoded[j].coords[d] + 0.5;
-                points[d][trans[j]] = approx * range[d] / buckets;
+                points[d][trans[j]] = approx * range[d] / buckets + min_box[d];
             }
         }
 
 
         // Write uncompressed atoms
         write_dcdstep(fd, i+1, istart + nsavc*(i+1), natoms,
-                      points[0], points[1], points[3], NULL, 1);
+                      points[0], points[1], points[2], NULL, 1);
 
 
         printf("Done\n");
@@ -237,7 +237,7 @@ void decompress(string in_path, string out_path) {
 }
 
 
-int usage() {
+void usage() {
     printf("USAGE: ./dcd (c|d) in out\n");
 }
 
