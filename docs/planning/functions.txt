@@ -1,0 +1,33 @@
+-- This file can be viewed with haskell syntax highlighting
+
+-- General
+DCDReader :: DCDFile -> Int -> Frame
+Quantiser :: Frame -> QuantisedFrame
+Transform :: PDBInfo -> QuantisedFrame -> ByteStream
+
+-- Arithmetic Coder
+ArithmeticCoder :: ArithmeticModel -> SymbolStream -> BitStream
+
+-- Graph Stuff
+GraphCreator :: WaterMoleculeList -> WaterMoleculeGraph
+SpanningTree :: WaterMoleculeGraph -> WaterMoleculeGraph
+TreeSerialiser :: WaterMoleculeGraph -> SymbolStream
+
+-- Splitter
+FrameSplit :: QuantisedFrame -> (WaterMoleculeList, OtherAtomList)
+
+-- Interframe
+InterframeTransform :: Int -> QuantisedFrame* -> ByteStream
+
+-- Gandoin
+PointsToList :: QuantisedFrame -> SymbolStream
+
+-- Omeltchenko
+SortedOctreeIndex :: QuantisedFrame -> SymbolStream
+DeltaEncoder :: SymbolStream -> SymbolStream
+OmeltchenkoTransform :: QuantisedFrame -> SymbolStream
+
+-- Verifiers
+TransformVerifier :: (QuantisedFrame, QuantisedFrame) -> Boolean
+QuantiserStats :: (Frame, QuantisedFrame) -> Stats
+PredictionStats :: SymbolStream -> Stats
