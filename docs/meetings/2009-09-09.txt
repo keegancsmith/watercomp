@@ -1,0 +1,61 @@
+.. -*- mode: rst -*-
+
+===============================================
+ Minutes of Meeting Wednesday 9 September 2009
+===============================================
+
+
+Technical issues
+================
+
+* Ignoring order of water molecules in data
+ + May be important, follow up with Michelle and John Stone
+ + Using previous frame to id the water molecules can work (distance rank)
+
+* Clusters of water, i.e. cluster and inter-cluster prediction schemes
+ + See how it goes, simple implementation first
+ + Experimentation
+
+
+General issues
+==============
+
+* Need test data
+ + Single frame should fit in memory (acceptable requirement)
+ + Follow up with list of types of required test data (research types)
+ + Range of sizes, instances, etc.
+
+* Have a meeting once a week (Tuesdays)
+
+
+Visualisation (Min-Young)
+=========================
+
+* Visualisation for compression (debugging/developing compression)
+* Alpha effects
+* Error visualising with colour
+* Colour standard deviation (metro library)
+* High level grouping
+* Selecting areas
+* Visualising chains
+
+
+Report
+======
+
+* Mention everything that was done
+ + Julian - ANN, grid divisioning or any other different schemes
+ + Julian - Arithmetic Coding implementation (if any)
+
+* Background chapter
+ + Julian & Keegan - Cover all compression techniques (Gandoin AND
+     Omeltchenko), report should stand by itself
+ + Keegan - Heuristics for water
+ + Min-Young - Visualising uncertainty, error visualisation, colour gradients
+
+* Don't forget results and validation chapters
+ + Simple lossless check (quantised data to compressed, decompressed data)
+ + Statistics of quantisation
+ + Prediction statistics
+ + Histogram of standard deviation of error, should mostly be [0, 1]
+
