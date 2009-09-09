@@ -1,9 +1,10 @@
 #include "QFrame.h"
 #include <cassert>
+#include "../pdb_reader/AtomInformation.h"
 
 using namespace std;
 
-QFrame::QFrame(float* atom_data, size_t atoms, unsigned int x_subs, unsigned int y_subs, unsigned int z_subs)
+QFrame::QFrame(float* atom_data, size_t atoms, vector<AtomInformation>* n_atom_information, unsigned int x_subs, unsigned int y_subs, unsigned int z_subs)
 {
     for(int d = 0; d < 3; ++d)
         min_coord[d] = max_coord[d] = atom_data[d];
@@ -36,4 +37,6 @@ QFrame::QFrame(float* atom_data, size_t atoms, unsigned int x_subs, unsigned int
             
             assert(0 <= scaled && scaled <= buckets[d]-1);
         }
+
+    atom_information = n_atom_information;
 }
