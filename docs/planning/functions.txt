@@ -2,7 +2,7 @@
 
 -- General
 DCDReader :: DCDFile -> Int -> Frame
-Quantiser :: Frame -> QuantisedFrame
+Quantiser :: Frame -> QuantisedFrame - Done, barring testing
 Transform :: PDBInfo -> QuantisedFrame -> ByteStream
 
 -- Arithmetic Coder
