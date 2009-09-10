@@ -2,6 +2,8 @@
 #include <vector>
 #include "../pdb_reader/AtomInformation.h"
 
+/// Might put this in one namespace
+
 class QFrame
 {
     public:

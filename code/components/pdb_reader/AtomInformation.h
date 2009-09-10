@@ -27,4 +27,6 @@ class AtomInformation
         /// Segment Identifier: This serves to delimit various atoms into groups.
         /// Waters tend to have the format: W[APT][1234].
         std::string seg_id;
+        
+        bool is_water();
 };

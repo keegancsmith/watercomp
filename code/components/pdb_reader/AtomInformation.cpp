@@ -20,3 +20,8 @@ AtomInformation::AtomInformation(unsigned int n_index, string text)
     sscanf(text.c_str()+72, "%4s", buffer);
     seg_id = buffer;
 }
+
+void AtomInformation::is_water()
+{
+    return atom_name == "OH2" || atom_name == "H1" || atom_name == "H2";
+}
