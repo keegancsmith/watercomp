@@ -26,7 +26,7 @@ QFrame::QFrame(float* atom_data, size_t atoms, vector<AtomInformation>* n_atom_i
     for(size_t i = 0; i < atoms; ++i)
         for(int d = 0; d < 3; ++d)
         {
-            float scaled = atom_data[3*i + d]*buckets[d]/range[d];
+            float scaled = (atom_data[3*i + d] - min_coord[d])*buckets[d]/range[d];
             
             if(scaled < 0.5)
                 scaled = 0.5;
