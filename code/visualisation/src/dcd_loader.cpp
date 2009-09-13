@@ -40,7 +40,10 @@ bool DCD_Loader::frame(int value)
     _frame = value;
     dcdhandle* dcd = DCDHANDLE(_dcd);
     dcd->setsread = value;
-    fio_fseek(dcd->fd, header_size + firstframesize + framesize * (_frame - 1), FIO_SEEK_SET);
+    if (value == 0)
+        fio_fseek(dcd->fd, header_size, FIO_SEEK_SET);
+    else
+        fio_fseek(dcd->fd, header_size + firstframesize + framesize * (_frame - 1), FIO_SEEK_SET);
     return true;
 }//frame
 
