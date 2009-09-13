@@ -11,6 +11,8 @@
 
 #define CHECK_GL_ERRORS
 
+// #define GL_DISABLE_DEPTH_TEST
+
 Renderer::Renderer(QWidget* parent)
     : QGLWidget(parent)
 {
@@ -64,7 +66,11 @@ void Renderer::initializeGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // glEnable(GL_DEPTH_TEST);
+#ifdef GL_DISABLE_DEPTH_TEST
+    glDisable(GL_DEPTH_TEST);
+#else
+    glEnable(GL_DEPTH_TEST);
+#endif
 
     glPointSize(10.0);
     glLineWidth(2.0);
@@ -96,6 +102,7 @@ void Renderer::paintGL()
 
     //setup camera
     glTranslatef(0, 0, data->half_size[2]-zoom);
+    glPushMatrix();
     glMultMatrixd(rot->matrix);
 
     //draw axes
@@ -123,16 +130,22 @@ void Renderer::paintGL()
     }//for
     glEnd();
 
+    glPopMatrix();
     if (_focusPlane)
     {
-        glLoadIdentity();
+#ifdef GL_DISABLE_DEPTH_TEST
+        glEnable(GL_DEPTH_TEST);
+#endif
         glBegin(GL_QUADS);
-        glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
-        glVertex3f(-100.0f, -100.0f, focusPlaneDepth);
-        glVertex3f( 100.0f, -100.0f, focusPlaneDepth);
-        glVertex3f( 100.0f,  100.0f, focusPlaneDepth);
-        glVertex3f(-100.0f,  100.0f, focusPlaneDepth);
+        glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+        glVertex3f(-data->max_side*1, -data->max_side*1, focusPlaneDepth);
+        glVertex3f( data->max_side*1, -data->max_side*1, focusPlaneDepth);
+        glVertex3f( data->max_side*1,  data->max_side*1, focusPlaneDepth);
+        glVertex3f(-data->max_side*1,  data->max_side*1, focusPlaneDepth);
         glEnd();
+#ifdef GL_DISABLE_DEPTH_TEST
+        glDisable(GL_DEPTH_TEST);
+#endif
     }//if
 
 #ifdef CHECK_GL_ERRORS
@@ -147,6 +160,8 @@ void Renderer::resetView()
     rot->reset();
     //set a default zoom which should cover the entire volume
     zoom = data->max_side * 1.7;
+    // focusPlaneDepth = -data->max_side;
+    focusPlaneDepth = 0;
 
     //TODO? setup projection matrix so that near and far encompass data?
 }//resetView
@@ -191,7 +206,9 @@ void Renderer::tick()
     if (dragging[1])
     {
         if (_focusPlane)
-            focusPlaneDepth -= dify;
+        {
+            focusPlaneDepth -= dify * 2;
+        }//if
     }//if
 
     if (dragging[2])
@@ -264,6 +281,5 @@ void Renderer::wheelEvent(QWheelEvent* event)
     double sensitivity = data->max_side * 0.1;
     int numsteps = event->delta() * sensitivity / (8 * 15);
     zoom -= numsteps;
-    focusPlaneDepth += numsteps;
 }//wheelEvent
 
