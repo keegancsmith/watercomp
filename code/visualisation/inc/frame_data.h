@@ -15,6 +15,7 @@ class Frame_Data
         double bbox[2][3];
         double size[3];
         double half_size[3];
+        double max_side;
 
         Frame_Data();
         ~Frame_Data();

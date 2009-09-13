@@ -90,10 +90,13 @@ void Frame_Data::update_bbox()
         }//for
     }//for
 
+    max_side = -1;
     for (i = 0; i < 3; i++)
     {
         size[i] = bbox[1][i] - bbox[0][i];
         half_size[i] = size[i] * 0.5;
+        if (size[i] > max_side)
+            max_side = size[i];
     }//for
 }//update_bbox
 
