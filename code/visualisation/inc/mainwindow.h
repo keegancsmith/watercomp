@@ -39,6 +39,7 @@ class MainWindow : public QMainWindow
 
         QMenu* fileMenu;
         QAction* openFileAction;
+        QAction* toggleFocusPlaneAction;
         QAction* quitAction;
 
         void setupMenu();

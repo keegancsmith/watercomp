@@ -14,12 +14,20 @@
 Renderer::Renderer(QWidget* parent)
     : QGLWidget(parent)
 {
+    zoom = 6.0f;
+
+    spinning[0] = 0;
+    spinning[1] = 0;
+    spinning[2] = 0;
+
     dragging[0] = false;
     dragging[1] = false;
     dragging[2] = false;
 
+    _focusPlane = false;
+    focusPlaneDepth = -10;
+
     setMouseTracking(true);
-    zoom = 6.0f;
     rot = new Quaternion();
     rot->update_matrix();
 
@@ -27,7 +35,8 @@ Renderer::Renderer(QWidget* parent)
 
     timer = new QTimer(this);
     timer->setSingleShot(false);
-    connect(timer, SIGNAL(timeout()), this, SLOT(updateGL()));
+    // connect(timer, SIGNAL(timeout()), this, SLOT(updateGL()));
+    connect(timer, SIGNAL(timeout()), this, SLOT(tick()));
 
     tps(60);
     timer->start();
@@ -35,6 +44,7 @@ Renderer::Renderer(QWidget* parent)
 
 Renderer::~Renderer()
 {
+    delete timer;
     delete rot;
     delete data;
 }//destructor
@@ -54,7 +64,7 @@ void Renderer::initializeGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glEnable(GL_DEPTH_TEST);
+    // glEnable(GL_DEPTH_TEST);
 
     glPointSize(10.0);
     glLineWidth(2.0);
@@ -85,11 +95,8 @@ void Renderer::paintGL()
     glLoadIdentity();
 
     //setup camera
-    glTranslatef(-data->half_size[0], -data->half_size[1], -zoom);
+    glTranslatef(0, 0, data->half_size[2]-zoom);
     glMultMatrixd(rot->matrix);
-
-    //translate to centroid of points (centre of rotations)
-    glTranslatef(data->half_size[0], data->half_size[1], data->half_size[2]);
 
     //draw axes
     glPushMatrix();
@@ -108,13 +115,25 @@ void Renderer::paintGL()
     glPopMatrix();
 
     //draw points
-    glColor3f(1.0f, 1.0f, 1.0f);
+    glColor4f(0.0f, 0.0f, 1.0f, 0.02f);
     glBegin(GL_POINTS);
     for (int i = 0; i < data->natoms(); i++)
     {
         glVertex3dv(data->at(i).pos);
     }//for
     glEnd();
+
+    if (_focusPlane)
+    {
+        glLoadIdentity();
+        glBegin(GL_QUADS);
+        glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+        glVertex3f(-100.0f, -100.0f, focusPlaneDepth);
+        glVertex3f( 100.0f, -100.0f, focusPlaneDepth);
+        glVertex3f( 100.0f,  100.0f, focusPlaneDepth);
+        glVertex3f(-100.0f,  100.0f, focusPlaneDepth);
+        glEnd();
+    }//if
 
 #ifdef CHECK_GL_ERRORS
     GLenum errcode = glGetError();
@@ -126,11 +145,8 @@ void Renderer::paintGL()
 void Renderer::resetView()
 {
     rot->reset();
-    double side = data->size[0];
-    if (data->size[1] > side)
-        side = data->size[1];
     //set a default zoom which should cover the entire volume
-    zoom = side + data->size[2];
+    zoom = data->max_side * 1.7;
 
     //TODO? setup projection matrix so that near and far encompass data?
 }//resetView
@@ -149,43 +165,76 @@ void Renderer::tps(int value)
     else timer->setInterval(1000 / _tps);
 }//tps
 
+bool Renderer::focusPlane()
+{
+    return _focusPlane;
+}//focusPlane
+
+void Renderer::toggleFocusPlane()
+{
+    _focusPlane = !_focusPlane;
+}//toggleFocusPlane
+
+
+void Renderer::tick()
+{
+    QPoint pos = mapFromGlobal(QCursor::pos());
+    int difx = lastpos[0] - pos.x();
+    int dify = lastpos[1] - pos.y();
+
+    if (dragging[0])
+    {
+        spinning[0] = RAD(difx);
+        spinning[1] = RAD(dify);
+    }//if
+
+    if (dragging[1])
+    {
+        if (_focusPlane)
+            focusPlaneDepth -= dify;
+    }//if
+
+    if (dragging[2])
+    {
+        spinning[2] = RAD(difx);
+    }//if
+
+    //apply the rotations if needed
+    if ((difx != 0) || (dify != 0) ||
+        (spinning[0] != 0) || (spinning[1] != 0) || (spinning[2] != 0))
+    {
+        rot->rotate(spinning[0], 0, 1, 0);
+        rot->rotate(spinning[1], 1, 0, 0);
+        rot->rotate(spinning[2], 0, 0, 1);
+        lastpos[0] = pos.x();
+        lastpos[1] = pos.y();
+        rot->update_matrix();
+    }//if
+
+    //change of zoom, rotation, or data update requires an updateGL
+    //so instead of checking for all conditions, just updateGL, meh
+    updateGL();
+}//tick
+
 
 void Renderer::mouseMoveEvent(QMouseEvent* event)
 {
-    //left drag to rotate
-    if (dragging[0])
-    {
-        rot->rotate(RAD(lastpos[0]-event->x()), 0, 1, 0);
-        rot->rotate(RAD(lastpos[1]-event->y()), 1, 0, 0);
-        rot->update_matrix();
-
-        lastpos[0] = event->x();
-        lastpos[1] = event->y();
-    }//if
-    else if (dragging[2])
-    {
-        rot->rotate(RAD(lastpos[0]-event->x()), 0, 0, 1);
-        //rot->rotate(-RAD(lastpos[1]-event->y()), 0, 0, 1);
-        rot->update_matrix();
-
-        lastpos[0] = event->x();
-        lastpos[1] = event->y();
-    }//else
 }//mouseMoveEvent
 
 void Renderer::mousePressEvent(QMouseEvent* event)
 {
+    lastpos[0] = event->x();
+    lastpos[1] = event->y();
     switch (event->button())
     {
         case Qt::LeftButton:
             dragging[0] = true;
-            lastpos[0] = event->x();
-            lastpos[1] = event->y();
+            break;
+        case Qt::MidButton:
+            dragging[1] = true;
             break;
         case Qt::RightButton:
             dragging[2] = true;
-            lastpos[0] = event->x();
-            lastpos[1] = event->y();
             break;
         default:
             break;
@@ -199,6 +248,9 @@ void Renderer::mouseReleaseEvent(QMouseEvent* event)
         case Qt::LeftButton:
             dragging[0] = false;
             break;
+        case Qt::MidButton:
+            dragging[1] = false;
+            break;
         case Qt::RightButton:
             dragging[2] = false;
             break;
@@ -209,7 +261,9 @@ void Renderer::mouseReleaseEvent(QMouseEvent* event)
 
 void Renderer::wheelEvent(QWheelEvent* event)
 {
-    int numsteps = event->delta() / (8 * 15);
+    double sensitivity = data->max_side * 0.1;
+    int numsteps = event->delta() * sensitivity / (8 * 15);
     zoom -= numsteps;
+    focusPlaneDepth += numsteps;
 }//wheelEvent
 

@@ -18,7 +18,6 @@
 
 MainWindow::MainWindow()
 {
-    setupMenu();
     lastLocation = new QString("");
 
     centralWidget = new QWidget(this);
@@ -34,6 +33,7 @@ MainWindow::MainWindow()
     connect(playbackControl, SIGNAL(frameChange(int)), this, SLOT(setFrame(int)));
     centralLayout->addWidget(playbackControl);
 
+    setupMenu();
     setCentralWidget(centralWidget);
     resize(600, 480);
 
@@ -90,11 +90,17 @@ void MainWindow::setupMenu()
     openFileAction->setShortcut(tr("Ctrl+O"));
     connect(openFileAction, SIGNAL(triggered()), this, SLOT(doOpenFile()));
 
+    toggleFocusPlaneAction = new QAction(tr("Toggle &zoom focus"), fileMenu);
+    toggleFocusPlaneAction->setShortcut(tr("Tab"));
+    connect(toggleFocusPlaneAction, SIGNAL(triggered()), renderer, SLOT(toggleFocusPlane()));
+
     quitAction = new QAction(tr("&Quit"), fileMenu);
-    quitAction->setShortcut(tr("Ctrl+Q"));
+    quitAction->setShortcut(tr("Q"));
     connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
 
     fileMenu->addAction(openFileAction);
+    fileMenu->addSeparator();
+    fileMenu->addAction(toggleFocusPlaneAction);
     fileMenu->addSeparator();
     fileMenu->addAction(quitAction);
 }//setupMenu

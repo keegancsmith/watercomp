@@ -9,6 +9,7 @@ class Quaternion;
 
 class Renderer : public QGLWidget
 {
+    Q_OBJECT
     friend class MainWindow;
     public:
         Renderer(QWidget* parent=0);
@@ -25,6 +26,13 @@ class Renderer : public QGLWidget
 
         int tps();
         void tps(int value);
+        bool focusPlane();
+
+    public slots:
+        void toggleFocusPlane();
+
+    private slots:
+        void tick();
 
     protected:
         void mouseMoveEvent(QMouseEvent* event);
@@ -34,9 +42,12 @@ class Renderer : public QGLWidget
 
     private:
         float zoom;
-        //float rot[3];
+        float spinning[3];
         bool dragging[3];
         int lastpos[2];
+        int startdrag[2];
+        bool _focusPlane;
+        float focusPlaneDepth;
 
         int _tps;
         QTimer* timer;
