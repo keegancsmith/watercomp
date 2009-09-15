@@ -6,6 +6,8 @@ PDBReader :: PDBFile -> AtomInformation* - Done, barring testing
 Quantiser :: Frame -> QuantisedFrame - Done, barring testing
 Transform :: PDBInfo -> QuantisedFrame -> ByteStream
 
+Dequantiser :: QuantisedFrame -> Frame - Not done
+
 -- Arithmetic Coder
 ArithmeticCoder :: ArithmeticModel -> SymbolStream -> BitStream
 
@@ -24,9 +26,11 @@ InterframeTransform :: Int -> QuantisedFrame* -> ByteStream(SymbolStream?)
 PointsToList :: QuantisedFrame -> SymbolStream
 
 -- Omeltchenko
-SortedOctreeIndex :: QuantisedFrame -> SymbolStream
-DeltaEncoder :: SymbolStream -> SymbolStream
-OmeltchenkoTransform :: QuantisedFrame -> SymbolStream
+SortedOctreeIndex :: QuantisedFrame -> SymbolStream - Done
+DeltaEncoder :: SymbolStream -> SymbolStream - Doing
+OmeltchenkoTransform :: QuantisedFrame -> SymbolStream -Overview Transform so just glue code
+
+DeltaDecoder :: SymbolStream -> QuantisedFrame - Doing
 
 -- Verifiers
 TransformVerifier :: (QuantisedFrame, QuantisedFrame) -> Boolean
