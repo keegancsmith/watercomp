@@ -1,0 +1,52 @@
+.. -*- mode: rst -*-
+
+===============================================
+ Minutes of Meeting Tuesday 15 September 2009
+===============================================
+
+Discussion
+==========
+
+Min-Young
+---------
+
+* Check out metaballs.
+  + Used in solvent accessible surfaces.
+  + Could have speed issues with overhead of marching cubes.
+* Should the visualisation be for chemists or for helping Julian and Keegan
+  tune there algorithm.
+
+Julian
+------
+
+* Get some input files that include HIV
+* Background chapter length = Fuzzy. Just say what is necessary
+* If background starts getting long, can include bits of background in other
+  relevant chapters.
+
+Keegan
+------
+
+* No questions or status updates.
+
+
+Work for next meeting
+=====================
+
+Min-Young
+---------
+
+* Read up on metaballs and do a basic implementation
+
+Julian
+------
+
+* Background chapter by Friday
+* Design Chapter draft by Friday
+* Working AC compressor by next Meeting. Should modify existing code.
+
+Keegan
+------
+
+* Background chapter
+* Start implementing a few components
