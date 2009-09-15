@@ -1,6 +1,7 @@
 syntax: glob
 *.aux
 *.log
+*.dvi
 *.pdf
 *.toc
 *.bbl
