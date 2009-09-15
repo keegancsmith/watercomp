@@ -11,8 +11,6 @@
 
 #define CHECK_GL_ERRORS
 
-// #define GL_DISABLE_DEPTH_TEST
-
 Renderer::Renderer(QWidget* parent)
     : QGLWidget(parent)
 {
@@ -66,16 +64,13 @@ void Renderer::initializeGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-#ifdef GL_DISABLE_DEPTH_TEST
-    glDisable(GL_DEPTH_TEST);
-#else
     glEnable(GL_DEPTH_TEST);
-#endif
+    glDepthFunc(GL_ALWAYS);
 
     glPointSize(10.0);
     glLineWidth(2.0);
     // glEnable(GL_LINE_SMOOTH);
-    // glEnable(GL_POINT_SMOOTH);
+    glEnable(GL_POINT_SMOOTH);
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
 }//initializeGL
@@ -133,19 +128,15 @@ void Renderer::paintGL()
     glPopMatrix();
     if (_focusPlane)
     {
-#ifdef GL_DISABLE_DEPTH_TEST
-        glEnable(GL_DEPTH_TEST);
-#endif
+        glDepthFunc(GL_LEQUAL);
         glBegin(GL_QUADS);
-        glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+        glColor4f(0.5f, 0.5f, 0.5f, 0.3f);
         glVertex3f(-data->max_side*1, -data->max_side*1, focusPlaneDepth);
         glVertex3f( data->max_side*1, -data->max_side*1, focusPlaneDepth);
         glVertex3f( data->max_side*1,  data->max_side*1, focusPlaneDepth);
         glVertex3f(-data->max_side*1,  data->max_side*1, focusPlaneDepth);
         glEnd();
-#ifdef GL_DISABLE_DEPTH_TEST
-        glDisable(GL_DEPTH_TEST);
-#endif
+        glDepthFunc(GL_ALWAYS);
     }//if
 
 #ifdef CHECK_GL_ERRORS
