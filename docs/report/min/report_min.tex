@@ -2,20 +2,46 @@
 %\documentclass[twocolumn,a4paper]{article}
 
 \usepackage{natbib}
-\bibliographystyle{abbrvnat}
-% \bibliographystyle{plain}
+\usepackage{graphicx}
 
 \lefthyphenmin 5
 \righthyphenmin 5
 
-\title{Techniques for visualising point cloud data \\ Literature survey}
-\author{Min-Young Wu}
-
 \begin{document}
 
-\maketitle
+\begin{titlepage}
+\begin{center}
+  \includegraphics[width=100mm]{uct}\\
+  \textsc{\large
+  Department of Computer Science \\
+  \ \\}
 
-\begin{abstract}
+  {\huge \bfseries Visualisation of Water}
+
+  \ \\
+  \ \\
+  \ \\
+  \large Min-Young Wu \\
+  \small mwu@cs.uct.ac.za
+
+  \vfill
+  \large \today
+
+  \begin{abstract}
+  TODO
+  \end{abstract}
+
+\end{center}
+\end{titlepage}
+
+\tableofcontents
+\listoffigures
+
+\newpage
+
+
+
+\section{Introduction}
 Molecular data is composed of many interconnected atoms and interacting
 molecules, this poses a problem for visualisation: how do you effectively
 visualise a large number of objects in 3D space? The complex diagrams that arise
@@ -31,10 +57,6 @@ In order to get some perspective on what some of the existing visualisation
 techniques are, this paper will look at some of the molecular modelling and
 visualisation techniques, as well as some general visualisation techniques
 applicable to molecular data.
-\end{abstract}
-
-
-\section{Introduction}
 
 Information visualisation techniques are very domain specific; one type of
 visualisation may work well for a specific scenario, but will work quite poorly
@@ -93,6 +115,14 @@ atoms often occurs which may hide important information. Ball-and-stick diagrams
 are typically not used for large or many molecules as it typically produces the
 most cluttered diagrams, making it very difficult to understand and analyse.
 
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=70mm]{BallStick}
+  \end{center}
+  \caption{Ball-and-stick model}
+  \label{fig:ballstick}
+\end{figure}
+
 \subsection*{CPK}
 The CPK (Corey-Pauling-Koltun) \citep{corey53} representation simplifies the
 ball-and-stick model by doing away with cylinders for bonds; instead, the
@@ -111,6 +141,14 @@ essentially occupies more space than the ball-and-stick model; with the
 molecules being opaque, this causes large areas to be occluded from sight, which
 may hide important information and make it hard to analyse an entire system.
 
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=70mm]{CPK-big}
+  \end{center}
+  \caption{CPK}
+  \label{fig:cpkbig}
+\end{figure}
+
 \subsection*{Ribbon}
 The ribbon model \citep{richardson81}, \citep{carson87} was designed to
 highlight the structure of protein molecules by fitting a curved surface to the
@@ -123,6 +161,14 @@ molecules such as carbohydrates and lipids, where the molecular structure is
 different. Thus, the traditional ball-and-stick and CPK models do still get
 used for carbohydrate and lipid molecules.
 
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=70mm]{ribbon}
+  \end{center}
+  \caption{Ribbon}
+  \label{fig:ribbon}
+\end{figure}
+
 \subsection*{Paper chain}
 The paper chain visualisation technique \citep{kuttel06} focuses on highlighting
 ring structures in carbohydrate molecules. Ring structures are first identified
@@ -132,6 +178,14 @@ This significantly simplifies the carbohydrate molecules by only showing the
 carbohydrate rings, which would of otherwise been obscured by the other
 visualisations (ball-and-stick and CPK). The ball-and-stick model can still be
 overlayed on the paper chain diagram to provide detailed information if needed.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=70mm]{paper_chain}
+  \end{center}
+  \caption{Paper chain}
+  \label{fig:paperchain}
+\end{figure}
 
 \subsection*{Twister}
 The twister visualisation technique \citep{kuttel06} follows from the paper
@@ -145,6 +199,14 @@ This is similar to the ribbon model for proteins in that it shows the overall
 shape of the molecule quite effectively. Previously, following the shape and
 twisting of the carbohydrate molecules would be very difficult as that would be
 obscured by all the atoms that make up the carbohydrate molecule.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=70mm]{twister}
+  \end{center}
+  \caption{Twister}
+  \label{fig:twister}
+\end{figure}
 
 
 \section{General data visualisation techniques}
@@ -186,6 +248,14 @@ This technique can also be used to identify volumes of space where points are
 missing, thus highlighting these areas. However, the basic algorithm would need
 to be adapted significantly to cope with large open spaces.
 
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=70mm]{triangulated_mesh}
+  \end{center}
+  \caption{Surface extraction}
+  \label{fig:triangulatedmesh}
+\end{figure}
+
 \subsubsection*{Volume rendering}
 The second volume visualisation technique is volume rendering, it aims to
 visualise the entire volume instead of a subset. This is done by modelling the
@@ -212,6 +282,29 @@ problem of having many occluding entities. The computation costs involved with
 such a visualisation technique would have to weighed with the benefits that this
 approach would provide.
 
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=70mm]{head_volume}
+  \end{center}
+  \caption{Volume rendering}
+  \label{fig:headvolume}
+\end{figure}
+
+\subsection*{Metaballs}
+Related to solvent accessible surfaces.
+A series of balls, with extends out.
+Uses marching cubes to extract surface.
+Advantage is being able to see groupings.
+Disadvantage is computation cost.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=70mm]{metaballs}
+  \end{center}
+  \caption{Metaballs}
+  \label{fig:metaballs}
+\end{figure}
+
 \subsection*{Clutter reduction}
 Shneiderman provides a visual information-seeking mantra \citep{shneiderman96}:
 ``overview first, zoom and filter, then details on demand'', in which clutter
@@ -233,6 +326,10 @@ can be removed and not clutter up the display. This may be useful for removing
 uninterested in occluding objects and only show points at important areas, such
 at where there is interaction occurring.
 
+Another approach to filtering is to highlight the important features of the
+data, but leave the rest of the data visible. This adds the advantage of
+keeping a context for data.
+
 Opacity is changing the translucency of items to highlight or hide things. This
 is similar to filtering in that irrelevant items are partially or entirely
 hidden, highlighting only the important parts. The advantage of opacity over
@@ -253,6 +350,14 @@ space, however care must be taken to not remove important and relevant
 information. It should be noted that the clutter reduction techniques are not
 all mutually exclusive, many of the techniques can be used to complement and be
 layered on top of one another.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=70mm]{graph_highlight}
+  \end{center}
+  \caption{Highlighting}
+  \label{fig:graphhighlight}
+\end{figure}
 
 
 \section{Conclusion}
@@ -291,6 +396,8 @@ As mentioned in the introduction, visualisation techniques are very domain
 specific, with their own requirements and concerns.
 
 
+% \bibliographystyle{abbrvnat}
+\bibliographystyle{plain}
 \bibliography{report_min}
 
 \end{document}
