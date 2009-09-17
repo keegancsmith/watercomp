@@ -1,5 +1,9 @@
 \documentclass{report}
 
+
+\usepackage[protrusion=true,expansion=true]{microtype}
+\usepackage[T1]{fontenc}
+\usepackage{pxfonts}
 \usepackage{natbib}
 \usepackage{graphicx}
 %\usepackage{pslatex}
@@ -72,16 +76,20 @@ frame consisting of atom types, coordinates and velocities. This will generate
 being saved \cite{omeltchenko2000sls}. Generating this much data makes good
 compression very desirable.
 
-In this paper we will discuss current methods used to compress point
-clouds. Specifically, we want to compress point clouds of water molecules.
+We have developed a method which compresses MD simulations. It targets
+simulations which have a large amount of water in them. It uses connectivity
+based point cloud techniques, but with predictors which based on the structure
+of water.
 
-Firstly, we will discuss common techniques used in point cloud compression
-algorithms, and then move onto different categorizations and how they are
-applied. We will then discuss how to apply these techniques to water molecule
-compression. Finally, we will conclude with two general categorisations of
-what the compression algorithms exploit.
+\textbf{TODO} Flesh out introduction
 
 \chapter{Background}
+
+We will discuss common techniques used in point cloud compression algorithms,
+and then move onto different categorizations and how they are applied. We will
+then discuss how to apply these techniques to water molecule
+compression. Finally, we will conclude with two general categorisations of
+what the compression algorithms exploit.
 
 \section{Point Cloud Compression}
 
@@ -110,19 +118,19 @@ instead of general geometric properties. A mesh is a collection of vertices,
 edges and faces defining a 3D object.
 
 
-\section{Quantization}
+\section{Quantisation}
 
 Point cloud data usually stores the point coordinates in a floating point
 format. Most geometric compression algorithms reduce the precision to achieve
 better compression rates. This reduction of precision is called
-\emph{quantization} \cite{ag-racm-03}. Every algorithm reviewed in this paper
-that uses quantization, quantizes the vertex positions for each coordinate
+\emph{quantisation} \cite{ag-racm-03}. Every algorithm reviewed in this paper
+that uses quantisation, quantizes the vertex positions for each coordinate
 separately and uniformly in Cartesian space. This can be visualized as
 creating an evenly-spaced grid over the dimensions of the space, and snapping
 the point to the closest grid point. This is the most na\"{\i}ve method, but
 there are more complex methods reviewed by Pierre Alliez and Craig
 Gotsman\cite{ag-racm-03}. These lie outside the scope of this survey. Chen et
-al.~\cite{chen2005lcp} get around quantization by treating the 32-bit floating
+al.~\cite{chen2005lcp} get around quantisation by treating the 32-bit floating
 point numbers as 32-bit integers.
 
 
@@ -258,7 +266,7 @@ al.~\cite{merrycomp} are all single-rate encoders.
 %% whole file. So we will not discuss them further.
 
 
-\section{Conclusion}
+\section{Summary}
 
 Refer to Figure \ref{fig:taxonomy} for an overview of the categorisations of
 the different papers. There are two underlying philosophies which the
@@ -296,7 +304,7 @@ Gumhold et al.\cite{gumholdcomp}.
 
   \emph{Progressive} & Single-rate & Single-rate \\
 
-  \emph{Quantization} & Yes & Yes \\
+  \emph{Quantisation} & Yes & Yes \\
 
   \emph{Connectivity} & Space Filling Curve & Spanning Tree \\
 
@@ -317,7 +325,7 @@ Gumhold et al.\cite{gumholdcomp}.
 
   \emph{Progressive} & Single-rate & Progressive \\
 
-  \emph{Quantization} & No & Yes \\
+  \emph{Quantisation} & No & Yes \\
 
   \emph{Connectivity} & Spanning Tree & kd-trees \\
 
@@ -338,7 +346,7 @@ Gumhold et al.\cite{gumholdcomp}.
 
   \emph{Progressive} & Single-rate & \\  
 
-  \emph{Quantization} & Yes & \\
+  \emph{Quantisation} & Yes & \\
 
   \emph{Connectivity} & Spanning Tree & \\
 
@@ -353,6 +361,19 @@ Gumhold et al.\cite{gumholdcomp}.
 }
 \caption{Taxonomy of the different methods.}\label{fig:taxonomy}
 \end{figure*}
+
+
+\chapter{Design}
+
+\section{Introduction}
+
+\section{Design Methodology}
+
+\section{Components}
+
+\subsection{Overview}
+
+%% List each section as a subsection and each component as a subsubsection
 
 
 \nocite{*}
