@@ -1,0 +1,256 @@
+\documentclass[twocolumn, a4paper,10pt]{article}
+%\usepackage{mciteplus}
+
+% Title Page
+\title{Literature review of compression methods}
+\author{Julian Kenwood}
+\bibliographystyle{apalike2} 
+
+\begin{document}
+\maketitle
+
+% \vfill
+\begin{abstract} % 100 words
+
+Molecular dynamics simulations involve simulating large 3D systems of atoms with small timesteps. This process generates a huge amount of output data which must be analysed at a later data. This poses the problem of how this data is efficiently stored on storage media.
+
+This survey will review methods used in standard video compression as a basis as the techniques to be used for molecular simulations. We will draw comparisons with relevant sections of the MPEG format used for standard video encoding, but will discard several techniques used in due to the differences between the molecular simulations and videos.
+
+Specifically, intraframe compression algorithms as well as interframe prediction schemes will be examined and reviewed in light of molecular dynamics simulations. 
+
+% \tableofcontents
+% \newpage
+
+%REWRITE
+% Data Compression is an important problem in Computer Science. It involves transforming of a data source or stream into a different format that hopefully have a smaller size than the original. We will look at several compression techniques in both the lossy and lossless categorisations. 
+% 
+% Several established methods have been around for years. This paper will look at literature on lossy algorithms such as Vector Quantisation and Transform Coding and lossless algorithm such as Dictionary Encoding and Entropy Encoding methods.
+
+\end{abstract}
+
+% \newpage
+% 
+% \tableofcontents
+% 
+% \newpage
+
+\section*{Introduction} % 200 to 300 words
+
+Data Compression is an important concept in Computer Science. They have allowed for mainstream access to large collection of repositories. Often these data techniques can be very specific to the domain. Some fields require all the information to replicated faithfully when uncompressed., while others only require the majority of the information to be reconstructed and the rest to just resemble the original data. Data Compression, as a field, has a strong mathematical background in terms of the compression rates that can be acheived by any compression algorithm. 
+
+This paper will focus on compression of large three dimensional molecular dynamics simulations and investigates different techniques for doing this. This literature review will touch on current molecular dynamics simulations formats, past research on this problem as well as video compression and interframe coding and note how they are useful to the problem of compression molecular dynamics simulations drawing parallels to the MPEG compression format. 
+
+\section*{Molecular Dynamics Formats}
+
+There are several Molecular Dynamics Simulations formats. Chief among these formats is the binary DCD file, of which there are several similar types. This paper will describe the format  used by VMD, popular software for visualising molecular dynamics simulations\cite{vmd}, in order to accentuate the need for compression, The DCD file format comes in several different flavours such as CHARMm and X-PLOR. The main version used by VMD is X-PLOR\cite{vmddcdformat}.
+
+Firstly, the files contains a 76-byte header. This header contains information that does not vary from frame to frame such as the timestep between frames. number of atoms in the simulation and also reserved fields for future use. Then for each frame the positions of the molecules are listed in sequential order. These coordinates are stored as three 8-byte double values, one for each coordinate. The file ends when there are no more coordinates to in the file.
+
+The conclusion that we can draw for this is that the size of the resulting file is dependant on the number of frames, $F$ and the number of molecules, $N$. The exact size in bytes is then $S = 24*F*N + 76 bytes$. Typical molecular dynamics simulations have timescales on the order of $10^{-15} seconds$, and while they only simulate fractions of a second they can easily be several thousands of frames long. Molecular simulations can also involve millions or even tens of millions of atoms per simulation. 
+
+These results lead to the conclusion that these files can become incredibly large often several dozen to several terabytes in size. These files can be difficult to distribute over media such as the Internet and store on commodity computers and necessitates the need for compression.
+
+\section*{Past Research}
+
+To date, there has not been much research on compressing large-scale molecular dynamics simulations. The current method \cite{RefWorks:3} for compression is able to acheive output sizes smaller than the original by an order of magnitude. 
+
+The algorithm works by quantising the space that the simulation occurs in. A three dimensional grid of a particular granularity is embedded into the space. Atoms are snapped to the centers of the closest grid cell. This transformation introduces a small error, which can be controlled by the granularity of the grid, but enables the algorithm to reduce the floating point coordinates to integer based grid cell indices.
+
+After this transformation takes place a space-filling curve is created using octree index maps. The order of the traversal gives single integer indices for each grid cell. These indices replace the coordinates of the atoms. The algorithm, itself, does not generate the indices of each cell as this would be both time-consuming and memory-intensive, instead it is able to calculate the indices for the positions of each atom. 
+
+The list of the atoms is maintained which is sorted increasing order of the index. When encoding is done the atom's data is encoded in this order. However, the grid index data of the atoms are stored differently. The first atom's position indicates its actual grid index, while the rest are stored as differences between the previous index and the current one. This final transformation typically allows a better compression rate to be acheived. The encoding, itself, is performed by an adaptive, variable-length encoder.
+
+The compressor encodes the molecular data as a series of unsigned 32-bit integers. Each integer is able to be streamed into the compressor one at a time. The compressor maintains an integer $l$ which is the current size that integers are encoded as. As each integer comes into it is checked to see if the integer can be stored using $l$ bits. If it can, it is stored as $l+1$ bits; a 0-bit followed by the bits of the integer. If it can't, the integer is partly stored as $l+1$ bits; a 1-bit followed the first $l$ bits of the integer. The rest of the bits are compressed in the next step of the compressor. When enough of these overflows occur, $l$ is incremented.
+
+The compressor was designed to be very computationally light as computers at the time of the paper weren't as powerful as current machines. The paper claims that 56-byte atomic data is able to be encoded at approximately 6.3 bits per atom. It is, however, not considered to be a very good encryption system as it is not based on any of the establish variable-length encoders which have been shown to produce near-optimal encodings.
+
+\section*{Video Compression}
+
+This paper will approach this problem from the direction of video compression. Video compression employs several techniques to minimise the size of the compressed file. There are some extra guarantees, however, that the compression algorithm must be able to satisfy in order to be appropriate for use with molecular dynamics simulations. 
+
+The compression algorithm must:
+\begin{itemize}
+  \item have a small computational and memory overhead per atom. 
+  \item be able to occur while the simulation runs.
+  \item be able to recreate the simulation accurately.
+\end{itemize}
+
+This paper will discuss compression techniques and algorithm used in MPEG compression and how it can be applied to molecular simulation compression. Techniques for intraframe compression and intraframe compression will be reviewed. The algorithms that we look at will be judged on how well each of these guarantees are fulfilled. 
+
+\subsection*{Frame Compression}
+
+Frame compression algorithms seek to compress individual frames as they are. This is also called intraframe prediction. This is different from interframe prediction whichuses redundancy between consecutive frames to predict the next frame from a relatively small amount of information. 
+
+The latest MPEG encoding allows for several compression algorithms to be used\cite{gall1991mvc}. Typically, videos can be encoded with multiple different encodings. The majority of these encoders fall into the categories of entropy encoders, dictionary encoders, vector quantisation algorithms and transform coding algorithms. 
+
+\subsubsection*{Entropy Encoders}
+
+Entropy encoding makes direct use of information theory and tries to build an optimal mapping from symbols in the picture to individual bits. In a video frame, this information could be pixel data or blocks of pixel data while in a molecular simulation this could be the positions of the atoms. 
+
+The first such algorithm introduced to do this was called Huffman Encoding\cite{citeulike:1320251}. The original Huffman Encoding relies on having a frequencies table out of symbols in the text before the compression starts. It uses this table to build up a prefix-free tree where the leaves are symbols and paths from the root to a symbol indicate the bits to use for the symbol. There are various problems with regular Huffman Encoding. The first being that the entire frame to be encoded would need to be scanned through in order to build up the frequency table\cite{RefWorks:1} and the second is that the mapping from symbols to bits would need to stored in order to decompress. These problems can be remedied by Adaptive Huffman Encoding which is able to adaptively build up a frequency table while the compression occurs. \cite{42227}
+
+The Adaptive Huffman Encoding scheme is a good candidate for compression of the molecular simulation frames. The memory footprint of the algorithm is very low, only the prefix-free tree needs to be stored while the algorithm runs and has a worst-case space usage of $O(S)$, where $S$ is the number of unique symbols in the frame. The algorithm can run while the simulation takes place as only a small amount of computation needs to occur per atom. The Adaptive Huffman Encoding is a lossless compression scheme so the data can be recreated completely during decompression.
+
+There is a similar entropy-based compression algorithm called Arithmetic Coding. This algorithm has an advantage over Huffman Encoding as it can store symbols as a fractional number of bits. \cite{RefWorks:1}, \cite{RefWorks:3}. This can be as bad as 1 bit per symbol. In Arithmetic Coding, the entire frame is encoded as a single rational number in the range [0, 1). The range is recursively subdivided up in ratio of the frequencies that symbols appear in. A frame is compressed by using the keep a 'number' which represents the current number the frame is encoded as. As each symbol is streamed in, the number is moved to the start of the subdivision that the symbol is mapped to. A frame can be reconstitued by using recursively choosing the subdivision that the number falls into and the adding the appropriate symbol as output of the decompressor.
+
+The Arithmetic Encoding scheme offers a better choice for compression of the frames. There are adaptive methods for updating the frequencies while the frame is being compressed. This leads to the same worst-case space usage as Huffman Encoding. The adaptive algorithm also requires a small amount of computation per atom. The Aritmetic Encoding is also lossless, but it can offers better compression rate.
+
+\subsubsection*{Dictionary Encoders}
+
+Dictionary-based encoding schemes attempt to compress data using a different approach from entropy encoders\cite{RefWorks:2}. A data structure known as dictionary is able to efficiently keep track of a sliding window of text information. Rather than using frequencies as a basis for shorter codewords, they resort to greedily assigning symbols or groups of symbols to codewords of increasing length. This allows various improvements to be made such as little or no mapping information necessary to decode the data.
+
+There are various dictionary-based compression algorithms, key among them are the LZW and DEFLATE algorithms. The LZW algorithm keeps an explicit dictionary that is progressively built up as the stream is read.\cite{1320134} Using this information, a codeword for the current symbol can be worked out and written to file. This algorithm needs to store additional information with the text in order to reconsitute the initial dictionary, but after this the text can recreated by dynamically updating the dictionary. The DEFLATE algorithm, however, uses several techniques such as an additional layer of Huffman Coding for bit-reduction, a sliding window based dictionary and a duplicate string removal algorithm\cite{deflaterfc}. It is the most commonly used dictionary-based compression algorithm and used in applications such as gzip and in the PNG image format. 
+
+Dictionary-based encoding schemes tend to perform worse on average than entropy-based encoders, but can perform better for certain input, for instance, where there are large runs of repeated information. This can lead to better compression in frame as there could be large of runs of black, or other colour, in a frame. However, there are differences between our molecular simulation frames and video frames, being that we are only encoding atom positions and not an entire 3D volume. With this key difference it is likely to perform worse than entropy encoders. Dictionary-based encoding schemes do have benefits being that they are on-line and lossless algorithms requiring very little computation per atom. They also have low memory overheads, but these overheads are larger than in entropy encoders. 
+
+\subsubsection*{Vector Quantisation}
+
+Vector Quantisation is a common technique used in video and speech compression systems.\cite{RefWorks:1} The mechanisms, by themselves, do not compress the algorithm, but instead attempt to reduce the number of unique symbols that are used in the frame. This output is then used as input for a lossless compression scheme such as Huffman Encoding. Vector Quantisation algorithms acheive this symbol-reduction by considering the symbols to exist in some N-dimensional vector space. This space is then split up into various cells whose identifiers will be used as the symbols to compress. The mapping from symbols to cells must also be stored in the compressed output.
+
+The first algorithm for creating the cells is known as Lloyd-Max algorithm.\cite{108235} The iterative algorithm creates a Centroidal Voronoi Diagram. A Centroidal Voronoi Diagram is a subdivision of N-dimensional space into $L$ cells. Each cell has exactly one point assigned to it, which is the centroid of each cell, and the cell is defined as the volume of space which is closest to the cell's point. The centroidal property keeps the information lost in the transformation at a minimum.\cite{RefWorks:1} The algorithm's complexity increases exponentially as the dimension of the space increases which makes it infeasible in even low dimensions.\cite{116880}
+
+The second algorithm for creating the cells is the K-means algorithm.\cite{1979} This is an iterative algorithm which differs from the Lloyd-Max algorithm by using the mean of the cells instead of the centroid. This adjustment negates the need for a Voronoi Diagram and thus it often outperforms the Lloyd-Max algorithm, however the quality of the cells generated is a trade off.
+
+These algorithms are only slightly applicable to the domain of molecular compression. The first trade off that we have made is the loss of information in the simulation. This is countered, however, by being able to acheive a much higher compression rate than lossless encoders. They also need an entire frame of information in order to run and thus lead to a higher memory usage. They can also be infeasible to perform alongside a molecular dynamics simulation.
+
+\subsubsection*{Transform Coding}
+
+Transform coding is another group of image compression algorithms which attempt to reduce the detail present in a frame. They are suited towards images due to the large amount of numerical information that allows the transformation to occur. These transformations are typically followed by a lossless encoding scheme.
+
+The first such transform was the Discrete Fourier Transform\cite{Cody92thefast}. This algorithm transforms the digital signals, the pixels, into analogue signals which represent the image. These signals can be analysed using a frequency analysis. The signals have different effects on the image. Lower frequencies determine the large scale structure of the image, while higher frequencies are responsible for detailed parts of the image. A function called a convolution, in this case a low-pass filter is applied to cut off any high frequencies, reducing the detail in the image.\cite{1464352} The Discrete Fourier Transform was later replaced with the Discrete Cosine Transformation, as Discrete Fourier Transformations tend to perform worse around the borders of the image\cite{RefWorks:1}.
+
+Transform coding is a commonly used lossy compression scheme in image and video compression. However, the same problems as with Vector Quantisation occur. It requires an entire frame to be streamed in before any compression can begin. It will also perform poorly in molecular simulations because we are compressing a atom point list instead of a volume of space. They also require slightly more computation than regular lossless encoding schemes.
+
+\subsection*{Interframe Prediction}
+
+Interframe prediction is a scheme where only certain frames in a video are fully compressed, and subsequent frames are predicted from their previous frame. The case where no prediction is used can also be called a zero-th order predictor. The reason for using these predictors is that they allow higher compression rates to be achieved, by transforming the positional information into error offsets which are likely to be small. 
+
+Interframe prediction is not used completely through a video format in order to allow for random access in a video. Typically, a structure called a Group Of Pictures will be given that defines the order of non-predicted frames, or I-frames, and predicted frames, or P-frames\cite{vandalore2001sal}. There can also be frames that can predicted from the previous or the following frames, called B-frames. This is a structure that is useful to have in any compression scheme for molecular dynamics simulations to allow for random access in the simulation.
+
+There are several noticable differences with the prediction schemes used in standard video formats and the molecular dynamics simulations. The first difference derives from the fact that these schemes require some information to predict on. Frames in molecular dynamics simulations can use the positions of the atoms to predict, while videos often only have pixels. The latest compression schemes break the video up into blocks and objects are identified within these blocks. Prediction can the be performed on the objects themselves. The MPEG-4 format specifies a single prediction scheme with a large number of features\cite{wiegand2003oha}. 
+
+\subsubsection*{First Order Predictors}
+
+First order predictors use the current velocity of an object as a predictor to where the object will appear in the next frame. The velocity is calculated as the difference of the between the positions of the object in the previous two frames. This scheme would be particularly easy to implement in a molecular dynamics simulation where objects are explicitly given.
+
+The error is coded as the difference between the predicted and actual position of the object. Given the nature of the simulations, this error is likely to be small, however, in a normal video there can be situations where this predictor does not perform very well.
+
+\subsubsection*{K-th Order Predictors}
+
+K-th order predictors are an enhancement of the first order predictor by instead of just the positional data of the last two frames, they use object's positional data of the last $K+1$ frames to calculate the first $K$ derivatives of the object's position. These predictors are updated when the next frame is encoded and used to predict the next position of the object.
+
+The error is again coded as the difference between the predicted and actual position of the object. However, there are several drawbacks to using K-th order predictors. The positional data of each of the objects must be kept from the previous $K+1$ frames. Also, each prediction requires $O(K)$ work to be performed per object. Another problem is that as $K$ increases, the quality of the predictions need not necessarily increase, and could even decrease resulting in large error rates.
+
+\subsubsection*{Kalman Filtering}
+
+Kalman Filters are a relatively advanced prediction system that represent the motion of an object as a stochastic process.\cite{welch1995ikf} The predicted position at timestep $k$, $p_k$, of the object can be simulated as a linear stochastic difference equation of the form:
+\begin{center} $p_k = Ap_{k-1} + Bu_{k-1} + w_{k-1}$  \end{center}
+The actual measurement data, $x$, at is related to the current predicted state by:
+\begin{center} $x_k = Hp_k + v_k$ \end{center}
+$w_k$ and $v_k$ are random variables which are normally distributed which are related to the noise that occurs within the stochastic process. $A$ is a matrix relating the previous prediction to the current prediction. $B$ is a matrix relating optional control input, for instance additional prediction information. $H$ is a time-dependant matrix which relates the current prediction to the current actual measurement. The Kalman Filtering process adjusts the matrices within the equations to get better and better approximations of the motion of the object.
+
+Kalman filters provides increasingly better predictions as more frames are encoded. The drawback is that several matrix multiplications are required to acheive this accuracy, which can be computationally expensive to do on a per-object basis. This is especially true, in large scale molecular dynamics simulations where there are millions of atoms. This extra computation, however, could have a dramatic impact on the rate of interframe compression due to very small error rates.
+
+\section*{Summary}
+
+This paper has reviewed several problems related to compression of the molecular dynamics simulations. We analysed previous research in this area by Omeltchenko et. al. We surveyed several common types of compression and interframe prediction used in standard video and image and argued as to how effective these schemes are for molecular dynamics simulations.
+
+The previous research on the area was analysed. The algorithm was found to use a variable length encoding which acheives a compression rate of approximately 90\%. However, it does not necessarily perform optimally.
+
+Several methods of frame compression were investigated. Entropy encoders such as Huffman Encoding and Arithmetic Coding are well suited to storing the lists of atom positions. Dictionary encoders perform very well with long lists of repeated symbols, and would therefore be better suited to compressing the 3D volume that the simulation occurs in. Vector Quantisation and Transform Coding are only applicable in situtations where a smaller size is more important than the simulations accuracy.
+
+Finally, methods of interframe compression were surveyed. First order predictors use velocity calculated from the previous two frames to predict the next position of the atoms. This is most if most of the atoms experience little or no acceleration during the simulation. K-th order predictors extend first order predictors by using a larger number of frames to calculate more information about the atoms' motion. This is most useful when the K-th derivative of the atoms' positions are constant. Finally, Kalman Filtering uses complex statistics to adjust estimations for the atoms' positions. This is the most accurate of the prediction techniques, but the most computationally intensive.
+
+% These simulations contain 3D molecular information over a long period of time or at a very small timescale. This data 
+% 
+%  We will review literature on compression, paying attention to how individual frames are compressed and how future frames are predicted, if an from this.   
+% 
+% It has allowed mainstream access to large collections of multimedia via the Internet. This has stimulated interest in the Computer Science field. Data Compression can be considered as the process of representing some message or messages using a different pattern. The aim of this technique would be to reduce the size of the message necessary to be stored or sent over some connection. 
+% 
+% The majority of data, which on the Internet is picture, sound or video, available on the Internet requires compression of some kind. A simple 1 minute in length could be only a few megabytes when compressed, but when uncompressed the video could balloon into a few hundred megabytes.
+% 
+% This is even more apparent in the field of Bioinformatics. Large simulations often need to be run and the data generated from these simulations can be massive. Simply storing data of this size can be a challenge in of itself, however, when one tries to transfer this data from one place to another can be financially infeasible. \cite{RefWorks:3} has proposed and implemented a method for compressing the simulation data, however, it is not considered to be a good compression scheme.
+% 
+% We will look at algorithms in two different categories of data compression. Both lossless and lossy algorithms will be surveyed. After which we will summarise the data that has been gathered from the literature analysis and conclude on which algorithm would be best to use.
+
+% \section{Body} % 1500 to 2000 words
+% \section*{Lossless Compression} % 234/150 words
+% 
+% Lossless compression offers a way of compressing images with no loss of information. The basis for lossless is information theory. Information theory, as described in \cite{RefWorks:1}, gives lower bounds for the average size of compressed texts as compared to the original texts. The, so-called, entropy of data is the expected amount of information that is stored in the data. This is usually measured in bits per character(bpc). A lower bpc will mean that the data can be compressed to a lower total number of bits, but depending on the compression scheme this may not necessarily be happen in practice. 
+% 
+% Another important property for comparing lossless is how adaptive the algorithm is. The adaptiveness determines how well the algorithm copes with a dynamic alphabet of symbols and their frequencies. This is important as it allows on-line algorithms to efficiently take advantage of the distribution of symbols in the message. Even without having any prior knowledge of the message. This is extremely important when one has a very large number of symbols(with large alphabet size) to compress. This can easily make any pre-parsing of the data infeasible  on even super computers. This can easily be the case in molecular dynamics simulations where the output can be several gigabytes or even terabytes in size.
+% 
+% Lossless compression is more important for scientific data due to the gaurantee that the original data will be faithfully recreated. In our problem of compressing the results of molecular dynamics simualations, it can be important when any small differences in the results can mean that two different conclusions are drawn about the simulation.
+% 
+% \subsection*{Entropy Encoding} % 326/250 words
+% 
+% Entropy encoding makes direct use of information theory and tries to build an optimal mapping from symbols in a message to individual bits. The first such algorithm introduced to do this was called Huffman Encoding. This algorithm was initially described in his paper \cite{citeulike:1320251}. The original Huffman Encoding relies on having a table of frequencies of symbols in the text before the compression starts. It uses this table to build up a prefix-free tree out of these symbols. Using this tree one can determine the bit sequence for each symbol, as well as an inverse mapping for decompression. 
+% 
+% \cite{RefWorks:1} states that the problem with the original Huffman Encoding is that it was not adaptive. The compression algorithm needed to make a pass through the data and keep a list of the frequencies of all symbols. This was ameniable for online compression problems where the data is too big to be scanned through. If one 'guessed' the frequencies of the symbols in the text this was possible, as in compressing English texts, however this is not always possible to accurately do. One solution is given in \cite{42227}. This paper describes a method for adaptively encoding and updating the list of frequencies as the text is compressed..
+% 
+% It was noted that this coding scheme is optimal in that it generates optimal codes, however, only if each symbol in the text is independent of other symbols in the text. It also only takes advantage of single symbols in the message, \cite{RefWorks:1} notes that if the pairs of symbols were used as the alphabet the compression rate could be improved. 
+% 
+% \cite{RefWorks:1} Notes that an additional problem is that all codes must have an integral bit-length, possibly wasting upto 1 bit per symbol in the message. Arithmetic coding, explained in \cite{RefWorks:2}, \cite{RefWorks:4} and \cite{RefWorks:1}, is a newer encoding scheme that is able to encode codes with a fractional number of  bits per symbol. The message is encoded as a number in the range of [0, 1). Each symbol is assigned a contiguous subrange of numbers. As each symbol is encountered the output number is set to start of the symbols subrange. The subrange is then further subdivided in the same ratios as the original range to represent more symbols in the text.
+% 
+% The ranges are subdivided in the same ratio of their frequencies. However, the algorithm is given is able to handle dynamic data and thus is suitable to online compression tasks. This method performs better than Huffman encoding. However there are several added complexities involved in programming such a coder and using them in commerical products. Most importantly, there are several patents, detailed here \cite{acpatents}, that exist on arithmetic coders held mainly by IBM, many of which have expired. Other issues include the more complicated workings of the algorithm.
+% 
+% \subsection*{Dictionary Encoding} % 356/250 words
+% 
+% Dictionary based encoding schemes attempt to compress data using a different approach than entropy encoders. From \cite{RefWorks:1} and \cite{RefWorks:2}, a data structure called a dictionary is used to recall previous information that is encoded. This information can then be used to better encode data that is seen later in the stream. This dictionary leads to compression algorithms that are both online and conceptually easy to understand, however they tend to perform worse when it comes to compression rates. The dominating reason for this is that dictionary encoders do not account for frequencies of symbols. Instead they greedily build up the substrings to store as keywords. The resulting compression, however, is not much worse than that provided by Huffman Encoding \cite{RefWorks:1}.
+% 
+% The earliest dictionary encoding schemes mapped all characters in an alphabet to fixed-sized bit sequences. Later algorithms, such as LZ77 and LZ78 took advantage of using sliding windows that allowed the dictionary to keep track of symbols that occur within a fixed window within the message. The two different algorithms LZ77 and LZ78 uses the window differently. LZ77 uses it to keep track of previous data. The LZ78 algorithm uses it to keep track of future data and as such can only start encoding when enough data is available to encode. Even so, the LZ78 algorithm can still be considered on-line. Other improvments include Block-Sorting or Burrows-Wheeler Transformation, \cite{382782}, to improve by improving repetitions of long substrings.
+% 
+% A major improvement to the LZ78 is the LZW algorithm, which is now widely used. The modifcation, described initially in \cite{1320134} allows the dictionary to store not only single symbols, but multiple symbols as a single entry. This can lead to a massive improvement in texts where these symbols repeat a lot, however in large messages with large alphabets, the effectiveness of this decreases and approaches that of the original LZ78. Another problem is that this compression algorithm is or was, at one time, patented.
+% 
+% The most widely used dictionary coder is the DEFLATE algorithm which is thought to be free from patents. It is described as an RFC at \cite{deflaterfc}. It uses several advanced techniques to achieve higher compression rates. First of all, it uses the sliding window dictionary to match duplicate entries in the message. It then uses Huffman Encoding to reduce commonly occuring sequences to shorter bit sequences and rarely occuring sequences to longer bit sequences. This algorithm has seen wide use in the open source community and is used in the gzip utility as well as the PNG format.
+% 
+% 
+% \section*{Lossy Compression} % 138/150 words
+% 
+% Lossy compression is well suited to low fidelity data. That is data which is not important to be reconstructed 100\% like for like. The emphasis is more on a good enough output to be produced within space and time requirements. In some instances, with appropriate transformations applied, the data can be compressed with almost no perceivable difference. Such schemes are informally are informally called perceptually lossless, however, they remain lossy schemes because they reduce the information in the text.
+% 
+% Lossy compression has a theoretical background in rate-distortion theory. Rate-distortion theory is similar to information theory except that it takes into account the variance, mean of square of differences, between the original message and the message represented by the compressed data. This field is connected to perceptual models in psychology as well as statistical models such as Bayesian estimation.
+% 
+% \subsection*{Transform Coding} % 163/250 words
+% 
+% \cite{RefWorks:1} describes transform coding as the name given to a group of algorithms which perform, generally lossy, transformations to messages. These algorithms are also generally better suited to audio or image due to the large amount of numerical data make it easier to perform the mathematical transformations on them.
+% 
+% The basis for a lot of transformations is the Discrete Fourier Transform described in \cite{Cody92thefast} and mathematical construction described in \cite{1965} and \cite{ShmuelWinograd041976}. The Discrete Fourier Transform calculates the spectral analysis of the message and are used not only in image compression but image processing as a whole. Lower frequencies determine the large scale structure of the data set, while higher frequencies are responsible for finer detail. A special operation called a convolution, described \cite{Cody92thefast} and \cite{1464352}, can then be applied to eliminate the higher level of detail in the image. Lossless compression is then applied to the resulting image. 
+% 
+% The Discrete Fourier Transform can often produce artifacts in two dimensional images so there is another method called the Discrete Cosine Transform described in \cite{RefWorks:1}. Neither the DFT nor the DCT are online algorithms as the require the entire message available to apply the transformations.
+% 
+% \subsection*{Vector Quantisation} % 358/250 words
+% 
+% \cite{RefWorks:1} describes a technique called Vector Quantisation. This is most often in video codecs and speech encoding, though it is not inconceivable to use in other data formats as well. All vector quantisation techniques have a common representation of the message. The symbols in a message can be thought of to exist as vectors in some N-dimensional vector space. These vectors are then grouped into a number of different cells. These cells are then encoded as the codewords using some lossless encoding scheme. The information loss appears when the symbols are grouped as it is possible that two different symbols are mapped to the same group. The different vector quantisation methods differ in the way that vectors are grouped together.
+% 
+% \cite{108235} describes an algorithm for performing these groupings called the Lloyd-Max Algorithm. This algorithm computes a Centroidal Voronoi Diagram(CVD) as the cells for the codewords. \cite{116880} describes a Voronoi Diagram as a subdivision of N-dimensional space into a cells based on points. Each cell has one point assigned to it. Each cell is defined as the region of the space which is closer to the cell's point than any other point. The CVD has the added property that the cell's points coincide with the centroids of the cells. \cite{108235} states that the benefit in using a CVD is that the distortion rate is low and thus high compression rates at low information loss.
+% 
+% The problem, however, is that the Lloyd-Max Algorithm requires that many Voronoi Diagrams be computed in order to iteratively generate closer Voronoi Diagrams to the Centroidal Voronoi Diagram. \cite{108235} states that the complexity of the Voronoi Diagram increases exponentially with the dimension. This results in an algorithm that can quickly become infeasible beyond even a few dimensions.
+% 
+% \cite{1979} and \cite{RefWorks:1} describe a different method methods for grouping the vectors is called k-means. The different cells are created randomly by choosing the positions of their means in space. The iterative methods, assigns each of the vectors to their nearest mean. The mean of the vectors in the cells will then represent the new mean of the cell. This process continues until none of the means change. There are various improvements to standard k-means algorithms such as the one described at \cite{1015408}. This improvement uses Principle Component Analysis to improvement performance. However, for most data sets, very few iterations are necessary and each iteration does not take long to generate.
+% 
+% There is a problem inherent both of the vector quantisation techniques in that it is impossible to have an on-line algorithm as the entire must be known beforehand and multiple iterations must be made of the message.
+% http://books.google.co.za/books?hl=en&lr=&id=yjzCra5eW3AC&oi=fnd&pg=PA75&dq=vector+quantization+data-compression&ots=M-4AnrrSa7&sig=ZdUohiCsjQW16bi5Ts_WqkXAMLY#PPA75,M1
+
+% \section*{Summary} % 200 to 300 words plus table
+
+% In this paper, we analysed some of the papers in the field of data compression. We looked at algorithms in both the lossless and lossy categories that have been developed. We first looked at entropy encoders, specifically at Huffman Encoding and Arithmetic Coding. Huffman Coding was noted to provide good compression rates, but have the disadvantage of not being able to encode codewords as fractional bits. Arithmetic Coding was the technique used to overcome this problem by storing the entire message as a single rational number. This difference means that Arithmetic Coding can achieve higher compression rates than Huffman Encoding.
+% 
+% We then looked Dictionary-based Compression schemes. The original LZ77 and LZ78 used a sliding window dictionary data structure that allowed them to adapt to different distributions of symbols within the message. The LZ78 was added to with the LZW algorithm, which allowed strings of symbols to stored as single entries in the dictionary. This improvement means that the compression rate approaches that of Arithmetic and Huffman Encoding. The DEFLATE algorithm was built upoin the LZ77 algorithm which performs special techniques for bit reduction and Huffman Encoding. All of these dictionary methods suffer from potentially bad compression rates when compared to the Entropy-based Encoders. 
+% 
+% Our last category was the Lossless compression algorithms. We first looked at Transform Coding. Transform Coding makes use of Discrete Fourier Transformations and Discrete Cosine Transformations to reduce the detail that is present in a message so it can be better compressed using a lossless encoder. These transformations and operations can reduce the information present in a message by a large percentage, while keeping the message contents similar to the original. Both of the techniques considered in the Transform Coding section could not be considered as online algorithms as they require all the data available to perform the functions. These techniques are suited better to numerical data such as sound, images or video.
+% 
+% Finally, we looked at Vector Quantisation. This algorithm applies a clustering algorithm such as the Lloyd-Max and k-means algorithms to group similar 'enough' objects into cells. These objects are symbols or groups of symbols which are considered to lie in N dimensional space. These cells are then transmitted as the codewords, when compressed using some form of lossless compression. The Lloyd-Max algorithm is able to produce low distortion codewords, but can be extremely slow in higher dimensions. The k-means algorithm, on the other hand, is a quicker method but is not guaranteed to produce better results. Neither of the algorithms are online and as such are inapplicable to the compression of large data from molecular dynamics simulations.
+% 
+% We conlude by saying that a lossless compression scheme is preferrable to the lossy schemes, both in fidelity of the results and in the ability to compress data on-line. 
+
+\bibliography{compression_julian}
+
+% Knights! New plan
+
+% Introduction - Include Molecular Simulations Format and need for compression
+% Compression
+% Inter-frame Compression
+% Summary of techniques
+
+\end{document}          
