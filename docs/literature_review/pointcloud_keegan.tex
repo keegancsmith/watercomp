@@ -54,7 +54,7 @@ get a lot of common small differences leading to good compression rates.
 
 Devillers and Gandoin \cite{devillers2000gci} compress meshes of 3D
 models. The method they use only considers point locations, so it can be used
-for point cloud compression. Their method exploits a property of oct-trees,
+for point cloud compression. Their method exploits a property of kd-trees,
 instead of general geometric properties. A mesh is a collection of vertices,
 edges and faces defining a 3D object.
 
@@ -170,8 +170,8 @@ points in $[a, (a+b)/2]$ (say $y$ points) then the number of points in
 $[(a+b)/2+1, b]$ is $x - y$ . By sending out counts of deeper and deeper
 levels in breadth first order they progressively get a better
 representation. Encoding this with arithmetic coding gives us the desired
-compression ratios. To extend to 3 dimensions one uses oct-trees and 3
-divisions per cell.
+compression ratios. To extend to 3 dimensions one uses kd-trees and at each
+step of the subdivision, divide along a different dimension.
 
 
 \subsection{Single-Rate Encoding}
@@ -269,9 +269,9 @@ Gumhold et al.\cite{gumholdcomp}.
 
   \emph{Quantization} & No & Yes & \\
 
-  \emph{Connectivity} & Spanning Tree & oct-trees & \\
+  \emph{Connectivity} & Spanning Tree & kd-trees & \\
 
-  \emph{Exploits} & Differential Coding & oct-tree properties & \\
+  \emph{Exploits} & Differential Coding & kd-tree properties & \\
 
   \emph{Scope} & Global & Global & \\
 
