@@ -75,6 +75,20 @@ void MainWindow::doTick()
     dcd->load_dcd_frame(data);
 }//doTick
 
+void MainWindow::doRenderPoints()
+{
+    renderer->renderMode(Renderer::RENDER_POINTS);
+}//doRenderPoints
+
+void MainWindow::doRenderMetaballs()
+{
+    renderer->renderMode(Renderer::RENDER_METABALLS);
+}//doRenderMetaballs
+
+void MainWindow::doViewPreferences()
+{
+}//doViewPreferences
+
 void MainWindow::setFrame(int value)
 {
     if (dcd->frame(value))
@@ -85,6 +99,7 @@ void MainWindow::setFrame(int value)
 void MainWindow::setupMenu()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
+    viewMenu = menuBar()->addMenu(tr("&View"));
 
     openFileAction = new QAction(tr("&Open image"), fileMenu);
     openFileAction->setShortcut(tr("Ctrl+O"));
@@ -98,10 +113,27 @@ void MainWindow::setupMenu()
     quitAction->setShortcut(tr("Q"));
     connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
 
+    renderPointsAction = new QAction(tr("Render as &points"), viewMenu);
+    renderPointsAction->setShortcut(tr("Ctrl+1"));
+    connect(renderPointsAction, SIGNAL(triggered()), this, SLOT(doRenderPoints()));
+
+    renderMetaballsAction = new QAction(tr("Render as &metaballs"), viewMenu);
+    renderMetaballsAction->setShortcut(tr("Ctrl+2"));
+    connect(renderMetaballsAction, SIGNAL(triggered()), this, SLOT(doRenderMetaballs()));
+
+    viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
+    viewPreferencesAction->setShortcut(tr("Ctrl+E"));
+    connect(viewPreferencesAction, SIGNAL(triggered()), this, SLOT(doViewPreferences()));
+
     fileMenu->addAction(openFileAction);
     fileMenu->addSeparator();
     fileMenu->addAction(toggleFocusPlaneAction);
     fileMenu->addSeparator();
     fileMenu->addAction(quitAction);
+
+    viewMenu->addAction(renderPointsAction);
+    viewMenu->addAction(renderMetaballsAction);
+    viewMenu->addSeparator();
+    viewMenu->addAction(viewPreferencesAction);
 }//setupMenu
 

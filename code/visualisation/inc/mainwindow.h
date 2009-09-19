@@ -25,6 +25,10 @@ class MainWindow : public QMainWindow
         void doOpenFile();
         void doTick();
 
+        void doRenderPoints();
+        void doRenderMetaballs();
+        void doViewPreferences();
+
         void setFrame(int value);
 
     private:
@@ -41,6 +45,11 @@ class MainWindow : public QMainWindow
         QAction* openFileAction;
         QAction* toggleFocusPlaneAction;
         QAction* quitAction;
+
+        QMenu* viewMenu;
+        QAction* renderPointsAction;
+        QAction* renderMetaballsAction;
+        QAction* viewPreferencesAction;
 
         void setupMenu();
 };//MainWindow

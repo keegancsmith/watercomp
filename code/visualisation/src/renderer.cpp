@@ -27,6 +27,17 @@ Renderer::Renderer(QWidget* parent)
     _focusPlane = false;
     focusPlaneDepth = -10;
 
+    _renderMode = RENDER_POINTS;
+    _pointColor[0] = 0.0f;
+    _pointColor[1] = 0.0f;
+    _pointColor[2] = 1.0f;
+    _pointColor[3] = 0.02f;
+
+    _metaballsColor[0] = 0.0f;
+    _metaballsColor[1] = 0.0f;
+    _metaballsColor[2] = 1.0f;
+    _metaballsColor[3] = 0.5f;
+
     setMouseTracking(true);
     rot = new Quaternion();
     rot->update_matrix();
@@ -35,7 +46,6 @@ Renderer::Renderer(QWidget* parent)
 
     timer = new QTimer(this);
     timer->setSingleShot(false);
-    // connect(timer, SIGNAL(timeout()), this, SLOT(updateGL()));
     connect(timer, SIGNAL(timeout()), this, SLOT(tick()));
 
     tps(60);
@@ -95,35 +105,23 @@ void Renderer::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
+    if (_renderMode == RENDER_BLANK)
+        return;
+
     //setup camera
     glTranslatef(0, 0, data->half_size[2]-zoom);
     glPushMatrix();
     glMultMatrixd(rot->matrix);
 
-    //draw axes
-    glPushMatrix();
-    glTranslatef(data->bbox[0][0], data->bbox[0][1], data->bbox[0][2]);
-    glBegin(GL_LINES);
-    glColor3f(1.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(data->size[0], 0.0f, 0.0f);
-    glColor3f(0.0f, 1.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, data->size[1], 0.0f);
-    glColor3f(0.0f, 0.0f, 1.0f);
-    glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, data->size[2]);
-    glEnd();
-    glPopMatrix();
-
-    //draw points
-    glColor4f(0.0f, 0.0f, 1.0f, 0.02f);
-    glBegin(GL_POINTS);
-    for (int i = 0; i < data->natoms(); i++)
+    switch (_renderMode)
     {
-        glVertex3dv(data->at(i).pos);
-    }//for
-    glEnd();
+        case RENDER_POINTS:
+            renderPoints();
+            break;
+        case RENDER_METABALLS:
+            renderMetaballs();
+            break;
+    }//switch
 
     glPopMatrix();
     if (_focusPlane)
@@ -181,6 +179,16 @@ void Renderer::toggleFocusPlane()
     _focusPlane = !_focusPlane;
 }//toggleFocusPlane
 
+int Renderer::renderMode()
+{
+    return _renderMode;
+}//renderMode
+
+void Renderer::renderMode(int mode)
+{
+    _renderMode = mode;
+}//tps
+
 
 void Renderer::tick()
 {
@@ -218,6 +226,15 @@ void Renderer::tick()
         lastpos[1] = pos.y();
         rot->update_matrix();
     }//if
+
+    //depending on _renderMode, may need to do processing
+    switch (_renderMode)
+    {
+        case RENDER_METABALLS:
+            //TODO: get surface if data has changed
+            //tickMetaballs();
+            break;
+    }//switch
 
     //change of zoom, rotation, or data update requires an updateGL
     //so instead of checking for all conditions, just updateGL, meh
@@ -273,4 +290,50 @@ void Renderer::wheelEvent(QWheelEvent* event)
     int numsteps = event->delta() * sensitivity / (8 * 15);
     zoom -= numsteps;
 }//wheelEvent
+
+
+void Renderer::renderAxes()
+{
+    //draw axes
+    glPushMatrix();
+    glTranslatef(data->bbox[0][0], data->bbox[0][1], data->bbox[0][2]);
+    glBegin(GL_LINES);
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glVertex3f(0.0f, 0.0f, 0.0f);
+    glVertex3f(data->size[0], 0.0f, 0.0f);
+    glColor3f(0.0f, 1.0f, 0.0f);
+    glVertex3f(0.0f, 0.0f, 0.0f);
+    glVertex3f(0.0f, data->size[1], 0.0f);
+    glColor3f(0.0f, 0.0f, 1.0f);
+    glVertex3f(0.0f, 0.0f, 0.0f);
+    glVertex3f(0.0f, 0.0f, data->size[2]);
+    glEnd();
+    glPopMatrix();
+}//renderAxes
+
+void Renderer::renderPoints()
+{
+    renderAxes();
+
+    //draw points
+    glColor4fv(_pointColor);
+    glBegin(GL_POINTS);
+    for (int i = 0; i < data->natoms(); i++)
+    {
+        glVertex3dv(data->at(i).pos);
+    }//for
+    glEnd();
+}//renderPoints
+
+void Renderer::renderMetaballs()
+{
+    renderAxes();
+
+    glColor4fv(_metaballsColor);
+    glBegin(GL_TRIANGLES);
+    glVertex3f(0.0f, 0.0f, 0.0f);
+    glVertex3f(1.0f, 0.0f, 0.0f);
+    glVertex3f(1.0f, 1.0f, 0.0f);
+    glEnd();
+}//renderMetaballs
 
