@@ -2,5 +2,206 @@
 % {{{
 \label{chap:Design}
 
+The design of the system has been split up into a number of components; this is
+to help manage the development of the system, both time wise and resources
+wise.
+
+The main component categories of the system are:
+\begin{itemize}
+  \item Simulation I/O
+  \item Coders
+  \item Compressors
+  \item Visualisation
+  \item General components
+  \item Method specific components
+  \item Verification components
+\end{itemize}
+
+Each of the component category will be briefly discussed in the following sections.
+
+\section{Simulation I/O}
+% {{{
+\label{sec:simulationio}
+
+This category is to handle the input and output of molecular simulation data.
+The most notable uses will be the PDB and DCD file loaders.
+
+\paragraph{PDB Reader}
+% {{{
+
+The PDB file contains the molecular information for the simulation, i.e. what
+are the atoms and other identifying information. The main use of the PDB file
+will be finding where the water molecules are.
+
+% }}}
+
+\paragraph{DCD Reader}
+% {{{
+
+The DCD file contains the actual simulation data, i.e. where the atoms are at
+each of the frames. This component must be able to seek to arbitrary frames
+within the file for visualisation purposes.
+
+% }}}
+
+% }}}
+
+\section{Coders}
+% {{{
+\label{sec:coders}
+
+The coder components will be used to encode/decode the symbols to and from
+their compressed bit representations.
+
+\paragraph{Arithmetic coder}
+% {{{
+
+The arithmetic coder component will be an adaptive arithmetic coder and will be
+able to handle large numbers of symbols.
+
+% }}}
+
+\paragraph{Omeltchenko coder}
+% {{{
+
+The Omeltchenko coder will be a simple adaptive encoder that will be able to
+encode integers. All data to be encoded will first be converted to an integer
+format.
+
+% }}}
+
+% }}}
+
+\section{Compressors}
+% {{{
+\label{sec:compressors}
+
+The compressor component will be the driver behind the compression and
+decompression of the files. It will be responsible for calling and
+co-ordinating the compression stages, maintaining the necessary state
+information, as well as the file operations.
+
+% }}}
+
+\section{Visualisation}
+% {{{
+\label{sec:visualistioncomponent}
+
+The visualiation component will be used to visualise the water molecules being
+compressed and decompressed. The visualisation component will be a purely
+readonly operation on the data, it will not be producing any data.
+
+% }}}
+
+\section{General components}
+% {{{
+\label{sec:generalcomponents}
+
+These components will be used to perform general transformations needed for the
+different encoders.
+
+\paragraph{Quantiser}
+% {{{
+
+The quantiser component will be used to quantise the positions of the atoms to
+a grid of predetermined granularity. The atom positions will be snapped to the
+nearest grid cells as necessary. The quantiser will convert from floating point
+values to integer points values, which will be used by the various encoders.
+
+% }}}
+
+\paragraph{Frame splitter}
+% {{{
+
+As the system will be mostly interested in the water molecules of the molecular
+simulation, the frame splitter component will be used to separate out the water
+molecules from the simulation data. The output will be used by both the
+visualistion and compression components.
+
+% }}}
+
+\paragraph{Interframe prediction coder}
+% {{{
+
+The interframe prediction coder will be used to reduce the running time of the
+compressors by using temporal coherence of the data, the position of atoms will
+be unlikely to travel far from their previous position. This can be taken
+advantage of by using a simple estimate of the velocity of the atom, and then
+using that to predict the position of the atom in the next frame.
+
+% }}}
+
+% }}}
+
+\section{Method specific components}
+% {{{
+\label{sec:methodcomponents}
+
+\paragraph{Octree indexer}
+% {{{
+
+This component will calculate the octree index of each of the atoms in the
+frame, the Omelchenko coder will then be used to compress this output.
+
+% }}}
+
+\paragraph{Delta encoder/decoder}
+% {{{
+
+The delta encoder is the last stage of the Omeltchenko compression scheme. This
+component will compress a stream of octree indices, which will come from the
+octree indexer component.
+
+% }}}
+
+\paragraph{Point to list encoder}
+% {{{
+
+The Gandoin \& Devilliers compression scheme will use this component to
+recursively split the molecular data into KD-tree subdivisions.
+
+%TODO: fill out more
+
+% }}}
+
+% TODO: combine the graph creator, spanning tree and tree serialiser components
+% visualiser does not need so much detail into the individual components and
+% stages
+
+\paragraph{Graph creator}
+% {{{
+
+The graph creator component will produce a connected graph of water molecules,
+this will then be used for compression and visualisation. Compression will
+occur using the graph, while the visualiser will display the graph to aid in
+compression.
+
+% }}}
+
+\paragraph{Spanning tree creator}
+% {{{
+
+The spanning tree creator component will be responsible for producing a
+spanning tree from the graph of water molecules. This spanning tree will be
+used for the predictive spanning tree compression algorithm.
+
+% }}}
+
+\paragraph{Tree serialiser}
+% {{{
+
+The tree serialiser component will take the spanning tree and convert it to an
+easy to compress format.
+
+% }}}
+
+% }}}
+
+\section{Verification components}
+% {{{
+\label{sec:verification components}
+
+% }}}
+
 % }}}
 
