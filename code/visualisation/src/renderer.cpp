@@ -16,7 +16,7 @@
 Renderer::Renderer(QWidget* parent)
     : QGLWidget(parent)
 {
-    zoom = 6.0f;
+    zoom = 10.0f;
 
     spinning[0] = 0;
     spinning[1] = 0;
@@ -291,6 +291,7 @@ void Renderer::mouseReleaseEvent(QMouseEvent* event)
 void Renderer::wheelEvent(QWheelEvent* event)
 {
     double sensitivity = data->max_side * 0.1;
+    if (sensitivity < 1) sensitivity = 1;
     int numsteps = event->delta() * sensitivity / (8 * 15);
     zoom -= numsteps;
 }//wheelEvent
@@ -441,13 +442,13 @@ void Renderer::initMetaballs()
             for (x = 0; x < nx/2; x+=1)
             {
                 fillGridCell(grid, data, 0, x,   y,   z);
-                fillGridCell(grid, data, 0, x+1, y,   z);
-                fillGridCell(grid, data, 0, x+1, y+1, z);
-                fillGridCell(grid, data, 0, x,   y+1, z);
-                fillGridCell(grid, data, 0, x,   y,   z+1);
-                fillGridCell(grid, data, 0, x+1, y,   z+1);
-                fillGridCell(grid, data, 0, x+1, y+1, z+1);
-                fillGridCell(grid, data, 0, x,   y+1, z+1);
+                fillGridCell(grid, data, 1, x+1, y,   z);
+                fillGridCell(grid, data, 2, x+1, y+1, z);
+                fillGridCell(grid, data, 3, x,   y+1, z);
+                fillGridCell(grid, data, 4, x,   y,   z+1);
+                fillGridCell(grid, data, 5, x+1, y,   z+1);
+                fillGridCell(grid, data, 6, x+1, y+1, z+1);
+                fillGridCell(grid, data, 7, x,   y+1, z+1);
                 marchTetrahedron(_surface, grid, 128, 0, 2, 3, 7);
                 marchTetrahedron(_surface, grid, 128, 0, 2, 6, 7);
                 marchTetrahedron(_surface, grid, 128, 0, 4, 6, 7);
