@@ -1,4 +1,4 @@
-\documentclass[a4paper]{article}
+\documentclass[a4paper]{report}
 
 \usepackage{natbib}
 \usepackage{graphicx}
@@ -29,18 +29,20 @@
   \vfill
   \large \today
 
-  \begin{abstract}
-  TODO
-  \end{abstract}
-
 \end{center}
 \end{titlepage}
 % }}}
 
+
+\section*{Abstract}
+% {{{
+TODO
+
+% }}}
+
+
 \tableofcontents
 \listoffigures
-
-\newpage
 
 
 % \includeonly doesn't quite work the way I want it to :/
@@ -53,8 +55,8 @@
 % \include{conclusion}
 
 
-% \bibliographystyle{abbrvnat}
-\bibliographystyle{plain}
+\bibliographystyle{abbrvnat}
+% \bibliographystyle{plain}
 \bibliography{report_min}
 
 \end{document}
