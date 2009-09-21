@@ -4,11 +4,12 @@
 \usepackage[protrusion=true,expansion=true]{microtype}
 \usepackage[T1]{fontenc}
 \usepackage{pxfonts}
-\usepackage{natbib}
 \usepackage{graphicx}
 %\usepackage{pslatex}
 %\usepackage[margin=2.25cm]{geometry}
 \usepackage{multirow}
+
+\usepackage{natbib}
 \bibliographystyle{abbrvnat}
 
 \title{Literature Review of Point Cloud Compression}
@@ -18,6 +19,7 @@
 
 \begin{titlepage}
 \begin{center}
+
 \includegraphics[width=100mm]{images/uct}\\
 \ \\
 \textsc{\Large
@@ -25,9 +27,7 @@ Department of Computer Science\\
 \ \\
 Honours Project Report\\
 \ \\}
-%
-% the title
-%
+
 {\huge \bfseries
 TODO Insert title here!
 \\}
@@ -35,19 +35,15 @@ TODO Insert title here!
 \ \\
 
 \begin{center}
-%  \begin{tabular}{lll}
-    \large Keegan Carruthers-Smith% & \large Julian Kenwood & \large Min-Young Wu
+    \large Keegan Carruthers-Smith
     \\
-    \small{ksmith@cs.uct.ac.za}% & \small{jkenwood@cs.uct.ac.za} & \small{mwu@cs.uct.ac.za} \\
-%  \end{tabular}
+    \small{ksmith@cs.uct.ac.za}
 \end{center}
 
-\vfill % fill vertical space
-%
-% Bottom of the page
-% \today is the compilation date
+\vfill
+
 {\large \today}
-%
+
 \end{center}
 \end{titlepage}
 
@@ -73,7 +69,7 @@ Molecular dynamics (MD) simulations generate vast amounts of data. A typical
 100-million atom MD simulation produces approximately 5 gigabytes of data per
 frame consisting of atom types, coordinates and velocities. This will generate
 17 terabytes of data a day if run for $35\,000$ steps with every 10th frame
-being saved \cite{omeltchenko2000sls}. Generating this much data makes good
+being saved \citep{omeltchenko2000sls}. Generating this much data makes good
 compression very desirable.
 
 We have developed a method which compresses MD simulations. It targets
@@ -97,25 +93,25 @@ Most research on point clouds involves point clouds of surfaces. This is
 because most point clouds are obtained from 3D scans of object surfaces. A
 surface is the ``skin'' of an object, i.e. the boundaries of a solid object.
 
-Gumhold et al.~\cite{gumholdcomp} create a tree of the points that exploits
-the knowledge that the points lie on a surface. They do not, however, use
-predictors which exploit this. Merry et al.~\cite{merrycomp} extend on this by
-using predictors which do exploit the rectilinear nature of surface scans.
+\citet{gumholdcomp} create a tree of the points that exploits the knowledge
+that the points lie on a surface. They do not, however, use predictors which
+exploit this. \citet{merrycomp} extend on this by using predictors which do
+exploit the rectilinear nature of surface scans.
 
-Omeltchenko et al.~\cite{omeltchenko2000sls} compress point clouds from
-molecular dynamics simulations. To exploit the density of the point clouds, a
-space filling curve\footnote{A space filling curve is one that touches every
-  point in the space. Omeltchenko et al.~\cite{omeltchenko2000sls} create this
-  using a techniques similiar to an octree.} is created along the quantized
-positions. So, every point is assigned an index along the curve. Then by
-encoding the difference between successive indicies which contain points, they
-get a lot of common small differences leading to good compression rates.
+\citet{omeltchenko2000sls} compress point clouds from molecular dynamics
+simulations. To exploit the density of the point clouds, a space filling
+curve\footnote{A space filling curve is one that touches every point in the
+  space. \citet{omeltchenko2000sls} create this using a techniques similiar to
+  an octree.} is created along the quantised positions. So, every point is
+assigned an index along the curve. Then by encoding the difference between
+successive indicies which contain points, they get a lot of common small
+differences leading to good compression rates.
 
-Devillers and Gandoin \cite{devillers2000gci} compress meshes of 3D
-models. The method they use only considers point locations, so it can be used
-for point cloud compression. Their method exploits a property of kd-trees,
-instead of general geometric properties. A mesh is a collection of vertices,
-edges and faces defining a 3D object.
+\citet{devillers2000gci} compress meshes of 3D models. The method they use
+only considers point locations, so it can be used for point cloud
+compression. Their method exploits a property of kd-trees, instead of general
+geometric properties. A mesh is a collection of vertices, edges and faces
+defining a 3D object.
 
 
 \section{Quantisation}
@@ -123,15 +119,14 @@ edges and faces defining a 3D object.
 Point cloud data usually stores the point coordinates in a floating point
 format. Most geometric compression algorithms reduce the precision to achieve
 better compression rates. This reduction of precision is called
-\emph{quantisation} \cite{ag-racm-03}. Every algorithm reviewed in this paper
-that uses quantisation, quantizes the vertex positions for each coordinate
+\emph{quantisation} \citep{ag-racm-03}. Every algorithm reviewed in this paper
+that uses quantisation, quantises the vertex positions for each coordinate
 separately and uniformly in Cartesian space. This can be visualized as
 creating an evenly-spaced grid over the dimensions of the space, and snapping
 the point to the closest grid point. This is the most na\"{\i}ve method, but
-there are more complex methods reviewed by Pierre Alliez and Craig
-Gotsman\cite{ag-racm-03}. These lie outside the scope of this survey. Chen et
-al.~\cite{chen2005lcp} get around quantisation by treating the 32-bit floating
-point numbers as 32-bit integers.
+there are more complex methods reviewed by \citet{ag-racm-03}. These lie
+outside the scope of this survey. \citet{chen2005lcp} get around quantisation
+by treating the 32-bit floating point numbers as 32-bit integers.
 
 
 \section{Predictive Compression}
@@ -154,23 +149,23 @@ Both papers discussed depend on a spanning tree of the points. This will be
 explained in the next subsection, but for now let $v'$ be the parent of the
 point $v$, and $v''$ be the point's grandparent in the tree.
 
-Gumhold et al.~\cite{gumholdcomp} lets the user choose between two na\"{\i}ve
+\citet{gumholdcomp} lets the user choose between two na\"{\i}ve
 predictors. The first is a \emph{constant} predictor where $v$ is predicted to
 be at $v'$. The second is a \emph{linear} predictor where $v$ is predicted to
 be at $v' + (v' - v'')$. So either $v$ is in the same place as its parent, or
 it is along the straight line $(v', v'')$ with distance $|v'-v''|$ away from
 its parent.
 
-Merry et al.~\cite{merrycomp} use the same predictors as Gumhold et al.\ but
-with two additional predictors, the \emph{left} and \emph{right}
-predictors. The surface normal\footnote{A surface normal at a point $v$ is the
-  normal of the plane tangent to the surface at $v$.} $n_v$ at $v$ is
-heuristically determined from $v, v'', v'$ and $n_{v'}$ (where $n_{v'}$ is the
-surface normal at $v'$). From this they can determine what left and right are
-by using the plane determined by $n_{v'}, v'$ and $v''$. Another difference to
-Gumhold et al.\ is that instead of letting the user choose the predictor used,
-the best predictor is picked for each point. This requires the predictor used
-at each point to be encoded, which is discussed next.
+\citet{merrycomp} use the same predictors as \citeauthor{gumholdcomp} but with
+two additional predictors, the \emph{left} and \emph{right} predictors. The
+surface normal\footnote{A surface normal at a point $v$ is the normal of the
+  plane tangent to the surface at $v$.} $n_v$ at $v$ is heuristically
+determined from $v, v'', v'$ and $n_{v'}$ (where $n_{v'}$ is the surface
+normal at $v'$). From this they can determine what left and right are by using
+the plane determined by $n_{v'}, v'$ and $v''$. Another difference to
+\citeauthor{gumholdcomp} is that instead of letting the user choose the
+predictor used, the best predictor is picked for each point. This requires the
+predictor used at each point to be encoded, which is discussed next.
 
 
 \subsection{Serialization}
@@ -178,34 +173,33 @@ at each point to be encoded, which is discussed next.
 Unlike meshes, point clouds have no connectivity information. So there is no
 obvious order to serialize the vertices' information (generally residuals).
 
-Gumhold et al.~\cite{gumholdcomp} create a rooted spanning tree of the
-points. The tree is greedily created by randomnly picking a root and adding
-each successive point to the vertex which minimises the residual. The tree is
-then serialized by entropy encoding the out degree of each vertex in
-breadth-first order.
+\citet{gumholdcomp} create a rooted spanning tree of the points. The tree is
+greedily created by randomnly picking a root and adding each successive point
+to the vertex which minimises the residual. The tree is then serialized by
+entropy encoding the out degree of each vertex in breadth-first order.
 
-Merry et al.~\cite{merrycomp} also create a rooted spanning tree of the
-points, but in a way that favours ``long runs'' of the forward predictor. They
-need to encode the predictor used at each point, so encoding the tree as
-Gumhold et al.\ did will not work. Instead the tree is serialized by entropy
-coding the predictor used in depth-first order. By favouring long runs of the
-forward predictor they get better compression ratios of the encoding of the
-tree. To create the spanning tree, they first create a graph of the points
-where every edge with length less than $L$ is added. $L$ is the length of the
-longest edge in the minimum spanning tree of the complete graph of the
-points. The spanning tree is then created similarly to Prim's algorithm
-\cite[p.\ 457]{sedgewick}, but instead using a metric\footnote{A metric is a
-  way to calculate the distance between vertices.} that favours recently
-considered vertices and ones predicted well by the forward predictor.
+\citet{merrycomp} also create a rooted spanning tree of the points, but in a
+way that favours ``long runs'' of the forward predictor. They need to encode
+the predictor used at each point, so encoding the tree as Gumhold et al.\ did
+will not work. Instead the tree is serialized by entropy coding the predictor
+used in depth-first order. By favouring long runs of the forward predictor
+they get better compression ratios of the encoding of the tree. To create the
+spanning tree, they first create a graph of the points where every edge with
+length less than $L$ is added. $L$ is the length of the longest edge in the
+minimum spanning tree of the complete graph of the points. The spanning tree
+is then created similarly to Prim's algorithm \citep[p.\ 457]{sedgewick}, but
+instead using a metric\footnote{A metric is a way to calculate the distance
+  between vertices.} that favours recently considered vertices and ones
+predicted well by the forward predictor.
 
-Chen et al.\cite{chen2005lcp} uses a spanning tree with differential coding on
-the weights. So the point cloud is encoded as a tree, with edge weights being
-the difference vectors between points. They show that there exists a spanning
-tree which minimises the number of pairwise different edge weights, but also
-show that this is NP-Hard. They do, however, give an approximate algorithm
-which uses clustering and minimum spanning trees. The tree is serialized in a
-simple breadth-first order, recording the number of children for each node and
-the edge weights for each child.
+\citet{chen2005lcp} uses a spanning tree with differential coding on the
+weights. So the point cloud is encoded as a tree, with edge weights being the
+difference vectors between points. They show that there exists a spanning tree
+which minimises the number of pairwise different edge weights, but also show
+that this is NP-Hard. They do, however, give an approximate algorithm which
+uses clustering and minimum spanning trees. The tree is serialized in a simple
+breadth-first order, recording the number of children for each node and the
+edge weights for each child.
 
 
 \section{Decoding}
@@ -222,23 +216,22 @@ transmitting the data over a network, as users can almost instantaneously see
 a coarse representation. This is then followed by more and more refinements
 over time as they arrive.
 
-Devillers and Gandoin \cite{devillers2000gci} provide an example of a
-progressive coder. The method is best explained in 1 dimension first. If you
-know the total number of points in $[a, b]$ (say $x$ points) and the number of
-points in $[a, (a+b)/2]$ (say $y$ points) then the number of points in
-$[(a+b)/2+1, b]$ is $x - y$ . By sending out counts of deeper and deeper
-levels in breadth first order they progressively get a better
-representation. Encoding this with arithmetic coding gives us the desired
-compression ratios. To extend to 3 dimensions one uses kd-trees and at each
-step subdivide along a different dimension.
+\citet{devillers2000gci} provide an example of a progressive coder. The method
+is best explained in 1 dimension first. If you know the total number of points
+in $[a, b]$ (say $x$ points) and the number of points in $[a, (a+b)/2]$ (say
+$y$ points) then the number of points in $[(a+b)/2+1, b]$ is $x - y$ . By
+sending out counts of deeper and deeper levels in breadth first order they
+progressively get a better representation. Encoding this with arithmetic
+coding gives us the desired compression ratios. To extend to 3 dimensions one
+uses a process similiar to creating a kd-tree: at each step subdivide along a
+different dimension.
 
 
 \subsection{Single-Rate Encoding}
 
 A single-rate encoder is one which requires the whole stream to be available
-before the data can be decompressed. Omeltchenko et
-al.~\cite{omeltchenko2000sls} Gumhold et al.~\cite{gumholdcomp} and Merry et
-al.~\cite{merrycomp} are all single-rate encoders.
+before the data can be decompressed. \citet{omeltchenko2000sls},
+\citet{gumholdcomp} and \citet{merrycomp} are all single-rate encoders.
 
 
 \section{Water Heuristics}
@@ -273,30 +266,29 @@ the different papers. There are two underlying philosophies which the
 compression algorithms exploit, the \emph{scope} and the \emph{topology}.
 
 The \emph{scope} is whether the algorithm is exploiting \emph{global} or
-\emph{local} properties of the points. Merry et al.~\cite{merrycomp} uses a
-local scope since it exploits nearby points to predict the location of the
-current point. Chen et al.~\cite{chen2005lcp} uses a global scope, since it is
-trying to minimise a global property of the spanning tree.
+\emph{local} properties of the points. citet{merrycomp} uses a local scope
+since it exploits nearby points to predict the location of the current
+point. \citet{chen2005lcp} uses a global scope, since it is trying to minimise
+a global property of the spanning tree.
 
 The \emph{topology} is whether the algorithm is trying to exploit connectivity
-or geometric information. Gumhold et al.~\cite{gumholdcomp} exploits both, but
-the geometry slightly more since it uses a predictor to predict the location
-based on other points location. Chen et al.~\cite{chen2005lcp} just tries to
-choose the best possible spanning tree, so they exploit connectivity of
-points.
+or geometric information. \citet{gumholdcomp} exploits both, but the geometry
+slightly more since it uses a predictor to predict the location based on other
+points location. \citet{chen2005lcp} just tries to choose the best possible
+spanning tree, so they exploit connectivity of points.
 
 For the compression of water molecules we have a lot of local heuristics. From
 these we have good geometric and connectivity information. So the best
 matching approach would come from something similiar to the predictive
-single-rate compression algorithms of Merry et al.~\cite{merrycomp} and
-Gumhold et al.\cite{gumholdcomp}.
+single-rate compression algorithms of \citet{merrycomp} and
+\citet{gumholdcomp}.
 
 \begin{figure*}
 \centering
 \resizebox{\textwidth}{!}{
 \begin{tabular}{||l|c|c||}
   \hline
-  \emph{Attribute/Method} & \cite{omeltchenko2000sls} & \cite{gumholdcomp} \\
+  \emph{Attribute/Method} & \citet{omeltchenko2000sls} & \citet{gumholdcomp} \\
 
   \hline
 
@@ -317,7 +309,7 @@ Gumhold et al.\cite{gumholdcomp}.
   \hline
   \hline
 
-  \emph{Attribute/Method} & \cite{chen2005lcp} & \cite{devillers2000gci} \\
+  \emph{Attribute/Method} & \citet{chen2005lcp} & \citet{devillers2000gci} \\
 
   \hline
 
@@ -338,7 +330,7 @@ Gumhold et al.\cite{gumholdcomp}.
   \hline
   \hline
 
-  \emph{Attribute/Method} & \cite{merrycomp} & \\
+  \emph{Attribute/Method} & \citet{merrycomp} & \\
 
   \hline
 
@@ -365,19 +357,115 @@ Gumhold et al.\cite{gumholdcomp}.
 
 \chapter{Design}
 
-\section{Introduction}
+This section outlines the design for our compressor and decompressor. The
+compression techniques I investigate only cover single frame compression, but
+our final product handles multiframe compression and visualisation as well. As
+such the design needs to take into account these uses, but I will only cover
+the design aspects relevant to single frame compression.
 
-\section{Design Methodology}
+I worked closely with Julian Kenwood on the compressor and decompressor, and
+areas designated to him are more thoroughly explained in his report. I will
+indicate such areas.
+
+\section{Overview}
+
+We target the PDB format, which is a format for storing MD simulations. PDB is
+readable by VMD. \textbf{TODO} improve and references.
+
+A high-level overview of how our compressor works is illustrated by the
+following: \textbf{TODO} replace with pretty picture
+
+\[ DCDFile \to Atoms \to QuantisedAtoms \to Graph \to SpanningTree \to SymbolStream \to
+BitStream \]
+
+The decompressor works in the reverse direction
+
+\[ BitStream \to SymbolStream \to SpanningTree \to QuantisedAtoms \to
+DCDFile \]
+
+The decompressed DCD files have been quantised. Excluding the quantisation
+step, our scheme is lossless. Notice that each step in the compression phase
+has auxillary information. The auxillary information is required to
+reconstruct reverse the process.
+
 
 \section{Components}
 
-\subsection{Overview}
+We took a component-based approach to the design of the compressor. This is
+because our algorithm naturally breaks down into different components. Our
+reference implementations of other algorithms also make use of these
+components.
 
-%% List each section as a subsection and each component as a subsubsection
+The different components are the following:
+\begin{itemize}
+\item Compressors
+\item Simulation I/O
+\item Core Transformations
+\item Arithmetic Coders
+\item Miscellaneous Components
+\item Verification Components
+\end{itemize}
+
+\subsection{Compressors}
+
+The compressor component is the driver program. It utilises the other
+components listed below to do compression and decompression. There is our
+compressor and two reference compressors. The reference compressors are the
+\citet{omeltchenko2000sls} scheme and the \citet{devillers2000gci} scheme.
+
+
+\subsection{Simulation I/O}
+
+These components handle I/O to and from the files we are compressing. We are
+compressing DCD files. DCD files come with accompanying PDB file, which
+contains info about what each atom is in the DCD file.
+
+\textbf{TODO} Maybe list this info at a higher level.
+
+\paragraph{DCDReader} (DCDFile file, int n) $\to$ Frame \\
+Returns the $n^{th}$ frame of the DCDFile \emph{file}.
+
+\paragraph{DCDWriter} (DCDFile file, int n, Frame frame) \\
+Writes \emph{frame} as the $n^{th}$ frame in the DCDFile \emph{file}.
+
+\paragraph{PDBReader} (String pdb\_path) $\to$ AtomInformation* \\
+Returns a list of atom information in the file \emph{pdb\_path}.
+
+
+\subsection{Core Transformation}
+
+These components implement the core algorithms for each different
+compressor. There are components for each reference implementation and our own
+compressor.
+
+\begin{verbatim}
+Transform(Atoms *atoms, ArithmeticEncoder output):
+  Atoms *water_atoms, *other_atoms = FindWater(atoms)
+  Graph water_graph = CreateGraph(water_atoms)
+  Tree spanning_tree = CreateSpanningTree(water_graph)
+  TreeSerialise(output, tree)
+\end{verbatim}
+
+\textbf{TODO} detail the steps
+
+\section{Arithmetic Coder}
+
+The ``meat'' of all the compression schemes convert the input into a symbol
+stream (where the symbols are from a fixed alphabet). These symbols are then
+compressed with an arithmetic encoder. Similarly the decompressor takes a
+symbol stream and converts it into the original input.
+
+The arithmetic coder has two parts to it, a \emph{reader} and a
+\emph{writer}. The \emph{reader} and the \emph{writer} are inverses to each
+other, with the \emph{reader} converting a symbol stream to a bit stream and
+the \emph{writer} converting a bit stream to a symbol stream.
+
+The scheme by \citet{omeltchenko2000sls} does not make use of an Arithmetic
+Coder, instead it uses its own coder. The implementation of the coders is
+handled by Julian.
 
 
 \nocite{*}
 \bibliography{report_keegan}
-\bibliographystyle{acm}
 
 \end{document}

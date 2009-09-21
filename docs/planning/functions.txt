@@ -2,11 +2,11 @@
 
 -- General
 DCDReader :: DCDFile -> Int -> Frame
-PDBReader :: PDBFile -> AtomInformation* - Done, barring testing
-Quantiser :: Frame -> QuantisedFrame - Done, barring testing
+PDBReader :: PDBFile -> AtomInformation* -- Done, barring testing
+Quantiser :: Frame -> QuantisedFrame -- Done, barring testing
 Transform :: PDBInfo -> QuantisedFrame -> ByteStream
 
-Dequantiser :: QuantisedFrame -> Frame - Not done
+Dequantiser :: QuantisedFrame -> Frame -- Not done
 
 -- Arithmetic Coder
 ArithmeticCoder :: ArithmeticModel -> SymbolStream -> BitStream
@@ -17,7 +17,7 @@ SpanningTree :: WaterMoleculeGraph -> WaterMoleculeGraph
 TreeSerialiser :: WaterMoleculeGraph -> SymbolStream
 
 -- Splitter
-FrameSplit :: QuantisedFrame -> (WaterMoleculeList, OtherAtomList) - Done, barring testing again and also depends on us writing a PDB re-orderer.
+FrameSplit :: QuantisedFrame -> (WaterMoleculeList, OtherAtomList) -- Done, barring testing again and also depends on us writing a PDB re-orderer.
 
 -- Interframe
 InterframeTransform :: Int -> QuantisedFrame* -> ByteStream(SymbolStream?)
@@ -26,11 +26,11 @@ InterframeTransform :: Int -> QuantisedFrame* -> ByteStream(SymbolStream?)
 PointsToList :: QuantisedFrame -> SymbolStream
 
 -- Omeltchenko
-SortedOctreeIndex :: QuantisedFrame -> SymbolStream - Done
-DeltaEncoder :: SymbolStream -> SymbolStream - Doing
-OmeltchenkoTransform :: QuantisedFrame -> SymbolStream -Overview Transform so just glue code
+SortedOctreeIndex :: QuantisedFrame -> SymbolStream -- Done
+DeltaEncoder :: SymbolStream -> SymbolStream -- Doing
+OmeltchenkoTransform :: QuantisedFrame -> SymbolStream --Overview Transform so just glue code
 
-DeltaDecoder :: SymbolStream -> QuantisedFrame - Doing
+DeltaDecoder :: SymbolStream -> QuantisedFrame -- Doing
 
 -- Verifiers
 TransformVerifier :: (QuantisedFrame, QuantisedFrame) -> Boolean

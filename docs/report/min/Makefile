@@ -1,8 +1,13 @@
+all: report_min.pdf
+
 report_min.pdf: report_min.tex report_min.bib introduction.tex background.tex \
-		design.tex implementation.tex evaluation.tex conclusion.tex
+		design.tex implementation.tex evaluation.tex conclusion.tex \
+		report_min.bbl
+	pdflatex report_min.tex
+
+report_min.bbl: report_min.bib
 	pdflatex report_min.tex
 	bibtex report_min
-	pdflatex report_min.tex
 	pdflatex report_min.tex
 
 clean:
