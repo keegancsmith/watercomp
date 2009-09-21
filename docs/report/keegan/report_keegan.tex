@@ -363,35 +363,64 @@ our final product handles multiframe compression and visualisation as well. As
 such the design needs to take into account these uses, but I will only cover
 the design aspects relevant to single frame compression.
 
-I worked closely with Julian Kenwood on this, and areas designated to him are
-more thoroughly explained in his report. I will indicate such areas.
+I worked closely with Julian Kenwood on the compressor and decompressor, and
+areas designated to him are more thoroughly explained in his report. I will
+indicate such areas.
+
+\section{Overview}
 
 We target the PDB format, which is a format for storing MD simulations. PDB is
 readable by VMD. \textbf{TODO} improve and references.
 
-We took a component-based approach to the design of the compressor. This is
-because our algorithm naturally breaks down into different components. We also
-make the components general enough that it is easy to implement reference
-compressors on the PDB format.
+A high-level overview of how our compressor works is illustrated by the
+following: \textbf{TODO} replace with pretty picture
 
-The different components are as follows:
+\[ DCDFile \to Atoms \to QuantisedAtoms \to Graph \to SpanningTree \to SymbolStream \to
+BitStream \]
+
+The decompressor works in the reverse direction
+
+\[ BitStream \to SymbolStream \to SpanningTree \to QuantisedAtoms \to
+DCDFile \]
+
+The decompressed DCD files have been quantised. Excluding the quantisation
+step, our scheme is lossless. Notice that each step in the compression phase
+has auxillary information. The auxillary information is required to
+reconstruct reverse the process.
+
+
+\section{Components}
+
+We took a component-based approach to the design of the compressor. This is
+because our algorithm naturally breaks down into different components. Our
+reference implementations of other algorithms also make use of these
+components.
+
+The different components are the following:
 \begin{itemize}
-\item Simulation I/O
-\item Coders
 \item Compressors
-\item Method Specific Components
-\item Verification Components
+\item Simulation I/O
+\item Core Transformations
+\item Arithmetic Coders
 \item Miscellaneous Components
+\item Verification Components
 \end{itemize}
 
-What follows is a more detailed list of components, with there outputs and
-inputs listed.
+\subsection{Compressors}
 
-\section{Simulation I/O}
+The compressor component is the driver program. It utilises the other
+components listed below to do compression and decompression. There is our
+compressor and two reference compressors. The reference compressors are the
+\citet{omeltchenko2000sls} scheme and the \citet{devillers2000gci} scheme.
+
+
+\subsection{Simulation I/O}
 
 These components handle I/O to and from the files we are compressing. We are
 compressing DCD files. DCD files come with accompanying PDB file, which
 contains info about what each atom is in the DCD file.
+
+\textbf{TODO} Maybe list this info at a higher level.
 
 \paragraph{DCDReader} (DCDFile file, int n) $\to$ Frame \\
 Returns the $n^{th}$ frame of the DCDFile \emph{file}.
@@ -403,23 +432,37 @@ Writes \emph{frame} as the $n^{th}$ frame in the DCDFile \emph{file}.
 Returns a list of atom information in the file \emph{pdb\_path}.
 
 
-\section{Coders}
+\subsection{Core Transformation}
+
+These components implement the core algorithms for each different
+compressor. There are components for each reference implementation and our own
+compressor.
+
+\begin{verbatim}
+Transform(Atoms *atoms, ArithmeticEncoder output):
+  Atoms *water_atoms, *other_atoms = FindWater(atoms)
+  Graph water_graph = CreateGraph(water_atoms)
+  Tree spanning_tree = CreateSpanningTree(water_graph)
+  TreeSerialise(output, tree)
+\end{verbatim}
+
+\textbf{TODO} detail the steps
+
+\section{Arithmetic Coder}
 
 The ``meat'' of all the compression schemes convert the input into a symbol
 stream (where the symbols are from a fixed alphabet). These symbols are then
-compressed with a lossless data compressor. Similarly the decompressor takes a
-symbol stream and converts it into the original input. The components in this
-section are the lossless data compressors.
+compressed with an arithmetic encoder. Similarly the decompressor takes a
+symbol stream and converts it into the original input.
 
-Each coder has two parts to it, a \emph{reader} and a \emph{writer}. The
-\emph{reader} and the \emph{writer} are inverses to each other, with the
-\emph{reader} converting a symbol stream to a bit stream and the \emph{writer}
-converting a bit stream to a symbol stream.
+The arithmetic coder has two parts to it, a \emph{reader} and a
+\emph{writer}. The \emph{reader} and the \emph{writer} are inverses to each
+other, with the \emph{reader} converting a symbol stream to a bit stream and
+the \emph{writer} converting a bit stream to a symbol stream.
 
-There will be two coders, the \textbf{Arithmetic Coder} and the
-\textbf{Omeltchenko Coder}. The implementation of this section is handled by
-Julian.
-
+The scheme by \citet{omeltchenko2000sls} does not make use of an Arithmetic
+Coder, instead it uses its own coder. The implementation of the coders is
+handled by Julian.
 
 
 \nocite{*}
