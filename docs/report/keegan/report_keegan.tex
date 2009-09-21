@@ -357,15 +357,70 @@ single-rate compression algorithms of \citet{merrycomp} and
 
 \chapter{Design}
 
-\section{Introduction}
+This section outlines the design for our compressor and decompressor. The
+compression techniques I investigate only cover single frame compression, but
+our final product handles multiframe compression and visualisation as well. As
+such the design needs to take into account these uses, but I will only cover
+the design aspects relevant to single frame compression.
 
-\section{Design Methodology}
+I worked closely with Julian Kenwood on this, and areas designated to him are
+more thoroughly explained in his report. I will indicate such areas.
 
-\section{Components}
+We target the PDB format, which is a format for storing MD simulations. PDB is
+readable by VMD. \textbf{TODO} improve and references.
 
-\subsection{Overview}
+We took a component-based approach to the design of the compressor. This is
+because our algorithm naturally breaks down into different components. We also
+make the components general enough that it is easy to implement reference
+compressors on the PDB format.
 
-%% List each section as a subsection and each component as a subsubsection
+The different components are as follows:
+\begin{itemize}
+\item Simulation I/O
+\item Coders
+\item Compressors
+\item Method Specific Components
+\item Verification Components
+\item Miscellaneous Components
+\end{itemize}
+
+What follows is a more detailed list of components, with there outputs and
+inputs listed.
+
+\section{Simulation I/O}
+
+These components handle I/O to and from the files we are compressing. We are
+compressing DCD files. DCD files come with accompanying PDB file, which
+contains info about what each atom is in the DCD file.
+
+\paragraph{DCDReader} (DCDFile file, int n) $\to$ Frame \\
+Returns the $n^{th}$ frame of the DCDFile \emph{file}.
+
+\paragraph{DCDWriter} (DCDFile file, int n, Frame frame) \\
+Writes \emph{frame} as the $n^{th}$ frame in the DCDFile \emph{file}.
+
+\paragraph{PDBReader} (String pdb\_path) $\to$ AtomInformation* \\
+Returns a list of atom information in the file \emph{pdb\_path}.
+
+
+\section{Coders}
+
+The ``meat'' of all the compression schemes convert the input into a symbol
+stream (where the symbols are from a fixed alphabet). These symbols are then
+compressed with a lossless data compressor. Similarly the decompressor takes a
+symbol stream and converts it into the original input. The components in this
+section are the lossless data compressors.
+
+Each coder has two parts to it, a \emph{reader} and a \emph{writer}. The
+\emph{reader} and the \emph{writer} are inverses to each other, with the
+\emph{reader} converting a symbol stream to a bit stream and the \emph{writer}
+converting a bit stream to a symbol stream.
+
+There will be two coders, the \textbf{Arithmetic Coder} and the
+\textbf{Omeltchenko Coder}. The implementation of this section is handled by
+Julian.
+
+
 
 \nocite{*}
 \bibliography{report_keegan}
