@@ -19,6 +19,8 @@ The main component categories of the system are:
 
 Each of the component category will be briefly discussed in the following sections.
 
+% TODO: add image of components, and how they link up
+
 \section{Simulation I/O}
 % {{{
 \label{sec:simulationio}
@@ -137,61 +139,37 @@ using that to predict the position of the atom in the next frame.
 % {{{
 \label{sec:methodcomponents}
 
-\paragraph{Octree indexer}
+The various compression schemes will have their own specific components, this
+category contains those specific components.
+
+\paragraph{Omeltchenko}
 % {{{
 
-This component will calculate the octree index of each of the atoms in the
-frame, the Omelchenko coder will then be used to compress this output.
+The Omeltchenko compression schemes uses an octree indexer to sort and
+partition the atom positions. A delta encoder/decoder is then used to encode
+and decode the stream of octree indices.
 
 % }}}
 
-\paragraph{Delta encoder/decoder}
+\paragraph{Gandoin \& Devilliers}
 % {{{
 
-The delta encoder is the last stage of the Omeltchenko compression scheme. This
-component will compress a stream of octree indices, which will come from the
-octree indexer component.
-
-% }}}
-
-\paragraph{Point to list encoder}
-% {{{
-
-The Gandoin \& Devilliers compression scheme will use this component to
-recursively split the molecular data into KD-tree subdivisions.
+A point to list encoder is used by the Gandoin \& Devilliers compression
+scheme. The point data will be split using KD-tree subdivisions, which will
+then be encoded.
 
 %TODO: fill out more
 
 % }}}
 
-% TODO: combine the graph creator, spanning tree and tree serialiser components
-% visualiser does not need so much detail into the individual components and
-% stages
-
-\paragraph{Graph creator}
+\paragraph{Predictive point cloud}
 % {{{
 
-The graph creator component will produce a connected graph of water molecules,
-this will then be used for compression and visualisation. Compression will
-occur using the graph, while the visualiser will display the graph to aid in
-compression.
-
-% }}}
-
-\paragraph{Spanning tree creator}
-% {{{
-
-The spanning tree creator component will be responsible for producing a
-spanning tree from the graph of water molecules. This spanning tree will be
-used for the predictive spanning tree compression algorithm.
-
-% }}}
-
-\paragraph{Tree serialiser}
-% {{{
-
-The tree serialiser component will take the spanning tree and convert it to an
-easy to compress format.
+The predictive point cloud components includes the following components: a
+graph creator, a spanning tree creator and a tree serialiser. The graph creator
+produces a graph of water molecules, which is then pruned by the spanning tree
+component. The spanning tree is finally serialised with the tree serialiser,
+and the output of that is compressed using arithmetic encoding.
 
 % }}}
 
@@ -199,7 +177,35 @@ easy to compress format.
 
 \section{Verification components}
 % {{{
-\label{sec:verification components}
+\label{sec:verificationcomponents}
+
+The verification components will be used to verify and record how the various
+aspects of the system are performing.
+
+\paragraph{Transform verifier}
+% {{{
+
+The transform verifier is a simple component to test if the compression is
+lossless or not.
+
+% }}}
+
+\paragraph{Quantiser statistics}
+% {{{
+
+This component will collect various statistics from the quantising step of the
+compression.
+
+% }}}
+
+\paragraph{Prediction statistics}
+% {{{
+
+This component will collect various statistics from the prediction step of the
+compression. These statistics will be used to evaluate how effective the
+heuristics used for prediction are.
+
+% }}}
 
 % }}}
 
