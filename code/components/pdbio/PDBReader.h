@@ -5,7 +5,7 @@
 #include <vector>
 #include "AtomInformation.h"
 
-class PDB_Reader
+class PDBReader
 {
     public:
         static std::vector<AtomInformation> load_pdbfile(std::string filename)
