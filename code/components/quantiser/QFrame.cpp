@@ -1,6 +1,5 @@
 #include "QFrame.h"
 #include <cassert>
-#include "../pdb_reader/AtomInformation.h"
 
 using namespace std;
 

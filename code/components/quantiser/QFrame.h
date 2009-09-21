@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "../pdb_reader/AtomInformation.h"
+#include "../pdbio/AtomInformation.h"
 
 /// Might put this in one namespace
 
