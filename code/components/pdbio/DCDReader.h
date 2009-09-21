@@ -1,13 +1,12 @@
 #pragma once
 
 #include "../../dcd_loader/dcdplugin.h"
-#include "AtomInformation.h"
 
 class DCDReader {
 public:
     DCDReader(const char * dcd_path);
 
-    /** 
+    /**
      * Reads the next frame into frame.
      *
      * frame has to be an array of size = 3 * natoms().

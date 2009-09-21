@@ -1,12 +1,12 @@
 -- This file can be viewed with haskell syntax highlighting
 
 -- General
-DCDReader :: DCDFile -> Int -> Frame
+DCDReader :: DCDFile -> Int -> Frame -- Done
 PDBReader :: PDBFile -> AtomInformation* -- Done, barring testing
 Quantiser :: Frame -> QuantisedFrame -- Done, barring testing
 Transform :: PDBInfo -> QuantisedFrame -> ByteStream
 
-Dequantiser :: QuantisedFrame -> Frame -- Not done
+Dequantiser :: QuantisedFrame -> Frame -- Done
 
 -- Arithmetic Coder
 ArithmeticCoder :: ArithmeticModel -> SymbolStream -> BitStream
