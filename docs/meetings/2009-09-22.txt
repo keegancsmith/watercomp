@@ -1,0 +1,68 @@
+.. -*- mode: rst -*-
+
+===============================================
+ Minutes of Meeting Tuesday 22 September 2009
+===============================================
+
+Discussion
+==========
+
+Julian
+------
+
+* Design Chapter 
+  + Returned with comments: More design choices than the design itself.
+  
+
+Keegan
+------
+* Testing
+  + Testing would go in the results section; for instance proof that system does what it is meant to.
+
+Min
+----
+
+* Coarse subdivision or decimation for marching tetrahedra?
+  + Decimation is preferred.
+  + Could find a library to do it(VTK?) or use simple techniques.
+  + Try something that is progressive.
+
+* Background Chapter
+  + Add stuff on decimation techniques
+
+Work for next meeting
+=====================
+
+Julian
+------
+
+Do Grid for Min immediately.
+
+
+Timeline
+========
+
+5 weeks left of coding
+2 weeks of report
+
+Julian
+------
+
+22 September to 6 October is 1st prototype
+6 October to 20 October is one Interframe prediction per week
+20 October to 5 November is Report
+
+Keegan
+------
+
+22 September to 6 October is 1st prototype
+6 October to 20 October is one heuristic per week
+20 October to 5 November is Report
+
+Min
+---
+
+(In background is Graphviz)
+22 September to 13 October is metaballs and decimation
+13 October to 20 October is LOD.
+20 October to 5 November is Report
