@@ -31,7 +31,7 @@ def custom_logformat(date, author, type, file):
     return '%(date)s|%(author)s|%(type)s|%(file)s' %{
                 'date': date,
                 'author': author,
-                'type': 'A',
+                'type': type,
                 'file': f,
             }
 
