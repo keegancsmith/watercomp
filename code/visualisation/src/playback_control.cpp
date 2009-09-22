@@ -104,7 +104,7 @@ void PlaybackControl::playClicked()
 void PlaybackControl::timerTick()
 {
     slider->setValue(_frame + 1);
-    emit tick();
+    // emit tick();
 
     if (_frame == _totalFrames)
     {

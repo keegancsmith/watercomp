@@ -5,35 +5,18 @@
 #include <QTimer>
 #include <QVector>
 
+class BaseView;
 class Frame_Data;
 class Quaternion;
-
-struct Point3f
-{
-    float p[3];
-};//Point3f
-
-struct Triangle
-{
-    Point3f p[3]; // 3 positions
-    Point3f n[3]; // 3 normals
-};//Triangle
-
-struct GridCell
-{
-    Point3f p[8]; // 8 positions
-    Point3f n[8]; // 8 normals
-    float val[8]; // 8 values
-};//GridCell
 
 class Renderer : public QGLWidget
 {
     Q_OBJECT
     friend class MainWindow;
     public:
-        const static int RENDER_BLANK = 0;
-        const static int RENDER_POINTS = 1;
-        const static int RENDER_METABALLS = 2;
+        const static int RENDER_BLANK = -1;
+        const static int RENDER_POINTS = 0;
+        const static int RENDER_METABALLS = 1;
 
         Renderer(QWidget* parent=0);
         ~Renderer();
@@ -51,10 +34,13 @@ class Renderer : public QGLWidget
         void tps(int value);
         bool focusPlane();
         int renderMode();
-        void renderMode(int mode);
+
+        int addRenderMode(BaseView* view);
 
     public slots:
         void toggleFocusPlane();
+        void renderMode(int mode);
+        void dataTick();
 
     private slots:
         void tick();
@@ -76,26 +62,15 @@ class Renderer : public QGLWidget
         float focusPlaneDepth;
         int _renderMode;
 
-        int mode;
-        float _pointColor[4];
-        float _metaballsColor[4];
-
         int _tps;
         QTimer* timer;
 
         Quaternion* rot;
         Frame_Data* data;
 
-        QVector<Triangle> _surface;
-        void fillGridCell(GridCell& grid, unsigned char*** data, int i, int x, int y, int z);
-        void marchTetrahedron(QVector<Triangle>& surface, GridCell& grid, int iso, int v0, int v1, int v2, int v3);
-        Point3f vertexInterpolate(float iso, GridCell& g, int v1, int v2);
-        void initMetaballs();
-        void tickMetaballs();
+        QVector<BaseView*> renderModes;
 
         void renderAxes();
-        void renderPoints();
-        void renderMetaballs();
 };//Renderer
 
 #endif

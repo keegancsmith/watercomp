@@ -12,9 +12,12 @@
 
 #include "dcd_loader.h"
 #include "frame_data.h"
+#include "metaballs_view.h"
 #include "pdb_loader.h"
 #include "playback_control.h"
+#include "point_view.h"
 #include "renderer.h"
+#include "view_preference.h"
 
 MainWindow::MainWindow()
 {
@@ -25,19 +28,31 @@ MainWindow::MainWindow()
 
     renderer = new Renderer(centralWidget);
     data = renderer->data;
+
+    renderer->renderMode(0);
     centralLayout->addWidget(renderer);
 
     playbackControl = new PlaybackControl(centralWidget);
     playbackControl->tps(10);
-    connect(playbackControl, SIGNAL(tick()), this, SLOT(doTick()));
+    // connect(playbackControl, SIGNAL(tick()), this, SLOT(doTick()));
     connect(playbackControl, SIGNAL(frameChange(int)), this, SLOT(setFrame(int)));
     centralLayout->addWidget(playbackControl);
 
+    //setup menu
     setupMenu();
+    addRenderMode(new PointView());
+    addRenderMode(new MetaballsView());
+    viewMenu->addSeparator();
+    viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
+    viewPreferencesAction->setShortcut(tr("Ctrl+E"));
+    connect(viewPreferencesAction, SIGNAL(triggered()), this, SLOT(doViewPreferences()));
+    viewMenu->addAction(viewPreferencesAction);
+
     setCentralWidget(centralWidget);
     resize(600, 480);
 
     dcd = NULL;
+    viewPreferenceDialog = new ViewPreferenceDialog(this);
 }//constructor
 
 MainWindow::~MainWindow()
@@ -45,6 +60,8 @@ MainWindow::~MainWindow()
     delete lastLocation;
     if (dcd != NULL)
         delete dcd;
+    foreach (BaseView* view, views)
+        delete view;
 }//destructor
 
 
@@ -70,6 +87,7 @@ void MainWindow::doOpenFile()
 
 void MainWindow::doTick()
 {
+    // not used?
     if (dcd == NULL)
         return;
     dcd->load_dcd_frame(data);
@@ -87,12 +105,19 @@ void MainWindow::doRenderMetaballs()
 
 void MainWindow::doViewPreferences()
 {
+    // TODO: fetch values to populate viewPreferenceDialog
+    if (viewPreferenceDialog->exec())
+    {
+    }//if
 }//doViewPreferences
 
 void MainWindow::setFrame(int value)
 {
     if (dcd->frame(value))
+    {
         dcd->load_dcd_frame(data);
+        renderer->dataTick();
+    }//if
 }//setFrame
 
 
@@ -113,17 +138,13 @@ void MainWindow::setupMenu()
     quitAction->setShortcut(tr("Q"));
     connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
 
-    renderPointsAction = new QAction(tr("Render as &points"), viewMenu);
-    renderPointsAction->setShortcut(tr("Ctrl+1"));
-    connect(renderPointsAction, SIGNAL(triggered()), this, SLOT(doRenderPoints()));
+    // renderPointsAction = new QAction(tr("Render as &points"), viewMenu);
+    // renderPointsAction->setShortcut(tr("Ctrl+1"));
+    // connect(renderPointsAction, SIGNAL(triggered()), this, SLOT(doRenderPoints()));
 
-    renderMetaballsAction = new QAction(tr("Render as &metaballs"), viewMenu);
-    renderMetaballsAction->setShortcut(tr("Ctrl+2"));
-    connect(renderMetaballsAction, SIGNAL(triggered()), this, SLOT(doRenderMetaballs()));
-
-    viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
-    viewPreferencesAction->setShortcut(tr("Ctrl+E"));
-    connect(viewPreferencesAction, SIGNAL(triggered()), this, SLOT(doViewPreferences()));
+    // renderMetaballsAction = new QAction(tr("Render as &metaballs"), viewMenu);
+    // renderMetaballsAction->setShortcut(tr("Ctrl+2"));
+    // connect(renderMetaballsAction, SIGNAL(triggered()), this, SLOT(doRenderMetaballs()));
 
     fileMenu->addAction(openFileAction);
     fileMenu->addSeparator();
@@ -131,9 +152,19 @@ void MainWindow::setupMenu()
     fileMenu->addSeparator();
     fileMenu->addAction(quitAction);
 
-    viewMenu->addAction(renderPointsAction);
-    viewMenu->addAction(renderMetaballsAction);
-    viewMenu->addSeparator();
-    viewMenu->addAction(viewPreferencesAction);
+    // viewMenu->addAction(renderPointsAction);
+    // viewMenu->addAction(renderMetaballsAction);
 }//setupMenu
 
+
+void MainWindow::addRenderMode(BaseView* view)
+{
+    QAction* viewAction = new QAction(view->menuItemName, viewMenu);
+    int viewID = renderer->addRenderMode(view);
+    viewAction->setShortcut(QString("Ctrl+%1").arg(viewID+1));
+    connect(viewAction, SIGNAL(triggered()), view, SLOT(select()));
+    connect(view, SIGNAL(selectView(int)), renderer, SLOT(renderMode(int)));
+    viewMenu->addAction(viewAction);
+    views[viewAction] = view;
+    view->tick(data);
+}//addRenderMode

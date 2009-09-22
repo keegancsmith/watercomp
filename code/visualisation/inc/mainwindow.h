@@ -2,16 +2,19 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QMap>
 
 class QAction;
 class QMenu;
 class QString;
 class QVBoxLayout;
 
+class BaseView;
 class DCD_Loader;
 class Frame_Data;
 class PlaybackControl;
 class Renderer;
+class ViewPreferenceDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -32,6 +35,8 @@ class MainWindow : public QMainWindow
         void setFrame(int value);
 
     private:
+        QMap<QAction*, BaseView*> views;
+
         QString* lastLocation;
         QWidget* centralWidget;
         QVBoxLayout* centralLayout;
@@ -40,6 +45,7 @@ class MainWindow : public QMainWindow
         Frame_Data* data;
         PlaybackControl* playbackControl;
         Renderer* renderer;
+        ViewPreferenceDialog* viewPreferenceDialog;
 
         QMenu* fileMenu;
         QAction* openFileAction;
@@ -52,6 +58,7 @@ class MainWindow : public QMainWindow
         QAction* viewPreferencesAction;
 
         void setupMenu();
+        void addRenderMode(BaseView* view);
 };//MainWindow
 
 #endif
