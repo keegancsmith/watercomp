@@ -64,6 +64,7 @@ class MetaballsView : public BaseView
         void setupPreferenceWidget();
 
         void fillGridCell(GridCell& grid, unsigned char*** data, int i, int x, int y, int z);
+        void addTriangle(QVector<Triangle>& surface, GridCell& g, int iso, int v0, int v1, int v2, int v3, int v4, int v5);
         void marchTetrahedron(QVector<Triangle>& surface, GridCell& grid, int iso, int v0, int v1, int v2, int v3);
         Point3f vertexInterpolate(float iso, GridCell& g, int v1, int v2);
 };//MetaballsView
