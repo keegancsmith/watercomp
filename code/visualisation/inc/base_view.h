@@ -12,13 +12,17 @@ class BaseView : public QObject
     Q_OBJECT
 
     public:
-        QString menuItemName;
+        QString viewName;
         int viewID;
+        int preferenceID;
+        QWidget* preferenceParent;
 
         BaseView();
         virtual ~BaseView();
 
+        virtual void updatePreferences();
         virtual QWidget* preferenceWidget();
+
         virtual void render();
         virtual void tick(Frame_Data* data);
 
@@ -27,6 +31,10 @@ class BaseView : public QObject
 
     public slots:
         void select();
+
+    protected:
+        bool pickColor(float* color);
+
 };//BaseView
 
 #endif

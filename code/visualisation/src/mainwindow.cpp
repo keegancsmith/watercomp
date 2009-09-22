@@ -29,7 +29,6 @@ MainWindow::MainWindow()
     renderer = new Renderer(centralWidget);
     data = renderer->data;
 
-    renderer->renderMode(0);
     centralLayout->addWidget(renderer);
 
     playbackControl = new PlaybackControl(centralWidget);
@@ -38,21 +37,22 @@ MainWindow::MainWindow()
     connect(playbackControl, SIGNAL(frameChange(int)), this, SLOT(setFrame(int)));
     centralLayout->addWidget(playbackControl);
 
-    //setup menu
-    setupMenu();
-    addRenderMode(new PointView());
-    addRenderMode(new MetaballsView());
-    viewMenu->addSeparator();
-    viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
-    viewPreferencesAction->setShortcut(tr("Ctrl+E"));
-    connect(viewPreferencesAction, SIGNAL(triggered()), this, SLOT(doViewPreferences()));
-    viewMenu->addAction(viewPreferencesAction);
-
     setCentralWidget(centralWidget);
     resize(600, 480);
 
     dcd = NULL;
     viewPreferenceDialog = new ViewPreferenceDialog(this);
+
+    //setup menu last since the renderer views depends on some stuff
+    setupMenu();
+    addRenderMode(new PointView());
+    addRenderMode(new MetaballsView());
+    renderer->renderMode(0);
+    viewMenu->addSeparator();
+    viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
+    viewPreferencesAction->setShortcut(tr("Ctrl+E"));
+    connect(viewPreferencesAction, SIGNAL(triggered()), this, SLOT(doViewPreferences()));
+    viewMenu->addAction(viewPreferencesAction);
 }//constructor
 
 MainWindow::~MainWindow()
@@ -93,22 +93,15 @@ void MainWindow::doTick()
     dcd->load_dcd_frame(data);
 }//doTick
 
-void MainWindow::doRenderPoints()
-{
-    renderer->renderMode(Renderer::RENDER_POINTS);
-}//doRenderPoints
-
-void MainWindow::doRenderMetaballs()
-{
-    renderer->renderMode(Renderer::RENDER_METABALLS);
-}//doRenderMetaballs
-
 void MainWindow::doViewPreferences()
 {
-    // TODO: fetch values to populate viewPreferenceDialog
-    if (viewPreferenceDialog->exec())
-    {
-    }//if
+    int preferenceID = renderer->currentView()->preferenceID;
+    if (preferenceID > -1)
+        viewPreferenceDialog->setTabPage(preferenceID);
+
+    foreach (BaseView* view, views)
+        view->updatePreferences();
+    viewPreferenceDialog->exec();
 }//doViewPreferences
 
 void MainWindow::setFrame(int value)
@@ -159,12 +152,17 @@ void MainWindow::setupMenu()
 
 void MainWindow::addRenderMode(BaseView* view)
 {
-    QAction* viewAction = new QAction(view->menuItemName, viewMenu);
+    QAction* viewAction = new QAction(view->viewName, viewMenu);
     int viewID = renderer->addRenderMode(view);
-    viewAction->setShortcut(QString("Ctrl+%1").arg(viewID+1));
+    if (viewID < 9) // shouldn't go beyond 9 for our system?
+        viewAction->setShortcut(QString("Ctrl+%1").arg(viewID+1));
     connect(viewAction, SIGNAL(triggered()), view, SLOT(select()));
     connect(view, SIGNAL(selectView(int)), renderer, SLOT(renderMode(int)));
     viewMenu->addAction(viewAction);
     views[viewAction] = view;
     view->tick(data);
+
+    int tabID = viewPreferenceDialog->addTab(view->preferenceWidget(), view->viewName);
+    view->preferenceID = tabID;
+    view->preferenceParent = viewPreferenceDialog;
 }//addRenderMode

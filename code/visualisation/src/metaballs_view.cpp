@@ -1,26 +1,32 @@
 #include "metaballs_view.h"
 
 #include <GL/gl.h>
+#include <QGridLayout>
+#include <QLabel>
+#include <QPushButton>
+#include <QSlider>
 #include <QWidget>
 
 #include "frame_data.h"
 
+#define ALPHA_MAX_SLIDER 100
+#define ALPHA_MAX_VAL 1.0
+
 MetaballsView::MetaballsView()
 {
-    menuItemName = "Metaballs view";
+    viewName = "Metaballs view";
     _metaballsColor[0] = 0.5f;
     _metaballsColor[1] = 0.5f;
     _metaballsColor[2] = 0.5f;
     _metaballsColor[3] = 0.5f;
     data = 0;
 
-    setupPreferenceWidget();
+    _preferenceWidget = NULL;
     init();
 }//constructor
 
 MetaballsView::~MetaballsView()
 {
-    delete _preferenceWidget;
 }//destructor
 
 
@@ -85,8 +91,15 @@ void MetaballsView::init()
 }//init
 
 
+void MetaballsView::updatePreferences()
+{
+    metaballsAlphaSlider->setValue((int)(_metaballsColor[3] * ALPHA_MAX_SLIDER / ALPHA_MAX_VAL));
+}//updatePreferences
+
 QWidget* MetaballsView::preferenceWidget()
 {
+    if (_preferenceWidget == NULL)
+        setupPreferenceWidget();
     return _preferenceWidget;
 }//preferenceWidget
 
@@ -110,6 +123,19 @@ void MetaballsView::tick(Frame_Data* data)
 {
     this->data = data;
 }//tick
+
+
+void MetaballsView::setMetaballsAlpha(int value)
+{
+    if (value > ALPHA_MAX_SLIDER) value = ALPHA_MAX_SLIDER;
+    if (value < 0) value = 0;
+    _metaballsColor[3] = (float)value * ALPHA_MAX_VAL / ALPHA_MAX_SLIDER;
+}//setMetaballsAlpha
+
+void MetaballsView::pickMetaballsColor()
+{
+    pickColor(_metaballsColor);
+}//pickMetaballsColor
 
 
 void MetaballsView::fillGridCell(GridCell& grid, unsigned char*** data, int i, int x, int y, int z)
@@ -228,5 +254,22 @@ Point3f MetaballsView::vertexInterpolate(float iso, GridCell& g, int v1, int v2)
 void MetaballsView::setupPreferenceWidget()
 {
     _preferenceWidget = new QWidget;
+
+    layout = new QGridLayout(_preferenceWidget);
+
+    metaballsColorButton = new QPushButton(tr("Select metaballs colour"), _preferenceWidget);
+    connect(metaballsColorButton, SIGNAL(clicked()), this, SLOT(pickMetaballsColor()));
+    layout->addWidget(metaballsColorButton, 0, 0, 1, 2);
+
+    metaballsAlphaLabel = new QLabel(tr("Metaballs alpha"), _preferenceWidget);
+    layout->addWidget(metaballsAlphaLabel, 1, 0);
+
+    metaballsAlphaSlider = new QSlider(_preferenceWidget);
+    metaballsAlphaSlider->setOrientation(Qt::Horizontal);
+    metaballsAlphaSlider->setRange(0, ALPHA_MAX_SLIDER);
+    connect(metaballsAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setMetaballsAlpha(int)));
+    layout->addWidget(metaballsAlphaSlider, 1, 1);
+
+    _preferenceWidget->setLayout(layout);
 }//setupPreferenceWidget
 

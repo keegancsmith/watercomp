@@ -15,11 +15,11 @@ ViewPreferenceDialog::ViewPreferenceDialog(QWidget* parent)
 
     buttonLayout = new QHBoxLayout;
 
-    okButton = new QPushButton(tr("&Ok"), this);
-    connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
-    buttonLayout->addWidget(okButton);
+    // okButton = new QPushButton(tr("&Ok"), this);
+    // connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
+    // buttonLayout->addWidget(okButton);
 
-    cancelButton = new QPushButton(tr("&Cancel"), this);
+    cancelButton = new QPushButton(tr("&Close"), this);
     connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
     buttonLayout->addWidget(cancelButton);
 
@@ -40,3 +40,9 @@ int ViewPreferenceDialog::addTab(QWidget* page, QString& label)
 {
     return tabWidget->addTab(page, label);
 }//addTab
+
+void ViewPreferenceDialog::setTabPage(int index)
+{
+    tabWidget->setCurrentIndex(index);
+}//setTabPage
+

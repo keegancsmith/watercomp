@@ -33,8 +33,9 @@ class Renderer : public QGLWidget
         int tps();
         void tps(int value);
         bool focusPlane();
-        int renderMode();
 
+        int renderMode();
+        BaseView* currentView();
         int addRenderMode(BaseView* view);
 
     public slots:

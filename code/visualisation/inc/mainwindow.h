@@ -28,8 +28,6 @@ class MainWindow : public QMainWindow
         void doOpenFile();
         void doTick();
 
-        void doRenderPoints();
-        void doRenderMetaballs();
         void doViewPreferences();
 
         void setFrame(int value);

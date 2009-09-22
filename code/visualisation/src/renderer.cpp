@@ -180,6 +180,11 @@ int Renderer::renderMode()
     return _renderMode;
 }//renderMode
 
+BaseView* Renderer::currentView()
+{
+    return renderModes[_renderMode];
+}//currentView
+
 void Renderer::renderMode(int mode)
 {
     if (mode >= renderModes.size())

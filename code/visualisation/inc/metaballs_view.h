@@ -5,6 +5,11 @@
 
 #include <QVector>
 
+class QGridLayout;
+class QLabel;
+class QPushButton;
+class QSlider;
+
 
 struct Point3f
 {
@@ -27,19 +32,32 @@ struct GridCell
 
 class MetaballsView : public BaseView
 {
+    Q_OBJECT
+
     public:
         MetaballsView();
         virtual ~MetaballsView();
 
+        virtual void updatePreferences();
         virtual QWidget* preferenceWidget();
+
         virtual void render();
         virtual void tick(Frame_Data* data);
 
+    private slots:
+        void setMetaballsAlpha(int value);
+        void pickMetaballsColor();
+
     private:
         Frame_Data* data;
-        QWidget* _preferenceWidget;
         float _metaballsColor[4];
         QVector<Triangle> _surface;
+
+        QWidget* _preferenceWidget;
+        QGridLayout* layout;
+        QPushButton* metaballsColorButton;
+        QLabel* metaballsAlphaLabel;
+        QSlider* metaballsAlphaSlider;
 
         void init();
 

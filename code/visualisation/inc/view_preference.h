@@ -15,6 +15,7 @@ class ViewPreferenceDialog : public QDialog
         ~ViewPreferenceDialog();
 
         int addTab(QWidget* page, QString& label);
+        void setTabPage(int index);
 
     private:
         QVBoxLayout* layout;
