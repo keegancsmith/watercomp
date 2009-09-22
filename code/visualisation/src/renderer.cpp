@@ -42,7 +42,7 @@ Renderer::Renderer(QWidget* parent)
     timer->setSingleShot(false);
     connect(timer, SIGNAL(timeout()), this, SLOT(tick()));
 
-    tps(60);
+    setTps(60);
     timer->start();
 }//constructor
 
@@ -157,13 +157,13 @@ int Renderer::tps()
     return _tps;
 }//tps
 
-void Renderer::tps(int value)
+void Renderer::setTps(int value)
 {
     if (value < 0) return;
     _tps = value;
     if (value == 0) timer->stop();
     else timer->setInterval(1000 / _tps);
-}//tps
+}//setTps
 
 bool Renderer::focusPlane()
 {
@@ -185,14 +185,14 @@ BaseView* Renderer::currentView()
     return renderModes[_renderMode];
 }//currentView
 
-void Renderer::renderMode(int mode)
+void Renderer::setRenderMode(int mode)
 {
     if (mode >= renderModes.size())
         mode = renderModes.size() - 1;
     if (mode < -1)
         mode = -1;
     _renderMode = mode;
-}//tps
+}//setRenderMode
 
 int Renderer::addRenderMode(BaseView* view)
 {

@@ -33,9 +33,9 @@ PlaybackControl::PlaybackControl(QWidget* parent)
     connect(timer, SIGNAL(timeout()), this, SLOT(timerTick()));
 
     _frame = 0;
-    tps(60);
+    setTps(60);
     playClicked();
-    totalFrames(0);
+    setTotalFrames(0);
 }//constructor
 
 PlaybackControl::~PlaybackControl()
@@ -49,25 +49,25 @@ int PlaybackControl::tps()
     return _tps;
 }//tps
 
-void PlaybackControl::tps(int value)
+void PlaybackControl::setTps(int value)
 {
     if (value < 0) return;
     _tps = value;
     if (value == 0) timer->stop();
     else timer->setInterval(1000 / _tps);
-}//tps
+}//setTps
 
 int PlaybackControl::totalFrames()
 {
     return _totalFrames;
 }//totalFrames
 
-void PlaybackControl::totalFrames(int value)
+void PlaybackControl::setTotalFrames(int value)
 {
     if (value < 0) value = 0;
     _totalFrames = value;
     slider->setMaximum(_totalFrames);
-}//totalFrames
+}//setTotalFrames
 
 int PlaybackControl::frame()
 {

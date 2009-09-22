@@ -31,7 +31,7 @@ class Renderer : public QGLWidget
         void resetView();
 
         int tps();
-        void tps(int value);
+        void setTps(int value);
         bool focusPlane();
 
         int renderMode();
@@ -40,7 +40,7 @@ class Renderer : public QGLWidget
 
     public slots:
         void toggleFocusPlane();
-        void renderMode(int mode);
+        void setRenderMode(int mode);
         void dataTick();
 
     private slots:

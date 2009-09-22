@@ -32,7 +32,7 @@ MainWindow::MainWindow()
     centralLayout->addWidget(renderer);
 
     playbackControl = new PlaybackControl(centralWidget);
-    playbackControl->tps(10);
+    playbackControl->setTps(10);
     // connect(playbackControl, SIGNAL(tick()), this, SLOT(doTick()));
     connect(playbackControl, SIGNAL(frameChange(int)), this, SLOT(setFrame(int)));
     centralLayout->addWidget(playbackControl);
@@ -47,7 +47,7 @@ MainWindow::MainWindow()
     setupMenu();
     addRenderMode(new PointView());
     addRenderMode(new MetaballsView());
-    renderer->renderMode(0);
+    renderer->setRenderMode(0);
     viewMenu->addSeparator();
     viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
     viewPreferencesAction->setShortcut(tr("Ctrl+E"));
@@ -82,7 +82,7 @@ void MainWindow::doOpenFile()
         delete dcd;
     dcd = new DCD_Loader();
     dcd->load_dcd_file(lastLocation->replace(QRegExp(".pdb$"), ".dcd").toStdString().c_str());
-    playbackControl->totalFrames(dcd->totalFrames());
+    playbackControl->setTotalFrames(dcd->totalFrames());
 }//doOpenFile
 
 void MainWindow::doTick()
@@ -157,7 +157,7 @@ void MainWindow::addRenderMode(BaseView* view)
     if (viewID < 9) // shouldn't go beyond 9 for our system?
         viewAction->setShortcut(QString("Ctrl+%1").arg(viewID+1));
     connect(viewAction, SIGNAL(triggered()), view, SLOT(select()));
-    connect(view, SIGNAL(selectView(int)), renderer, SLOT(renderMode(int)));
+    connect(view, SIGNAL(selectView(int)), renderer, SLOT(setRenderMode(int)));
     viewMenu->addAction(viewAction);
     views[viewAction] = view;
     view->tick(data);
@@ -166,3 +166,4 @@ void MainWindow::addRenderMode(BaseView* view)
     view->preferenceID = tabID;
     view->preferenceParent = viewPreferenceDialog;
 }//addRenderMode
+

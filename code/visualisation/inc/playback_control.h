@@ -17,12 +17,12 @@ class PlaybackControl : public QWidget
         ~PlaybackControl();
 
         int tps();
-        void tps(int value);
+        void setTps(int value);
 
         int frame();
 
         int totalFrames();
-        void totalFrames(int value);
+        void setTotalFrames(int value);
 
     signals:
         void play();
