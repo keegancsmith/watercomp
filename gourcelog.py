@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     # regex used to parse the hg log
     import re
-    custom_regex = r'([0-9.+-]+)\|([^|]+)\|m ([^|]+)?\|a\ ([^|]+)?|d ([^|]+)?'
+    custom_regex = r'([0-9.+-]+)\|([^|]+)\|m ([^|]+)?\|a ([^|]+)?\|d ([^|]+)?'
     regex = re.compile(custom_regex)
 
     # get the output (file or stdout)
