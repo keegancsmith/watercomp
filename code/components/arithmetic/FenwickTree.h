@@ -5,6 +5,7 @@ class FenwickTree
     public:
         unsigned long long* array;
         unsigned int array_size;
+        unsigned int base;
         
         unsigned int symbols;
         

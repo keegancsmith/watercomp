@@ -3,6 +3,7 @@
 #include "FenwickTree.h"
 #include <map>
 #include <string>
+#include <vector>
 
 /**
  A Model represents a way to map from data 
@@ -22,8 +23,8 @@ class AdaptiveModelDecoder
         
         ArithmeticDecoder* decoder;
         
-        std::map<unsigned int, std::string> symbol_table;
-        
+//         std::map<unsigned int, std::string> symbol_table;
+        std::vector<std::string> symbol_table;
         bool is_eof;
         
         AdaptiveModelDecoder(ArithmeticDecoder* arithmetic_decoder);

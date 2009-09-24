@@ -18,15 +18,6 @@ int main(int argc, char** argv)
     AdaptiveModelEncoder encoder(&ae);
     char t[100];
     
-    int D = 0;
-    int S = 0;
-    fseek(source, 0, SEEK_END);
-    S = ftell(source);
-    fseek(source, 0, SEEK_SET);
-    
-    int last_percentage = -1;
-    
-    
     while(true)
     {
         unsigned char byte;
@@ -37,14 +28,6 @@ int main(int argc, char** argv)
         
         sprintf(t, "%d", byte);
         encoder.encode(t);
-        
-        ++D;
-        
-        if(100*D/S != last_percentage)
-        {
-            last_percentage = 100*D/S;
-            fprintf(stderr, "%d%% = %d %d\n", last_percentage, D, S); 
-        }
     }
     
     encoder.end_encode();
