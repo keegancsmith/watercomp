@@ -20,7 +20,7 @@ QFrame::QFrame(const Frame & frame,
     float range[3];
     
     for(int d = 0; d < 3; ++d)
-        range[d] = max_coord[d] - max_coord[d];
+        range[d] = max_coord[d] - min_coord[d];
     
     unsigned int buckets[3] = {1 << x_subs, 1 << y_subs, 1 << z_subs};
     

@@ -9,7 +9,7 @@ Transform :: PDBInfo -> QuantisedFrame -> ByteStream
 Dequantiser :: QuantisedFrame -> Frame -- Done
 
 -- Arithmetic Coder
-ArithmeticCoder :: ArithmeticModel -> SymbolStream -> BitStream
+ArithmeticCoder :: ArithmeticModel -> SymbolStream -> BitStream -- Done, testing done.
 
 -- Graph Stuff
 GraphCreator :: WaterMoleculeList -> WaterMoleculeGraph
