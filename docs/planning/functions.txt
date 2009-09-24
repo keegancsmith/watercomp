@@ -12,7 +12,7 @@ Dequantiser :: QuantisedFrame -> Frame -- Done
 ArithmeticCoder :: ArithmeticModel -> SymbolStream -> BitStream -- Done, testing done.
 
 -- Graph Stuff
-GraphCreator :: WaterMoleculeList -> WaterMoleculeGraph
+GraphCreator :: WaterMoleculeList -> WaterMoleculeGraph Created naive and water heuristics graph, not done NN graph.
 SpanningTree :: WaterMoleculeGraph -> WaterMoleculeGraph
 TreeSerialiser :: WaterMoleculeGraph -> SymbolStream
 
