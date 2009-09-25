@@ -2,28 +2,31 @@
 
 \chapter{Background}
 % {{{
-\label{chap:background}
+\label{cha:background}
 
-%TODO: mention that this chapter will not be discussing compression specific
-%background
+% {{{
 
 Information visualisation techniques are very domain specific; one type of
-visualisation may work well for a specific scenario, but it will work quite
-poorly when applied to another domain. The problem domain applicable to this
-project is the effective visualisation of point cloud data, more specifically,
-water molecules from molecular simulations. Some of the important issues that
-will be need to be investigated will be the level of detail chosen and how
-easily it will be to see what is happening, such as interactions or object
-relationships.
+visualisation may work well for a specific scenario, but will work quite poorly
+when applied to another domain. The problem domain applicable to this project
+is the effective visualisation of point cloud data, more specifically, water
+molecules from molecular simulations. Some of the important issues that will be
+need to be investigated will be presenting an appropriate level of detail and
+clutter control.
 
 Section \ref{sec:molecularvis} will identify and briefly introduce several
 molecular visualisation techniques. While Section \ref{sec:generalvis} will
-focus on more general visualisation techniques.
+focus on more general visualisation techniques. Section \ref{sec:endbackground}
+will then provide a short conclusion on the different visualisation techniques.
+
+% }}}
 
 
 \section{Molecular visualisation}
 % {{{
 \label{sec:molecularvis}
+
+% {{{
 
 The most significant problem for visualising molecular data is the amount of
 data available and how to represent them so as not to clutter up the display.
@@ -43,6 +46,8 @@ animating and analysing large biomolecular systems \citep{VMD}. However, as VMD
 is aimed at general biomolecular systems, the support for specific
 visualisation and filtering is limited. VMD does support and use some of the
 visualisation techniques that will be mentioned later in this section.
+
+% }}}
 
 \subsection{Ball-and-stick}
 % {{{
@@ -99,7 +104,7 @@ may hide important information and make it hard to analyse an entire system.
   \begin{center}
     \includegraphics[width=70mm]{CPK-big}
   \end{center}
-  \caption{CPK}
+  \caption{CPK representation}
   \label{fig:cpk}
 \end{figure}
 
@@ -124,7 +129,7 @@ used for carbohydrate and lipid molecules.
   \begin{center}
     \includegraphics[width=70mm]{ribbon}
   \end{center}
-  \caption{Ribbon}
+  \caption{Ribbon model of a protein}
   \label{fig:ribbon}
 \end{figure}
 
@@ -147,7 +152,7 @@ overlayed on the paper chain diagram to provide detailed information if needed.
   \begin{center}
     \includegraphics[width=70mm]{paper_chain}
   \end{center}
-  \caption{Paper chain}
+  \caption{Paper chain model of a carbohydrate}
   \label{fig:paperchain}
 \end{figure}
 
@@ -167,7 +172,7 @@ carbohydrates for the twister technique.
   \begin{center}
     \includegraphics[width=70mm]{twister}
   \end{center}
-  \caption{Twister}
+  \caption{Twister model with ball-and-stick model overlayed on top}
   \label{fig:twister}
 \end{figure}
 
@@ -179,25 +184,22 @@ carbohydrates for the twister technique.
 % {{{
 \label{sec:generalvis}
 
-More research has been completed for general data visualisation techniques than
-that of molecular visualisations. The most relevant areas of research to point
-cloud visualisation are: volume visualisation and clutter reduction. Both of
-which will be briefly introduced in this section.
+% {{{
 
-Traditional volume visualisation techniques work on volumes of data, such as
-data from CT and MRI scans. The main approaches to visualising such data would
-be surface extraction, for finding the shape of the volume; and volume
-rendering, rendering the volume such that the volume in its entirety is
-visible.
+The more relevant techniques from general visualisation with regards to point
+cloud data are: surface extraction, volume rendering and general clutter
+control. Mesh decimation and metaballs is also relevant, but they have more
+specific uses.
 
-This paper will only mention the basic different techniques and will not provide
-much detail on the individual algorithms. There has also been significant
-advances in each of the techniques \citep{brodlie01}, which will not be
-mentioned in this paper.
+This paper will only discuss the basic techniques and will not provide detail
+on each of the individual techniques. The recent and significant advances in
+each of the techniques will not be discussed either.
+
+% }}}
 
 \subsection{Surface extraction}
 % {{{
-\label{sub:surface_extraction}
+\label{sub:surfaceextraction}
 
 Surface extraction is used to determine the surfaces of volume data. The
 marching cubes algorithm \citep{lorensen87} is the classical approach for
@@ -211,14 +213,20 @@ easily seen, this is somewhat analogous to the CPK model in that regard.
 Surface extraction can be adapted to molecular data to provide a simpler and
 smoothed view of the molecule, so that the shape and contours can be more
 plainly seen; which may of otherwise been obscured by the individual atoms.
-Conversely, this technique can also be used to identify volumes of space where
-points are missing, thus highlighting these areas instead.
+Alternatively, this technique can also be used to identify volumes of space
+where the points are missing, thus highlighting these areas instead.
+
+The granularity of the sampling grid has a large impact on the quality of the
+extracted surface. A grid where each individual cell is quite small will
+produce a detailed surface, but will correspondingly produce a large number of
+polygons. Section \ref{sub:meshdecimation} will provide more detail on reducing
+the number of polygons used to represent a surface.
 
 \begin{figure}[h!]
   \begin{center}
     \includegraphics[width=70mm]{triangulated_mesh}
   \end{center}
-  \caption{Surface extraction}
+  \caption{Triangulated mesh of a volume}
   \label{fig:triangulatedmesh}
 \end{figure}
 
@@ -226,7 +234,7 @@ points are missing, thus highlighting these areas instead.
 
 \subsection{Volume rendering}
 % {{{
-\label{sub:volume_rendering}
+\label{sub:volumerendering}
 
 Volume rendering aims to visualise the entire volume instead of a subset. This
 is done by modelling the data as a translucent gel so that you are able to see
@@ -255,56 +263,15 @@ visualising these homogenous volumes.
   \begin{center}
     \includegraphics[width=70mm]{head_volume}
   \end{center}
-  \caption{Volume rendering}
+  \caption{Ray casted image of a head}
   \label{fig:headvolume}
-\end{figure}
-
-% }}}
-
-\subsection{Metaballs}
-% {{{
-\label{sub:metaballs}
-
-%TODO: get references to metaballs and solvent accessible surfaces
-
-Metaballs is a technique for producing organic-looking objects (see figure
-\ref{metaballs}). A metaball is modelled after a number of points which exerts
-a force around it, the surface of the metaball is the set of points where the
-force function is equal to some constant threshold value. The surface is
-usually determined using surface extraction techniques.
-
-The advantage of metaballs is that volume data is grouped together, making it
-easy to see the different volumes in an area. The disadvantage of this
-technique is the computation cost required to determine and extract the surface
-from the force calculations.
-
-\begin{figure}[h!]
-  \begin{center}
-    \includegraphics[width=70mm]{metaballs}
-  \end{center}
-  \caption{Metaballs}
-  \label{fig:metaballs}
-\end{figure}
-
-Solvent accessible surface rendering for molecular modelling produces a similar
-effect to metaballs. The difference is the approach taken to produce the
-surface of the volume. Solvent accessible surface rendering creates a surface
-by determining the surface where the solvent (modelled with spheres) cannot
-fit. See figure \ref{fig:sas}.
-
-\begin{figure}[h!]
-  \begin{center}
-    \includegraphics[width=70mm]{sas_ms}
-  \end{center}
-  \caption{Solvent accessible surface}
-  \label{fig:sas}
 \end{figure}
 
 % }}}
 
 \subsection{Clutter reduction}
 % {{{
-\label{sub:clutter_reduction}
+\label{sub:clutterreduction}
 
 Shneiderman provides a visual information-seeking mantra \citep{shneiderman96}:
 ``overview first, zoom and filter, then details on demand'', in which clutter
@@ -315,7 +282,7 @@ reduction plays an important role.
 \citet{ellis07} provides a taxonomy containing many clutter reduction techniques
 against many criteria. With clutter reduction, a balance between removing too
 much and too little information must be made. Removing too much or too little
-data will make the visualistion of little use.
+data will make the visualisation of little use.
 
 With regards to visualising point cloud data, filtering, opacity and topological
 distortion may be the most useful clutter reduction techniques.
@@ -356,15 +323,99 @@ layered on top of one another.
   \begin{center}
     \includegraphics[width=70mm]{graph_highlight}
   \end{center}
-  \caption{Highlighting}
+  \caption{Highlighting certain structures in a graph}
   \label{fig:graphhighlight}
+\end{figure}
+
+% }}}
+
+\subsection{Mesh decimation}
+% {{{
+\label{sub:meshdecimation}
+
+The amount of time taken to render a model is dependant on the number of
+polygons of the model, more polygons will require more time to be rendered.
+There is thus a trade-off between detail and render time; more polygons will
+increase the amount of detail present, but will also increase render time.
+Mesh decimation is a technique aimed at reducing the number of polygons used to
+represent a mesh, typically a triangular mesh.
+
+Mesh decimation can be broadly divided into 2 main categories: geometric
+decimation and vertex clustering. A more complete comparison between mesh
+simplification algorithms has been done by \citet{cignoni98}.
+
+\paragraph{Geometric decimation}
+% {{{
+
+% TODO: citation needed for geometric decimation
+Geometric decimation iteratively eliminates components of the mesh; vertices,
+edges or faces [citation needed]. The component to be removed is chosen using
+local geometric optimality criteria. After eliminating the component, a local
+re-triangulation process is used to fill in any resulting holes.
+
+% }}}
+
+\paragraph{Vertex clustering}
+% {{{
+
+% TODO: citation needed for vertex clustering
+
+Vertex clustering groups a number of geometrically close vertices together
+[citation needed], the group of vertices is then replaced by a new
+representative vertex.  Due to the simplicity of the test, vertex clustering
+can be implemented very efficiently.
+
+% }}}
+
+% }}}
+
+\subsection{Metaballs}
+% {{{
+\label{sub:metaballs}
+
+%TODO: citation needed for metaballs and solvent accessible surfaces
+Metaballs is a technique for producing organic-looking objects (see figure
+\ref{fig:metaballs}). A metaball is modelled after a number of points which
+exerts a force around it, the surface of the metaball is the set of points
+where the force function is equal to some constant threshold value [citation
+needed]. The surface is usually determined using surface extraction techniques.
+
+The advantage of metaballs is that volume data is grouped together, making it
+easy to see the different volumes in an area. The disadvantage of this
+technique is the computation cost required to determine and extract the surface
+from the force calculations.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=70mm]{metaballs}
+  \end{center}
+  \caption{Rendering of a number of metaballs}
+  \label{fig:metaballs}
+\end{figure}
+
+Solvent accessible surface rendering for molecular modelling produces a similar
+effect to metaballs. The difference is the approach taken to produce the
+surface of the volume. Solvent accessible surface rendering creates a surface
+by determining the surface where the solvent (modelled with spheres) cannot
+fit [citation needed]. See figure \ref{fig:sas}.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=70mm]{sas_ms}
+  \end{center}
+  \caption{Schematic diagram illustrating solvent accessible surfaces}
+  \label{fig:sas}
 \end{figure}
 
 % }}}
 
 % }}}
 
-This paper has gone through some visualisation techniques, each with their own
+\section{Summary}
+% {{{
+\label{sec:endbackground}
+
+This chapter has gone through some visualisation techniques, each with their own
 advantages and disadvantages. Visualisation techniques are all quite specific
 and are designed for their respective scenarios, fulfilling their respective
 requirements and taking advantage of specific domain knowledge; as a result,
@@ -392,11 +443,43 @@ This approach would not be ideal if some inter-frame visualisation coherence is
 desired. This aspect in information visualisation is quite lacking and thus ways
 of visualising temporal information will need to be developed.
 
-There is no one solution for all visualisation needs, however approaches and
-ideas can be taken from different visualisation areas. Although the problems
-may not be identical, there will be some overlapping requirements and concerns.
-As mentioned in the introduction, visualisation techniques are very domain
-specific, with their own requirements and concerns.
+There is no single solution for all visualisation needs, however approaches and
+ideas can be taken from different visualisation areas. While the problems may
+not be identical, there will be some overlapping requirements and concerns. As
+mentioned at the beginning of this chapter, visualisation techniques are very
+domain specific, with their own requirements and concerns.
 
 % }}}
 
+% }}}
+
+
+% {{{
+
+\newpage
+\section{My questions (NOT TO BE INCLUDED IN FINAL REPORT)}
+
+\begin{enumerate}
+
+  \item
+  Should a background chapter be like a literature review, in that it
+  identifies what other people have done. Or should the background chapter be
+  about the algorithms and techniques used in the project?
+
+  \item
+  My thinking is that the implementation chapter will be about the algorithms
+  and techniques used, while this background chapter is like a literature
+  review, identifying what other people have done in similar areas of work?
+
+  \item
+  If the background chapter is to be about the algorithms and techniques used
+  in the project then almost half of this chapter needs to be removed (most of
+  the molecular stuff).
+
+  \item
+  I wasn't too sure how to group the mesh decimation and metaballs sections, it
+  seems a bit misplaced in the "General visualisation" section?
+
+\end{enumerate}
+
+% }}}
