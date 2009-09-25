@@ -14,17 +14,18 @@ molecules from molecular simulations. Some of the important issues that will be
 need to be investigated will be presenting an appropriate level of detail and
 clutter control.
 
-Section \ref{sec:molecularvis} will identify and briefly introduce several
-molecular visualisation techniques. While Section \ref{sec:generalvis} will
-focus on more general visualisation techniques. Section \ref{sec:endbackground}
-will then provide a short conclusion on the different visualisation techniques.
+Section \ref{sec:background_molecular} will identify and briefly introduce
+several molecular visualisation techniques. While Section
+\ref{sec:background_general} will focus on more general visualisation
+techniques. Section \ref{sec:background_end} will then provide a short
+conclusion on the different visualisation techniques.
 
 % }}}
 
 
 \section{Molecular visualisation}
 % {{{
-\label{sec:molecularvis}
+\label{sec:background_molecular}
 
 % {{{
 
@@ -51,15 +52,15 @@ visualisation techniques that will be mentioned later in this section.
 
 \subsection{Ball-and-stick}
 % {{{
-\label{sub:ball_stick}
+\label{sub:background_ballstick}
 
 The ball-and-stick model is the classical approach to displaying molecular
 structure. Colour coded spheres are used to represent the atoms, while
 cylinders are used to represent the bonds between them (see figure
-\ref{fig:ballstick} for an example image). This model is used to emphasise the
-molecular connectivity of the atoms. This is the simplest of approaches to
-molecular visualisation and is also used when all the detail is required,
-typically for looking at bond information and reaction sites.
+\ref{fig:background_ballstick} for an example image). This model is used to
+emphasise the molecular connectivity of the atoms. This is the simplest of
+approaches to molecular visualisation and is also used when all the detail is
+required, typically for looking at bond information and reaction sites.
 
 The problem with this model is that it does not handle large numbers of atoms
 and bonds very well. By having all the atoms and bonds visible, the image
@@ -73,20 +74,20 @@ most cluttered diagrams, making it very difficult to understand and analyse.
     \includegraphics[width=70mm]{BallStick}
   \end{center}
   \caption{A typical ball-and-stick model}
-  \label{fig:ballstick}
+  \label{fig:background_ballstick}
 \end{figure}
 
 % }}}
 
 \subsection{CPK}
 % {{{
-\label{sub:cpk}
+\label{sub:background_cpk}
 
 The CPK (Corey-Pauling-Koltun) \citep{corey53} representation simplifies the
 ball-and-stick model by doing away with cylinders for bonds; instead, the
 spheres used for the atoms are enlarged to encompass the bonds. The atoms now
 overlaps with one another, covering up where the bonds would be (see figure
-\ref{fig:cpk}).
+\ref{fig:background_cpk}).
 
 Removing the bonds from the model representation simplifies the display and
 allows for the overall shape and contour to be easily seen. Although this model
@@ -105,19 +106,19 @@ may hide important information and make it hard to analyse an entire system.
     \includegraphics[width=70mm]{CPK-big}
   \end{center}
   \caption{CPK representation}
-  \label{fig:cpk}
+  \label{fig:background_cpk}
 \end{figure}
 
 % }}}
 
 \subsection{Protein molecules}
 % {{{
-\label{sub:protein}
+\label{sub:background_protein}
 
 The ribbon model (\citep{richardson81}, \citep{carson87}) was designed to
 highlight the structure of protein molecules by fitting a curved surface to the
 backbone of the molecule. This allows for the shape of the protein molecule to
-be easily seen and followed (see figure \ref{fig:ribbon}).
+be easily seen and followed (see figure \ref{fig:background_ribbon}).
 
 This proved to be highly effective at highlighting the structure of proteins;
 unfortunately this approach is not as effective when applied to non-protein
@@ -130,18 +131,19 @@ used for carbohydrate and lipid molecules.
     \includegraphics[width=70mm]{ribbon}
   \end{center}
   \caption{Ribbon model of a protein}
-  \label{fig:ribbon}
+  \label{fig:background_ribbon}
 \end{figure}
 
 % }}}
 
 \subsection{Carbohydrate molecules}
 % {{{
-\label{sub:carbohydrate}
+\label{sub:background_carbohydrate}
 
-The paper chain visualisation technique \citep{kuttel06} focuses on highlighting
-ring structures in carbohydrate molecules. Ring structures are first identified
-and then are displayed using a ring polyhedron (see figure \ref{fig:paperchain}).
+The paper chain visualisation technique \citep{kuttel06} focuses on
+highlighting ring structures in carbohydrate molecules. Ring structures are
+first identified and then are displayed using a ring polyhedron (see figure
+\ref{fig:background_paperchain}).
 
 This significantly simplifies the carbohydrate molecules by only showing the
 carbohydrate rings, which would of otherwise been obscured by the other
@@ -153,15 +155,15 @@ overlayed on the paper chain diagram to provide detailed information if needed.
     \includegraphics[width=70mm]{paper_chain}
   \end{center}
   \caption{Paper chain model of a carbohydrate}
-  \label{fig:paperchain}
+  \label{fig:background_paperchain}
 \end{figure}
 
-The twister visualisation technique \citep{kuttel06} builds on the paper
-chain technique by highlighting the relative orientations of the identified
+The twister visualisation technique \citep{kuttel06} builds on the paper chain
+technique by highlighting the relative orientations of the identified
 carbohydrate rings. Each carbohydrate ring is represented by a disc, which is
 then connected to another disc with a ribbon. The ribbon will follow the
 orientation from one ring to another, thus showing how the rings are connected
-to one another (see figure \ref{fig:twister}).
+to one another (see figure \ref{fig:background_twister}).
 
 This is similar to the ribbon model for proteins in that it shows the overall
 shape of the molecule quite effectively. However, like the ribbon model, this
@@ -173,7 +175,7 @@ carbohydrates for the twister technique.
     \includegraphics[width=70mm]{twister}
   \end{center}
   \caption{Twister model with ball-and-stick model overlayed on top}
-  \label{fig:twister}
+  \label{fig:background_twister}
 \end{figure}
 
 % }}}
@@ -182,7 +184,7 @@ carbohydrates for the twister technique.
 
 \section{General visualisation}
 % {{{
-\label{sec:generalvis}
+\label{sec:background_general}
 
 % {{{
 
@@ -199,14 +201,14 @@ each of the techniques will not be discussed either.
 
 \subsection{Surface extraction}
 % {{{
-\label{sub:surfaceextraction}
+\label{sub:background_surface}
 
 Surface extraction is used to determine the surfaces of volume data. The
 marching cubes algorithm \citep{lorensen87} is the classical approach for
 surface extraction. The algorithm works by examining each cell in the data (a
 cube) and determining whether it is inside the volume or not. A surface can
 then be determined by combining all the cells which intersect with the volume
-boundary (see figure \ref{fig:triangulatedmesh}).
+boundary (see figure \ref{fig:background_mesh}).
 
 Surface extraction allows for the shape of the volume to be extracted and be
 easily seen, this is somewhat analogous to the CPK model in that regard.
@@ -219,27 +221,27 @@ where the points are missing, thus highlighting these areas instead.
 The granularity of the sampling grid has a large impact on the quality of the
 extracted surface. A grid where each individual cell is quite small will
 produce a detailed surface, but will correspondingly produce a large number of
-polygons. Section \ref{sub:meshdecimation} will provide more detail on reducing
-the number of polygons used to represent a surface.
+polygons. Section \ref{sub:background_decimation} will provide more detail on
+reducing the number of polygons used to represent a surface.
 
 \begin{figure}[h!]
   \begin{center}
     \includegraphics[width=70mm]{triangulated_mesh}
   \end{center}
   \caption{Triangulated mesh of a volume}
-  \label{fig:triangulatedmesh}
+  \label{fig:background_mesh}
 \end{figure}
 
 % }}}
 
 \subsection{Volume rendering}
 % {{{
-\label{sub:volumerendering}
+\label{sub:background_volume}
 
 Volume rendering aims to visualise the entire volume instead of a subset. This
 is done by modelling the data as a translucent gel so that you are able to see
 through the volume, while still being able to see what is in the volume at the
-same time (see figure \ref{fig:headvolume}).
+same time (see figure \ref{fig:background_head}).
 
 There are two main approaches to volume rendering; the first is working from the
 image plane to the volume, this is called image order processing. Ray casting is
@@ -264,14 +266,14 @@ visualising these homogenous volumes.
     \includegraphics[width=70mm]{head_volume}
   \end{center}
   \caption{Ray casted image of a head}
-  \label{fig:headvolume}
+  \label{fig:background_head}
 \end{figure}
 
 % }}}
 
 \subsection{Clutter reduction}
 % {{{
-\label{sub:clutterreduction}
+\label{sub:background_clutter}
 
 Shneiderman provides a visual information-seeking mantra \citep{shneiderman96}:
 ``overview first, zoom and filter, then details on demand'', in which clutter
@@ -295,7 +297,7 @@ at where there is interaction occurring.
 
 Another approach to filtering is to highlight the important features of the
 data with colour, but leave the rest of the data visible as is. This adds the
-advantage of keeping context data. Figure \ref{fig:graphhighlight} is an
+advantage of keeping context data. Figure \ref{fig:background_highlight} is an
 example application of highlighting in a graph structure.
 
 Opacity is changing the translucency of items to highlight or hide things. This
@@ -324,14 +326,14 @@ layered on top of one another.
     \includegraphics[width=70mm]{graph_highlight}
   \end{center}
   \caption{Highlighting certain structures in a graph}
-  \label{fig:graphhighlight}
+  \label{fig:background_highlight}
 \end{figure}
 
 % }}}
 
 \subsection{Mesh decimation}
 % {{{
-\label{sub:meshdecimation}
+\label{sub:background_decimation}
 
 The amount of time taken to render a model is dependant on the number of
 polygons of the model, more polygons will require more time to be rendered.
@@ -371,14 +373,16 @@ can be implemented very efficiently.
 
 \subsection{Metaballs}
 % {{{
-\label{sub:metaballs}
+\label{sub:background_metaballs}
 
 %TODO: citation needed for metaballs and solvent accessible surfaces
+
 Metaballs is a technique for producing organic-looking objects (see figure
-\ref{fig:metaballs}). A metaball is modelled after a number of points which
-exerts a force around it, the surface of the metaball is the set of points
-where the force function is equal to some constant threshold value [citation
-needed]. The surface is usually determined using surface extraction techniques.
+\ref{fig:background_metaballs}). A metaball is modelled after a number of
+points which exerts a force around it, the surface of the metaball is the set
+of points where the force function is equal to some constant threshold value
+[citation needed]. The surface is usually determined using surface extraction
+techniques.
 
 The advantage of metaballs is that volume data is grouped together, making it
 easy to see the different volumes in an area. The disadvantage of this
@@ -390,21 +394,21 @@ from the force calculations.
     \includegraphics[width=70mm]{metaballs}
   \end{center}
   \caption{Rendering of a number of metaballs}
-  \label{fig:metaballs}
+  \label{fig:background_metaballs}
 \end{figure}
 
 Solvent accessible surface rendering for molecular modelling produces a similar
 effect to metaballs. The difference is the approach taken to produce the
 surface of the volume. Solvent accessible surface rendering creates a surface
-by determining the surface where the solvent (modelled with spheres) cannot
-fit [citation needed]. See figure \ref{fig:sas}.
+by determining the surface where the solvent (modelled with spheres) cannot fit
+[citation needed]. See figure \ref{fig:background_sas}.
 
 \begin{figure}[h!]
   \begin{center}
     \includegraphics[width=70mm]{sas_ms}
   \end{center}
   \caption{Schematic diagram illustrating solvent accessible surfaces}
-  \label{fig:sas}
+  \label{fig:background_sas}
 \end{figure}
 
 % }}}
@@ -413,7 +417,7 @@ fit [citation needed]. See figure \ref{fig:sas}.
 
 \section{Summary}
 % {{{
-\label{sec:endbackground}
+\label{sec:background_end}
 
 This chapter has gone through some visualisation techniques, each with their own
 advantages and disadvantages. Visualisation techniques are all quite specific
