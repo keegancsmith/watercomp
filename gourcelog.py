@@ -32,7 +32,7 @@ def custom_logformat(date, author, type, file):
                 'date': date,
                 'author': author,
                 'type': type,
-                'file': f,
+                'file': file,
             }
 
 

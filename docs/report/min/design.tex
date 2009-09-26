@@ -29,7 +29,7 @@ visualisation components of the system.
 
 % }}}
 
-\section{Overview}
+\section{System overview}
 % {{{
 \label{sec:design_overview}
 
@@ -60,13 +60,14 @@ and how they relate to each other.
 % {{{
 
 With regards to the visualisation category, there are a number of components
-within it, each of which will be discussed in this section.
+within it, each of which will be responsible for presenting the molecular data
+in a different manner.
 
 \begin{itemize}
-  \item Water point rendering (Section \ref{sub:design_waterpoint})
-  \item Metaballs rendering (Section \ref{sub:design_metaballs})
-  \item Water cluster visualisation (Section \ref{sub:design_watercluster})
-  \item Quantisation error visualisation (Section \ref{sub:design_quanterror})
+  \item Water point rendering
+  \item Metaballs rendering
+  \item Water cluster visualisation
+  \item Quantisation error visualisation
 \end{itemize}
 
 % }}}
@@ -76,11 +77,15 @@ within it, each of which will be discussed in this section.
 \label{sub:design_waterpoint}
 
 This rendering technique is the simplest of all the visualisation techniques in
-the system. An almost transparent point will be drawn for each of the water
-molecules. The points will be almost transparent so that a sense of the size of
-the volume can be seen; as more water molecules overlap on the screen, the more
-pronounced the colour at that point will be. See figure
+the system. A very transparent point will be drawn for each of the water
+molecules. The points will be almost transparent so that a sense of the size
+and depth of the volume can be seen; the colour at a particular point will
+become more pronounced as more water molecules overlap there. See figure
 \ref{fig:design_waterpoint}.
+
+The advantage of this rendering technique is that it easily identifies and
+highlights the larger bodies of water in the molecular data. The non-water
+molecules has been filtered out so as to avoid obscuring the water molecules.
 
 \begin{figure}[h!]
   \begin{center}
@@ -127,6 +132,9 @@ part of the rendering process.
 [TODO: implement another decimation approach to see what the speed differences
 are?]
 
+[TODO: maybe be able to control the near viewing plane so that you get a
+'slice' of the volume? Otherwise occlusion of the stuff behind will happen?]
+
 [TODO: insert final image]
 
 % }}}
@@ -135,7 +143,22 @@ are?]
 % {{{
 \label{sub:design_watercluster}
 
-Ribbon
+The water molecules in a body of water is not completely uniform in all
+directions, instead the water molecules form clusters. To visualise these water
+clusters, a ribbon will be used to connect and show these clusters. This is
+be similar to the ribbon model for protens (\citep{richardson81},
+\citep{carson87}) and the twister visualisation technique \citep{kuttel06}.
+
+Using a ribbon to connect the water molecules within the cluster allows for
+clusters to be easily identified, as well as the orientation of the cluster.
+See figure TODO for an image of a single water cluster.
+
+To cope with the large number of water clusters that will be present, a level
+of detail scheme has been implemented. The user is able to zoom in and focus on
+a specific area of the volume, all the water clusters outside of this area has
+been faded out so as to provide context, but not clutter the display.  The user
+is also able to focus on and follow a specific water cluster. See figure TODO
+for an image where an area has been focused on.
 
 [TODO: insert final image]
 
@@ -144,6 +167,16 @@ Ribbon
 \subsection{Quantisation error visualisation}
 % {{{
 \label{sub:design_quanterror}
+
+This component is not strictly a visualisation component, but is more a
+verification component that visually displays some data.
+
+Quantisation is the only lossy step of the compression, thus it is important to
+measure the amount of error that is introduced. To visually depict the
+quantisation errors, the water molecules are coloured according to a colour
+gradient. Water molecules with high quantisation errors are coloured so that
+they are more visible and stand out. See figure TODO to see a quantisation
+error image.
 
 [TODO: insert final image]
 
@@ -161,28 +194,30 @@ Ribbon
 \begin{enumerate}
 
   \item
-  I know that the tense of this chapter is quite confused. It has to do with
-  the way that I was thinking when I typed this up (some of the stuff hasn't
-  been implmented yet). I'm assuming that this chapter should phrase things in
-  the past tense? i.e. the system \emph{was} designed with such and such in
-  mind.
+  I know that the tense of this chapter is quite confused. It has to do
+  with the way that I was thinking when I typed this up (some of the stuff
+  hasn't been implmented yet). I'm assuming that this chapter should phrase
+  things in the past and present tense? i.e. the system \emph{currently} does
+  this and this because these \emph{were} the tradeoffs\dots
 
   \item
   I imagine that this chapter may change or be rephrased as the implementation
-  progresses.
+  progresses. I hope to be able to do all the things I've identified, but if
+  not then some pruning will need to happen. I seem to have a habit of going
+  above and beyond what I set out initially to do\dots
 
   \item
   How much detail should we go into for the design chapter? I couldn't find
-  much to say without going into implementation details.
-
-  \item
-  As was mentioned, the design chapter shouldn't be a list and description of
-  all the components, but all the components are very straight forward and
-  relatively simple, especially for the visualisation...
+  much to say without going into implementation details.  As was mentioned, the
+  design chapter shouldn't be a list and description of all the components, but
+  all the components are very straight forward and relatively simple,
+  especially for the visualisation...
 
   \item
   How much of this chapter will overlap with the implementation chapter?
-  That is assuming that there will be an implementation chapter?
+  That is assuming that there will be an implementation chapter? Or should
+  implementation be merged into this chapter, i.e. a "Design and
+  Implementation" chapter?
 
 \end{enumerate}
 
