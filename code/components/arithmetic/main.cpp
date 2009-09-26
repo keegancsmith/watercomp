@@ -1,4 +1,6 @@
-#include <iostream>
+#define FILE_OFFSET_BITS 64
+
+#include <cstdio>
 #include <string>
 
 #include "ArithmeticEncoder.h"
@@ -18,11 +20,16 @@ int main(int argc, char** argv)
     AdaptiveModelEncoder encoder(&ae);
     char t[100];
     
+    long long a = 0;
     while(true)
     {
         unsigned char byte;
         fread(&byte, 1, 1, source);
         
+//         printf("%d %lld %llX %llX %u\n", byte, a++, ae.encoder_low, ae.encoder_high, ae.e3_scaling);
+        
+        if((a++ & 1048575) == 0)
+            printf("%lld\n", a>>20LL);
         if(feof(source))
             break;
         

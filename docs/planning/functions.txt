@@ -17,7 +17,9 @@ SpanningTree :: WaterMoleculeGraph -> WaterMoleculeGraph
 TreeSerialiser :: WaterMoleculeGraph -> SymbolStream
 
 -- Splitter
-FrameSplit :: QuantisedFrame -> (WaterMoleculeList, OtherAtomList) -- Done, barring testing again and also depends on us writing a PDB re-orderer.
+-- FrameSplit :: QuantisedFrame -> (WaterMoleculeList, OtherAtomList) -- Done, barring testing again and also depends on us writing a PDB re-orderer.
+
+FrameSplitter :: PDBFile -> (WaterMoleculeIndices, OtherAtomIndices) -- Done with testing
 
 -- Interframe
 InterframeTransform :: Int -> QuantisedFrame* -> ByteStream(SymbolStream?)

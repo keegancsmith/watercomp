@@ -37,6 +37,9 @@ class ArithmeticEncoder
 //                 fputc((bit_pool&0xFF0000)>>16, output_file);
 //                 fputc((bit_pool&0xFF00)>>8, output_file);
                 fputc(bit_pool, output_file);
+//                 fflush(output_file);
+///             (int filedes, const void *buffer, size_t size)
+//                 fwrite(&bit_pool, 1, 1, output_file);
 //                 
 //                 write_buffer[buffer_pos++] = bit_pool;
 //                 
