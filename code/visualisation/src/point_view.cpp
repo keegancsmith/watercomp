@@ -50,6 +50,7 @@ void PointView::tick(Frame_Data* data)
 
 void PointView::render()
 {
+    glDepthFunc(GL_ALWAYS);
     //draw points
     glColor4fv(_pointColor);
     glBegin(GL_POINTS);
@@ -58,6 +59,7 @@ void PointView::render()
         glVertex3dv(data->at(i).pos);
     }//for
     glEnd();
+    glDepthFunc(GL_LEQUAL);
 }//render
 
 

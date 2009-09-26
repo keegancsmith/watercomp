@@ -12,6 +12,33 @@
 #define ALPHA_MAX_SLIDER 100
 #define ALPHA_MAX_VAL 1.0
 
+#define STEP_SIZE 10
+
+float* pack3f(float* v, float a, float b, float c)
+{
+    v[0] = a;
+    v[1] = b;
+    v[2] = c;
+    return v;
+}//pack3f
+
+float* sub2v(float* v1, float* v2, float* dst)
+{
+    dst[0] = v1[0] - v2[0];
+    dst[1] = v1[1] - v2[1];
+    dst[2] = v1[2] - v2[2];
+    return dst;
+}//sub
+
+float* cross(float* v1, float* v2, float* dst)
+{
+    float t0 = v1[1]*v2[2] - v1[2]*v2[1];
+    float t1 = v1[2]*v2[0] - v1[0]*v2[2];
+    float t2 = v1[0]*v2[1] - v1[1]*v2[0];
+    return pack3f(dst, t0, t1, t2);
+}//cross
+
+
 MetaballsView::MetaballsView()
 {
     viewName = "Metaballs view";
@@ -55,20 +82,20 @@ void MetaballsView::init()
     printf("read done\n");
 
     GridCell grid;
-    for (z = 0; z < nz/2; z+=1)
+    for (z = 0; z < nz-STEP_SIZE; z+=STEP_SIZE)
     {
-        for (y = 0; y < ny/2; y+=1)
+        for (y = 0; y < ny-STEP_SIZE; y+=STEP_SIZE)
         {
-            for (x = 0; x < nx/2; x+=1)
+            for (x = 0; x < nx-STEP_SIZE; x+=STEP_SIZE)
             {
-                fillGridCell(grid, data, 0, x,   y,   z);
-                fillGridCell(grid, data, 1, x+1, y,   z);
-                fillGridCell(grid, data, 2, x+1, y+1, z);
-                fillGridCell(grid, data, 3, x,   y+1, z);
-                fillGridCell(grid, data, 4, x,   y,   z+1);
-                fillGridCell(grid, data, 5, x+1, y,   z+1);
-                fillGridCell(grid, data, 6, x+1, y+1, z+1);
-                fillGridCell(grid, data, 7, x,   y+1, z+1);
+                fillGridCell(grid, data, 0, x, y, z);
+                fillGridCell(grid, data, 1, x+STEP_SIZE, y, z);
+                fillGridCell(grid, data, 2, x+STEP_SIZE, y+STEP_SIZE, z);
+                fillGridCell(grid, data, 3, x, y+STEP_SIZE, z);
+                fillGridCell(grid, data, 4, x, y, z+STEP_SIZE);
+                fillGridCell(grid, data, 5, x+STEP_SIZE, y, z+STEP_SIZE);
+                fillGridCell(grid, data, 6, x+STEP_SIZE, y+STEP_SIZE, z+STEP_SIZE);
+                fillGridCell(grid, data, 7, x, y+STEP_SIZE, z+STEP_SIZE);
                 marchTetrahedron(_surface, grid, 128, 0, 2, 3, 7);
                 marchTetrahedron(_surface, grid, 128, 0, 2, 6, 7);
                 marchTetrahedron(_surface, grid, 128, 0, 4, 6, 7);
@@ -105,6 +132,7 @@ QWidget* MetaballsView::preferenceWidget()
 
 void MetaballsView::render()
 {
+    glTranslatef(-80, -80, -100);
     glColor4fv(_metaballsColor);
     glBegin(GL_TRIANGLES);
     // glVertex3f(0.0f, 0.0f, 0.0f);
@@ -112,6 +140,7 @@ void MetaballsView::render()
     // glVertex3f(1.0f, 1.0f, 0.0f);
     for (int i = 0; i < _surface.size(); i++)
     {
+        glNormal3fv(_surface.at(i).n[0].p);
         glVertex3fv(_surface.at(i).p[0].p);
         glVertex3fv(_surface.at(i).p[1].p);
         glVertex3fv(_surface.at(i).p[2].p);
@@ -146,6 +175,21 @@ void MetaballsView::fillGridCell(GridCell& grid, unsigned char*** data, int i, i
     grid.val[i] = data[z][y][x];
 }//fillGridCell
 
+void MetaballsView::addTriangle(QVector<Triangle>& surface, GridCell& g, int iso, int v0, int v1, int v2, int v3, int v4, int v5)
+{
+    Triangle t1;
+    float side1[3];
+    float side2[3];
+
+    t1.p[0] = vertexInterpolate(iso, g, v0, v1);
+    t1.p[1] = vertexInterpolate(iso, g, v2, v3);
+    t1.p[2] = vertexInterpolate(iso, g, v4, v5);
+    sub2v(t1.p[1].p, t1.p[0].p, side1);
+    sub2v(t1.p[2].p, t1.p[0].p, side2);
+    cross(side1, side2, t1.n[0].p);
+    surface.push_back(t1);
+}//addTriangle
+
 // marching tetrahedron code implementation by Paul Bourke, url:
 // http://local.wasp.uwa.edu.au/~pbourke/geometry/polygonise/
 // http://local.wasp.uwa.edu.au/~pbourke/libraries/
@@ -159,77 +203,50 @@ void MetaballsView::marchTetrahedron(QVector<Triangle>& surface, GridCell& g, in
     if (g.val[v2] < iso) triindex |= 4;
     if (g.val[v3] < iso) triindex |= 8;
 
-    Triangle t1, t2;
-   // Form the vertices of the triangles for each case
-   switch (triindex)
-   {
-       case 0x00:
-       case 0x0F:
-          break;
-       case 0x0E:
-       case 0x01:
-          t1.p[0] = vertexInterpolate(iso, g, v0, v1);
-          t1.p[1] = vertexInterpolate(iso, g, v0, v2);
-          t1.p[2] = vertexInterpolate(iso, g, v0, v3);
-          surface.push_back(t1);
-          break;
-       case 0x0D:
-       case 0x02:
-          t1.p[0] = vertexInterpolate(iso, g, v1, v0);
-          t1.p[1] = vertexInterpolate(iso, g, v1, v3);
-          t1.p[2] = vertexInterpolate(iso, g, v1, v2);
-          surface.push_back(t1);
-          break;
-       case 0x0C:
-       case 0x03:
-          t1.p[0] = vertexInterpolate(iso, g, v0, v3);
-          t1.p[1] = vertexInterpolate(iso, g, v0, v2);
-          t1.p[2] = vertexInterpolate(iso, g, v1, v3);
-          surface.push_back(t1);
+    // Form the vertices of the triangles for each case
+    switch (triindex)
+    {
+        case 0x00:
+        case 0x0F:
+            break;
 
-          t2.p[0] = t1.p[2];
-          t2.p[1] = vertexInterpolate(iso, g, v1, v2);
-          t2.p[2] = t1.p[1];
-          surface.push_back(t2);
-          break;
-       case 0x0B:
-       case 0x04:
-          t1.p[0] = vertexInterpolate(iso, g, v2, v0);
-          t1.p[1] = vertexInterpolate(iso, g, v2, v1);
-          t1.p[2] = vertexInterpolate(iso, g, v2, v3);
-          surface.push_back(t1);
-          break;
-       case 0x0A:
-       case 0x05:
-          t1.p[0] = vertexInterpolate(iso, g, v0, v1);
-          t1.p[1] = vertexInterpolate(iso, g, v2, v3);
-          t1.p[2] = vertexInterpolate(iso, g, v0, v3);
-          surface.push_back(t1);
+        case 0x0E:
+        case 0x01:
+            addTriangle(surface, g, iso, v0, v1, v0, v2, v0, v3);
+            break;
 
-          t2.p[0] = t1.p[0];
-          t2.p[1] = vertexInterpolate(iso, g, v1, v2);
-          t2.p[2] = t1.p[1];
-          surface.push_back(t2);
-          break;
-       case 0x09:
-       case 0x06:
-          t1.p[0] = vertexInterpolate(iso, g, v0, v1);
-          t1.p[1] = vertexInterpolate(iso, g, v1, v3);
-          t1.p[2] = vertexInterpolate(iso, g, v2, v3);
-          surface.push_back(t1);
+        case 0x0D:
+        case 0x02:
+            addTriangle(surface, g, iso, v1, v0, v1, v3, v1, v2);
+            break;
 
-          t2.p[0] = t1.p[0];
-          t2.p[1] = vertexInterpolate(iso, g, v0, v2);
-          t2.p[2] = t1.p[2];
-          surface.push_back(t2);
-          break;
-       case 0x07:
-       case 0x08:
-          t1.p[0] = vertexInterpolate(iso, g, v3, v0);
-          t1.p[1] = vertexInterpolate(iso, g, v3, v2);
-          t1.p[2] = vertexInterpolate(iso, g, v3, v1);
-          surface.push_back(t1);
-          break;
+        case 0x0C:
+        case 0x03:
+            addTriangle(surface, g, iso, v0, v3, v0, v2, v1, v3);
+            addTriangle(surface, g, iso, v1, v3, v1, v2, v0, v2);
+            break;
+
+        case 0x0B:
+        case 0x04:
+            addTriangle(surface, g, iso, v2, v0, v2, v1, v2, v3);
+            break;
+
+        case 0x0A:
+        case 0x05:
+            addTriangle(surface, g, iso, v0, v1, v2, v3, v0, v3);
+            addTriangle(surface, g, iso, v0, v1, v1, v2, v2, v3);
+            break;
+
+        case 0x09:
+        case 0x06:
+            addTriangle(surface, g, iso, v0, v1, v1, v3, v2, v3);
+            addTriangle(surface, g, iso, v0, v1, v0, v2, v2, v3);
+            break;
+
+        case 0x07:
+        case 0x08:
+            addTriangle(surface, g, iso, v3, v0, v3, v2, v3, v1);
+            break;
    }//switch
 }//marchTetrahedron
 
