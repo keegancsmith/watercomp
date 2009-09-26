@@ -3,6 +3,7 @@
 #include "FenwickTree.h"
 #include <map>
 #include <string>
+#include "Trie.h"
 
 /**
  A Model represents a way to map from data 
@@ -22,8 +23,8 @@ class AdaptiveModelEncoder
         
         ArithmeticEncoder* encoder;
         
-        std::map<std::string, unsigned int> symbol_table;
-        
+//         std::map<std::string, unsigned int> symbol_table;
+        Trie<unsigned int> symbol_table;
         AdaptiveModelEncoder(ArithmeticEncoder* arithmetic_encoder);
         
         void encode(std::string symbol);

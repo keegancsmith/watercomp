@@ -9,10 +9,10 @@ Transform :: PDBInfo -> QuantisedFrame -> ByteStream
 Dequantiser :: QuantisedFrame -> Frame -- Done
 
 -- Arithmetic Coder
-ArithmeticCoder :: ArithmeticModel -> SymbolStream -> BitStream
+ArithmeticCoder :: ArithmeticModel -> SymbolStream -> BitStream -- Done, testing done.
 
 -- Graph Stuff
-GraphCreator :: WaterMoleculeList -> WaterMoleculeGraph
+GraphCreator :: WaterMoleculeList -> WaterMoleculeGraph Created naive and water heuristics graph, not done NN graph.
 SpanningTree :: WaterMoleculeGraph -> WaterMoleculeGraph
 TreeSerialiser :: WaterMoleculeGraph -> SymbolStream
 

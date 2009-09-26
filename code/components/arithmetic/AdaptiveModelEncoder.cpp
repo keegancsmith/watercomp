@@ -7,30 +7,43 @@ AdaptiveModelEncoder::AdaptiveModelEncoder(ArithmeticEncoder* arithmetic_encoder
 {
     encoder = arithmetic_encoder;
     
-    symbol_table["_NEW"] = tree.add_symbol();
-    symbol_table["_EOF"] = tree.add_symbol();
+//     symbol_table["_NEW"] = tree.add_symbol();
+//     symbol_table["_EOF"] = tree.add_symbol();
+    symbol_table.insert("_NEW", tree.add_symbol());
+    symbol_table.insert("_EOF", tree.add_symbol());
 }
         
 void AdaptiveModelEncoder::encode(string symbol)
 {
-    if(symbol_table.find(symbol) == symbol_table.end())
+//     printf("%s\n", symbol.c_str());
+    
+//     if(symbol_table.find(symbol) == symbol_table.end())
+    if(!symbol_table.find_text(symbol))
     {
+//         printf("NEW\n");
         encode("_NEW");
-        symbol_table[symbol] = tree.add_symbol();
+//         symbol_table[symbol] = tree.add_symbol();
+        unsigned int new_s = tree.add_symbol();
+        symbol_table.insert(symbol, new_s);
+        
+//         printf("AHHH %d %d\n", new_s, symbol_table.find_data(symbol));
         
         for(int i = 0; i < symbol.size(); ++i)
-        {
-//             printf("%d %c to %d %c\n", symbol[i], symbol[i], symbol[i]+1, symbol[i]+1); 
             encoder->encode(symbol[i], symbol[i]+1, 256);
-        }
-        encoder->encode(0, 1, 256);
         
-//         printf("NEW SYMBOL END\n");
+        encoder->encode(0, 1, 256);
     }
     else
     {   
-        encoder->encode(tree.query(symbol_table[symbol]-1), tree.query(symbol_table[symbol]), tree.total_frequency);
-        tree.update(symbol_table[symbol]);
+        unsigned int symbol_id = symbol_table.find_data(symbol);
+//         printf("OLD %d %d\n", symbol_id, tree.symbols);
+        encoder->encode(tree.query(symbol_id-1), tree.query(symbol_id), tree.total_frequency);
+//         encoder->encode(tree.query(symbol_table[symbol]-1), tree.query(symbol_table[symbol]), tree.total_frequency);
+        
+//         printf("SD\n");
+//         tree.update(symbol_table[symbol]);
+        tree.update(symbol_id);
+//         printf("DFG\n");
     }
 }
 
