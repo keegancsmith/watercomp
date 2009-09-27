@@ -33,6 +33,7 @@ class BaseView : public QObject
         void select();
 
     protected:
+        virtual void initGL();
         bool pickColor(float* color);
 
 };//BaseView

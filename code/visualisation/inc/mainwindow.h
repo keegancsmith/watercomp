@@ -9,9 +9,10 @@ class QMenu;
 class QString;
 class QVBoxLayout;
 
-class BaseView;
 class DCD_Loader;
 class Frame_Data;
+
+class BaseView;
 class PlaybackControl;
 class Renderer;
 class ViewPreferenceDialog;
@@ -41,6 +42,7 @@ class MainWindow : public QMainWindow
 
         DCD_Loader* dcd;
         Frame_Data* data;
+
         PlaybackControl* playbackControl;
         Renderer* renderer;
         ViewPreferenceDialog* viewPreferenceDialog;

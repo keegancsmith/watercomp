@@ -10,6 +10,8 @@ class QLabel;
 class QPushButton;
 class QSlider;
 
+class QCheckBox;
+
 
 struct Point3f
 {
@@ -18,8 +20,8 @@ struct Point3f
 
 struct Triangle
 {
-    Point3f p[3]; // 3 positions
-    Point3f n[3]; // 3 normals
+    float p[3][3]; // 3 positions
+    float n[3][3]; // 3 normals
 };//Triangle
 
 struct GridCell
@@ -38,35 +40,58 @@ class MetaballsView : public BaseView
         MetaballsView();
         virtual ~MetaballsView();
 
+        int stepSize();
+
         virtual void updatePreferences();
         virtual QWidget* preferenceWidget();
 
         virtual void render();
         virtual void tick(Frame_Data* data);
 
+    protected:
+        virtual void initGL();
+
     private slots:
         void setMetaballsAlpha(int value);
+        void setStepSize(int value);
         void pickMetaballsColor();
 
+        void setCullFace(int state);
+        void setLighting(int state);
+        void updateFaces();
+
     private:
+        bool cullFace;
+        bool lighting;
+        int maxStepSize;
+        int _stepSize;
         Frame_Data* data;
         float _metaballsColor[4];
         QVector<Triangle> _surface;
+
+
+        unsigned char*** mridata;
+        QCheckBox** tetrahedrons;
 
         QWidget* _preferenceWidget;
         QGridLayout* layout;
         QPushButton* metaballsColorButton;
         QLabel* metaballsAlphaLabel;
         QSlider* metaballsAlphaSlider;
+        QLabel* stepSizeLabel;
+        QSlider* stepSizeSlider;
 
         void init();
 
         void setupPreferenceWidget();
 
-        void fillGridCell(GridCell& grid, unsigned char*** data, int i, int x, int y, int z);
-        void addTriangle(QVector<Triangle>& surface, GridCell& g, int iso, int v0, int v1, int v2, int v3, int v4, int v5);
-        void marchTetrahedron(QVector<Triangle>& surface, GridCell& grid, int iso, int v0, int v1, int v2, int v3);
-        Point3f vertexInterpolate(float iso, GridCell& g, int v1, int v2);
+        float sampleVolume(float x, float y, float z);
+        void getNormal(float* normal, float x, float y, float z);
+        float getOffset(float f1, float f2, float value);
+        void doMarchingTetrahedron(float tetrahedronPosition[4][3], float tetrahedronValue[3]);
+        void callMarchingTetrahedrons(float x, float y, float z, float scale);
+        void callMarchingCubes(float x, float y, float z, float scale);
+
 };//MetaballsView
 
 #endif

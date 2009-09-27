@@ -1,18 +1,23 @@
 #include "metaballs_view.h"
 
 #include <GL/gl.h>
+#include <cmath>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QSlider>
 #include <QWidget>
 
+#include <QCheckBox>
+
 #include "frame_data.h"
 
 #define ALPHA_MAX_SLIDER 100
 #define ALPHA_MAX_VAL 1.0
 
-#define STEP_SIZE 10
+
+#include "marching_tables.cpp"
+
 
 float* pack3f(float* v, float a, float b, float c)
 {
@@ -38,89 +43,129 @@ float* cross(float* v1, float* v2, float* dst)
     return pack3f(dst, t0, t1, t2);
 }//cross
 
+float* multf(float* v, float f)
+{
+    v[0] *= f;
+    v[1] *= f;
+    v[2] *= f;
+    return v;
+}//mult
+
+float len2(float* v)
+{
+    return (float) (v[0] * v[0] +
+                    v[1] * v[1] +
+                    v[2] * v[2]);
+}//len2
+
+float* normalize(float* v)
+{
+    float f = len2(v);
+    if (f == 0)
+        return v;
+    if ((f < 0.99f) || (f > 1.01f))
+        multf(v, 1/sqrt(f));
+    return v;
+}//normalize
+
+
 
 MetaballsView::MetaballsView()
 {
+    // TODO: define maxStepSize relative to the volume size
+    // TODO: define _stepSize relative to the volume size
+    maxStepSize = 80;
+    _stepSize = 5;
+
     viewName = "Metaballs view";
     _metaballsColor[0] = 0.5f;
     _metaballsColor[1] = 0.5f;
     _metaballsColor[2] = 0.5f;
-    _metaballsColor[3] = 0.5f;
+    _metaballsColor[3] = 1.0f;
     data = 0;
 
+    lighting = false;
+    cullFace = true;
+
     _preferenceWidget = NULL;
+    setupPreferenceWidget();
     init();
 }//constructor
 
 MetaballsView::~MetaballsView()
 {
+    int nz = 160;
+    int ny = 160;
+    int nx = 200;
+    int x, y, z;
+    for (z = 0; z < nz; z++)
+    {
+        for (y = 0; y < ny; y++)
+            delete [] mridata[z][y];
+        delete [] mridata[z];
+    }//for
+    delete [] mridata;
 }//destructor
+
+
+int MetaballsView::stepSize()
+{
+    return _stepSize;
+}//stepSize
 
 
 void MetaballsView::init()
 {
-    unsigned char*** data = NULL;
 
     int nz = 160;
     int ny = 160;
     int nx = 200;
     int x, y, z;
-    data = new unsigned char**[nz];
+    mridata = new unsigned char**[nz];
     for (z = 0; z < nz; z++)
     {
-        data[z] = new unsigned char*[ny];
+        mridata[z] = new unsigned char*[ny];
         for (y = 0; y < ny; y++)
-            data[z][y] = new unsigned char[nx];
+            mridata[z][y] = new unsigned char[nx];
     }//for
 
-    FILE* f = fopen("mri.raw", "rb");
-    for (z = 0; z < nz; z++)
-        for (y = 0; y < ny; y++)
-            for (x = 0; x < nx; x++)
-                data[z][y][x] = fgetc(f);
-    fclose(f);
-    printf("read done\n");
 
-    GridCell grid;
-    for (z = 0; z < nz-STEP_SIZE; z+=STEP_SIZE)
+    // FILE* f = fopen("mri.raw", "rb");
+    // for (z = 0; z < nz; z++)
+        // for (y = 0; y < ny; y++)
+            // for (x = 0; x < nx; x++)
+                // mridata[z][y][x] = fgetc(f);
+    // fclose(f);
+    // printf("read done\n");
+
+    int dz, dy, dx, dd;
+    float r2 = 300.0 * 255;
+    for (z = 0; z < nz; z++)
     {
-        for (y = 0; y < ny-STEP_SIZE; y+=STEP_SIZE)
+        dz = z - 80;
+        dz *= dz;
+        for (y = 0; y < ny; y++)
         {
-            for (x = 0; x < nx-STEP_SIZE; x+=STEP_SIZE)
+            dy = y - 80;
+            dy *= dy;
+            for (x = 0; x < nx; x++)
             {
-                fillGridCell(grid, data, 0, x, y, z);
-                fillGridCell(grid, data, 1, x+STEP_SIZE, y, z);
-                fillGridCell(grid, data, 2, x+STEP_SIZE, y+STEP_SIZE, z);
-                fillGridCell(grid, data, 3, x, y+STEP_SIZE, z);
-                fillGridCell(grid, data, 4, x, y, z+STEP_SIZE);
-                fillGridCell(grid, data, 5, x+STEP_SIZE, y, z+STEP_SIZE);
-                fillGridCell(grid, data, 6, x+STEP_SIZE, y+STEP_SIZE, z+STEP_SIZE);
-                fillGridCell(grid, data, 7, x, y+STEP_SIZE, z+STEP_SIZE);
-                marchTetrahedron(_surface, grid, 128, 0, 2, 3, 7);
-                marchTetrahedron(_surface, grid, 128, 0, 2, 6, 7);
-                marchTetrahedron(_surface, grid, 128, 0, 4, 6, 7);
-                marchTetrahedron(_surface, grid, 128, 0, 6, 1, 2);
-                marchTetrahedron(_surface, grid, 128, 0, 6, 1, 4);
-                marchTetrahedron(_surface, grid, 128, 5, 6, 1, 4);
+                dx = x - 100;
+                dx *= dx;
+
+                dd = dx + dy + dz;
+                mridata[z][y][x] = (dd <= 0.001) ? 255 : r2 / dd;
             }//for
         }//for
     }//for
-    // prints out 3 million...
-    printf("surface size: %i\n", _surface.size());
 
-    for (z = 0; z < nz; z++)
-    {
-        for (y = 0; y < ny; y++)
-            delete [] data[z][y];
-        delete [] data[z];
-    }//for
-    delete [] data;
 }//init
 
 
 void MetaballsView::updatePreferences()
 {
     metaballsAlphaSlider->setValue((int)(_metaballsColor[3] * ALPHA_MAX_SLIDER / ALPHA_MAX_VAL));
+    stepSizeSlider->setValue(_stepSize);
 }//updatePreferences
 
 QWidget* MetaballsView::preferenceWidget()
@@ -132,18 +177,26 @@ QWidget* MetaballsView::preferenceWidget()
 
 void MetaballsView::render()
 {
+    float l_pos[] = {200.0f, 200.0f, 200.0f, 0.0f};
+    glLightfv(GL_LIGHT0, GL_POSITION, l_pos);
+
     glTranslatef(-80, -80, -100);
     glColor4fv(_metaballsColor);
     glBegin(GL_TRIANGLES);
+    // glBegin(GL_LINE_LOOP);
     // glVertex3f(0.0f, 0.0f, 0.0f);
     // glVertex3f(1.0f, 0.0f, 0.0f);
     // glVertex3f(1.0f, 1.0f, 0.0f);
+    Triangle t;
     for (int i = 0; i < _surface.size(); i++)
     {
-        glNormal3fv(_surface.at(i).n[0].p);
-        glVertex3fv(_surface.at(i).p[0].p);
-        glVertex3fv(_surface.at(i).p[1].p);
-        glVertex3fv(_surface.at(i).p[2].p);
+        t = _surface.at(i);
+        glNormal3fv(t.n[0]);
+        glVertex3fv(t.p[0]);
+        glNormal3fv(t.n[1]);
+        glVertex3fv(t.p[1]);
+        glNormal3fv(t.n[2]);
+        glVertex3fv(t.p[2]);
     }//for
     glEnd();
 }//render
@@ -151,7 +204,132 @@ void MetaballsView::render()
 void MetaballsView::tick(Frame_Data* data)
 {
     this->data = data;
+
+    int nz = 160 - _stepSize - 1;
+    int ny = 160 - _stepSize - 1;
+    int nx = 200 - _stepSize - 1;
+    int x, y, z;
+    _surface.clear();
+    for (z = 0; z < nz; z+=_stepSize)
+    {
+        for (y = 0; y < ny; y+=_stepSize)
+        {
+            for (x = 0; x < nx; x+=_stepSize)
+            {
+                // callMarchingTetrahedrons(x, y, z, _stepSize);
+                callMarchingCubes(x, y, z, _stepSize);
+            }//for
+        }//for
+    }//for
+    // prints out 3 million...
+    printf("surface size: %i\n", _surface.size());
+
+    Triangle t;
+    int v;
+    float dx, dy, dz, dd;
+    float min, max;
+    float maxv[3];
+
+    t = _surface.at(0);
+    maxv[0] = t.p[0][0];
+    maxv[1] = t.p[0][1];
+    maxv[2] = t.p[0][2];
+    dx = maxv[0] - 100;
+    dy = maxv[1] - 80;
+    dz = maxv[2] - 80;
+    dd = dx*dx + dy*dy + dz*dz;
+    min = dd;
+    max = dd;
+
+    for (int i = 0; i < _surface.size(); i++)
+    {
+        t = _surface.at(i);
+        for (v = 0; v < 3; v++)
+        {
+            // if (t->p[v][0] < 5)
+                // printf("wtf?\n");
+
+            dx = t.p[v][0] - 100;
+            dy = t.p[v][1] - 80;
+            dz = t.p[v][2] - 80;
+            dd = dx*dx + dy*dy + dz*dz;
+
+            if (dd < min) min = dd;
+            if (dd > max)
+            {
+                max = dd;
+                maxv[0] = t.p[v][0];
+                maxv[1] = t.p[v][1];
+                maxv[2] = t.p[v][2];
+            }//if
+        }//for
+    }//for
+    printf("min: %f\nmax: %f (%f, %f, %f)\n", min, max, maxv[0], maxv[1], maxv[2]);
+
 }//tick
+
+
+void MetaballsView::initGL()
+{
+    // float m_amb[] = {0.3f, 0.3f, 0.3f, 1.0f};
+    // float m_spe[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    // float m_shin[] = {50.0f};
+    // float l_pos[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    float l_pos[] = {200.0f, 200.0f, 200.0f, 0.0f};
+    // float l_amb[] = {0.4f, 0.4f, 0.4f, 1.0f};
+    // float l_dif[] = {0.7f, 0.7f, 0.7f, 1.0f};
+    // float l_spe[] = {0.9f, 0.9f, 0.9f, 1.0f};
+
+    // glEnable(GL_LIGHT0);
+    // glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, m_amb);
+    // glMaterialfv(GL_FRONT, GL_SPECULAR, m_spe);
+    // glMaterialfv(GL_FRONT, GL_SHININESS, m_shin);
+
+    glLightfv(GL_LIGHT0, GL_POSITION, l_pos);
+    // glLightfv(GL_LIGHT0, GL_AMBIENT, l_amb);
+    // glLightfv(GL_LIGHT0, GL_DIFFUSE, l_dif);
+    // glLightfv(GL_LIGHT0, GL_SPECULAR, l_spe);
+
+
+    // float g_amb[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    //glLightModelfv(GL_LIGHT_MODEL_AMBIENT, g_amb);
+
+    float afPropertiesAmbient [] = {0.50, 0.50, 0.50, 1.00};
+    float afPropertiesDiffuse [] = {0.75, 0.75, 0.75, 1.00};
+    float afPropertiesSpecular[] = {1.00, 1.00, 1.00, 1.00};
+    float afAmbientWhite [] = {0.25, 0.25, 0.25, 1.00};
+    float afAmbientRed   [] = {0.25, 0.00, 0.00, 1.00};
+    float afAmbientGreen [] = {0.00, 0.25, 0.00, 1.00};
+    float afAmbientBlue  [] = {0.00, 0.00, 0.25, 1.00};
+    float afDiffuseWhite [] = {0.75, 0.75, 0.75, 1.00};
+    float afDiffuseRed   [] = {0.75, 0.00, 0.00, 1.00};
+    float afDiffuseGreen [] = {0.00, 0.75, 0.00, 1.00};
+    float afDiffuseBlue  [] = {0.00, 0.00, 0.75, 1.00};
+    float afSpecularWhite[] = {1.00, 1.00, 1.00, 1.00};
+    float afSpecularRed  [] = {1.00, 0.25, 0.25, 1.00};
+    float afSpecularGreen[] = {0.25, 1.00, 0.25, 1.00};
+    float afSpecularBlue [] = {0.25, 0.25, 1.00, 1.00};
+    glLightfv( GL_LIGHT0, GL_AMBIENT,  afPropertiesAmbient);
+    glLightfv( GL_LIGHT0, GL_DIFFUSE,  afPropertiesDiffuse);
+    glLightfv( GL_LIGHT0, GL_SPECULAR, afPropertiesSpecular);
+    glMaterialfv(GL_BACK,  GL_AMBIENT,   afAmbientGreen);
+    glMaterialfv(GL_BACK,  GL_DIFFUSE,   afDiffuseGreen);
+    glMaterialfv(GL_FRONT, GL_AMBIENT,   afAmbientBlue);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE,   afDiffuseBlue);
+    glMaterialfv(GL_FRONT, GL_SPECULAR,  afSpecularWhite);
+    glMaterialf( GL_FRONT, GL_SHININESS, 15.0);
+    glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 1.0);
+    glEnable(GL_LIGHT0);
+
+    glColorMaterial(GL_FRONT, GL_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+
+    setLighting(lighting);
+    setCullFace(cullFace);
+
+    glDepthFunc(GL_LEQUAL);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}//initGL
 
 
 void MetaballsView::setMetaballsAlpha(int value)
@@ -161,111 +339,264 @@ void MetaballsView::setMetaballsAlpha(int value)
     _metaballsColor[3] = (float)value * ALPHA_MAX_VAL / ALPHA_MAX_SLIDER;
 }//setMetaballsAlpha
 
+void MetaballsView::setStepSize(int value)
+{
+    _stepSize = value;
+}//setStepSize
+
 void MetaballsView::pickMetaballsColor()
 {
     pickColor(_metaballsColor);
 }//pickMetaballsColor
 
 
-void MetaballsView::fillGridCell(GridCell& grid, unsigned char*** data, int i, int x, int y, int z)
+void MetaballsView::setCullFace(int state)
 {
-    grid.p[i].p[0] = x;
-    grid.p[i].p[1] = y;
-    grid.p[i].p[2] = z;
-    grid.val[i] = data[z][y][x];
-}//fillGridCell
+    if (state == 0)
+        glDisable(GL_CULL_FACE);
+    else
+        glEnable(GL_CULL_FACE);
+}//setCullFace
 
-void MetaballsView::addTriangle(QVector<Triangle>& surface, GridCell& g, int iso, int v0, int v1, int v2, int v3, int v4, int v5)
+void MetaballsView::setLighting(int state)
 {
-    Triangle t1;
-    float side1[3];
-    float side2[3];
+    if (state == 0)
+        glDisable(GL_LIGHTING);
+    else
+        glEnable(GL_LIGHTING);
+}//setLighting
 
-    t1.p[0] = vertexInterpolate(iso, g, v0, v1);
-    t1.p[1] = vertexInterpolate(iso, g, v2, v3);
-    t1.p[2] = vertexInterpolate(iso, g, v4, v5);
-    sub2v(t1.p[1].p, t1.p[0].p, side1);
-    sub2v(t1.p[2].p, t1.p[0].p, side2);
-    cross(side1, side2, t1.n[0].p);
-    surface.push_back(t1);
-}//addTriangle
-
-// marching tetrahedron code implementation by Paul Bourke, url:
-// http://local.wasp.uwa.edu.au/~pbourke/geometry/polygonise/
-// http://local.wasp.uwa.edu.au/~pbourke/libraries/
-void MetaballsView::marchTetrahedron(QVector<Triangle>& surface, GridCell& g, int iso, int v0, int v1, int v2, int v3)
+void MetaballsView::updateFaces()
 {
-    int triindex = 0;
-    // Determine which of the 16 cases we have given which vertices
-    // are above or below the isosurface
-    if (g.val[v0] < iso) triindex |= 1;
-    if (g.val[v1] < iso) triindex |= 2;
-    if (g.val[v2] < iso) triindex |= 4;
-    if (g.val[v3] < iso) triindex |= 8;
+    tick(0);
+}//updateFaces
 
-    // Form the vertices of the triangles for each case
-    switch (triindex)
+
+float MetaballsView::sampleVolume(float x, float y, float z)
+{
+    int ix = (int)x;
+    int iy = (int)y;
+    int iz = (int)z;
+    return mridata[iz][iy][ix];
+}//sampleVolume
+
+
+//vGetNormal() finds the gradient of the scalar field at a point
+//This gradient can be used as a very accurate vertx normal for lighting calculations
+void MetaballsView::getNormal(float* normal, float x, float y, float z)
+{
+    normal[0] = sampleVolume(x-1, y, z) - sampleVolume(x+1, y, z);
+    normal[0] = sampleVolume(x, y-1, z) - sampleVolume(x, y+1, z);
+    normal[0] = sampleVolume(x, y, z-1) - sampleVolume(x, y, z+1);
+    normalize(normal);
+}
+
+//fGetOffset finds the approximate point of intersection of the surface
+// between two points with the values fValue1 and fValue2
+float MetaballsView::getOffset(float f1, float f2, float value)
+{
+    float delta = f2 - f1;
+
+    if (delta == 0.0)
+        return 0.5;
+
+    return (value - f1)/delta;
+}
+
+
+//vMarchTetrahedron performs the Marching Tetrahedrons algorithm on a single tetrahedron
+void MetaballsView::doMarchingTetrahedron(float tetrahedronPosition[4][3], float tetrahedronValue[3])
+{
+    float threshold = 128;
+
+    int vertex;
+    int flagIndex = 0;
+    //Find which vertices are inside of the surface and which are outside
+    for(vertex = 0; vertex < 4; vertex++)
     {
-        case 0x00:
-        case 0x0F:
+        if(tetrahedronValue[vertex] <= threshold)
+            flagIndex |= 1 << vertex;
+    }
+
+    //Find which edges are intersected by the surface
+    int edgeFlags = tetrahedronEdgeFlags[flagIndex];
+
+    //If the tetrahedron is entirely inside or outside of the surface, then there will be no intersections
+    if(edgeFlags == 0)
+    {
+        return;
+    }
+
+    int vert0, vert1;
+    float offset, invOffset;
+    float edgeVertex[6][3];
+    float edgeNormal[6][3];
+    //Find the point of intersection of the surface with each edge
+    // Then find the normal to the surface at those points
+    for(int edge = 0; edge < 6; edge++)
+    {
+        //if there is an intersection on this edge
+        if(edgeFlags & (1 << edge))
+        {
+            vert0 = tetrahedronEdgeConnection[edge][0];
+            vert1 = tetrahedronEdgeConnection[edge][1];
+            offset = getOffset(tetrahedronValue[vert0], tetrahedronValue[vert1], threshold);
+            invOffset = 1.0 - offset;
+
+            edgeVertex[edge][0] = invOffset*tetrahedronPosition[vert0][0]  +  offset*tetrahedronPosition[vert1][0];
+            edgeVertex[edge][1] = invOffset*tetrahedronPosition[vert0][1]  +  offset*tetrahedronPosition[vert1][1];
+            edgeVertex[edge][2] = invOffset*tetrahedronPosition[vert0][2]  +  offset*tetrahedronPosition[vert1][2];
+
+            getNormal(edgeNormal[edge], edgeVertex[edge][0], edgeVertex[edge][1], edgeVertex[edge][2]);
+        }
+    }
+
+    int corner;
+    //Draw the triangles that were found.  There can be up to 2 per tetrahedron
+    for(int triangle = 0; triangle < 2; triangle++)
+    {
+        if(tetrahedronTriangles[flagIndex][3*triangle] < 0)
             break;
 
-        case 0x0E:
-        case 0x01:
-            addTriangle(surface, g, iso, v0, v1, v0, v2, v0, v3);
-            break;
+        for(corner = 0; corner < 3; corner++)
+        {
+            vertex = tetrahedronTriangles[flagIndex][3*triangle+corner];
 
-        case 0x0D:
-        case 0x02:
-            addTriangle(surface, g, iso, v1, v0, v1, v3, v1, v2);
-            break;
+            Triangle t;
+            t.p[corner][0] = edgeVertex[vertex][0];
+            t.p[corner][1] = edgeVertex[vertex][1];
+            t.p[corner][2] = edgeVertex[vertex][2];
+            t.n[corner][0] = edgeNormal[vertex][0];
+            t.n[corner][1] = edgeNormal[vertex][1];
+            t.n[corner][2] = edgeNormal[vertex][2];
+            _surface.push_back(t);
+        }
+    }
+}
 
-        case 0x0C:
-        case 0x03:
-            addTriangle(surface, g, iso, v0, v3, v0, v2, v1, v3);
-            addTriangle(surface, g, iso, v1, v3, v1, v2, v0, v2);
-            break;
-
-        case 0x0B:
-        case 0x04:
-            addTriangle(surface, g, iso, v2, v0, v2, v1, v2, v3);
-            break;
-
-        case 0x0A:
-        case 0x05:
-            addTriangle(surface, g, iso, v0, v1, v2, v3, v0, v3);
-            addTriangle(surface, g, iso, v0, v1, v1, v2, v2, v3);
-            break;
-
-        case 0x09:
-        case 0x06:
-            addTriangle(surface, g, iso, v0, v1, v1, v3, v2, v3);
-            addTriangle(surface, g, iso, v0, v1, v0, v2, v2, v3);
-            break;
-
-        case 0x07:
-        case 0x08:
-            addTriangle(surface, g, iso, v3, v0, v3, v2, v3, v1);
-            break;
-   }//switch
-}//marchTetrahedron
-
-Point3f MetaballsView::vertexInterpolate(float iso, GridCell& g, int v1, int v2)
+//vMarchCube2 performs the Marching Tetrahedrons algorithm on a single cube by making six calls to vMarchTetrahedron
+void MetaballsView::callMarchingTetrahedrons(float x, float y, float z, float scale)
 {
-#define ABS(x) (((x) < 0) ? -(x) : (x))
-    float d1 = iso - g.val[v1];
-    float d2 = iso - g.val[v2];
-    float d = g.val[v2] - g.val[v1];
-    if (ABS(d1) < 0.00001) return g.p[v1];
-    if (ABS(d2) < 0.00001) return g.p[v2];
-    if (ABS(d) < 0.00001) return g.p[v1];
+    int vertex;
+    float cubePosition[8][3];
+    float cubeValue[8];
 
-   double mu = d1 / d;
-   Point3f p;
-   for (int i = 0; i < 3; i++)
-       p.p[i] = g.p[v1].p[i] + mu * (g.p[v2].p[i] - g.p[v1].p[i]);
-   return p;
-}//vertexInterpolate
+    //Make a local copy of the cube's corner positions
+    for(vertex = 0; vertex < 8; vertex++)
+    {
+        cubePosition[vertex][0] = x + vertexOffset[vertex][0]*scale;
+        cubePosition[vertex][1] = y + vertexOffset[vertex][1]*scale;
+        cubePosition[vertex][2] = z + vertexOffset[vertex][2]*scale;
+    }
+
+    //Make a local copy of the cube's corner values
+    for(vertex = 0; vertex < 8; vertex++)
+    {
+        cubeValue[vertex] = sampleVolume(cubePosition[vertex][0],cubePosition[vertex][1], cubePosition[vertex][2]);
+        // cubeValue[v] = mridata[cubePosition[v][2]][cubePosition[v][1]][cubePosition[v][0]];
+    }
+
+    int i;
+    float tetrahedronPosition[4][3];
+    float tetrahedronValue[4];
+    //for each tetrahedron
+    for(int tetrahedron = 0; tetrahedron < 6; tetrahedron++)
+    {
+        //get the tetrahedron position and value
+        for(vertex = 0; vertex < 4; vertex++)
+        {
+            i = tetrahedronsInACube[tetrahedron][vertex];
+            tetrahedronPosition[vertex][0] = cubePosition[i][0];
+            tetrahedronPosition[vertex][1] = cubePosition[i][1];
+            tetrahedronPosition[vertex][2] = cubePosition[i][2];
+            tetrahedronValue[vertex] = cubeValue[i];
+        }
+        doMarchingTetrahedron(tetrahedronPosition, tetrahedronValue);
+    }
+}
+
+
+void MetaballsView::callMarchingCubes(float x, float y, float z, float scale)
+{
+    float threshold = 128;
+
+    int vertex;
+    float cubeValue[8];
+    //Make a local copy of the values at the cube's corners
+    for(vertex = 0; vertex < 8; vertex++)
+    {
+        cubeValue[vertex] = sampleVolume(
+                x + vertexOffset[vertex][0]*scale,
+                y + vertexOffset[vertex][1]*scale,
+                z + vertexOffset[vertex][2]*scale);
+    }
+
+    //Find which vertices are inside of the surface and which are outside
+    int flagIndex = 0;
+    for(vertex = 0; vertex < 8; vertex++)
+    {
+        if(cubeValue[vertex] <= threshold)
+            flagIndex |= 1 << vertex;
+    }
+
+    //Find which edges are intersected by the surface
+    int edgeFlags = cubeEdgeFlags[flagIndex];
+
+    //If the cube is entirely inside or outside of the surface, then there will be no intersections
+    if(edgeFlags == 0)
+    {
+        return;
+    }
+
+    float offset;
+    float edgeVertex[12][3];
+    float edgeNormal[12][3];
+    //Find the point of intersection of the surface with each edge
+    //Then find the normal to the surface at those points
+    for(int edge = 0; edge < 12; edge++)
+    {
+        //if there is an intersection on this edge
+        if(edgeFlags & (1<<edge))
+        {
+            offset = getOffset(cubeValue[edgeConnection[edge][0]],
+                    cubeValue[edgeConnection[edge][1]], threshold);
+
+            edgeVertex[edge][0] = x + (vertexOffset[edgeConnection[edge][0]][0]  +  offset * edgeDirection[edge][0]) * scale;
+            edgeVertex[edge][1] = y + (vertexOffset[edgeConnection[edge][0]][1]  +  offset * edgeDirection[edge][1]) * scale;
+            edgeVertex[edge][2] = z + (vertexOffset[edgeConnection[edge][0]][2]  +  offset * edgeDirection[edge][2]) * scale;
+
+            getNormal(edgeNormal[edge], edgeVertex[edge][0], edgeVertex[edge][1], edgeVertex[edge][2]);
+        }
+    }
+
+    int corner;
+    //Draw the triangles that were found.  There can be up to five per cube
+    for(int triangle = 0; triangle < 5; triangle++)
+    {
+        if(triangleConnectionTable[flagIndex][3*triangle] < 0)
+            break;
+
+        for(corner = 0; corner < 3; corner++)
+        {
+            vertex = triangleConnectionTable[flagIndex][3*triangle+corner];
+
+            Triangle t;
+            t.p[corner][0] = edgeVertex[vertex][0];
+            t.p[corner][1] = edgeVertex[vertex][1];
+            t.p[corner][2] = edgeVertex[vertex][2];
+
+            t.n[corner][0] = edgeNormal[vertex][0];
+            t.n[corner][1] = edgeNormal[vertex][1];
+            t.n[corner][2] = edgeNormal[vertex][2];
+
+            if (t.p[corner][0] < 5)
+                printf("w t f\n");
+            _surface.push_back(t);
+            // printf("%f %f %f\n", edgeVertex[vertex][0], edgeVertex[vertex][1], edgeVertex[vertex][2]);
+        }
+    }
+}//callMarchingCubes
+
 
 
 void MetaballsView::setupPreferenceWidget()
@@ -286,6 +617,35 @@ void MetaballsView::setupPreferenceWidget()
     metaballsAlphaSlider->setRange(0, ALPHA_MAX_SLIDER);
     connect(metaballsAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setMetaballsAlpha(int)));
     layout->addWidget(metaballsAlphaSlider, 1, 1);
+
+    stepSizeLabel = new QLabel(tr("Grid size"), _preferenceWidget);
+    layout->addWidget(stepSizeLabel, 2, 0);
+
+    stepSizeSlider = new QSlider(_preferenceWidget);
+    stepSizeSlider->setOrientation(Qt::Horizontal);
+    stepSizeSlider->setRange(0, maxStepSize);
+    connect(stepSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(setStepSize(int)));
+    layout->addWidget(stepSizeSlider, 2, 1);
+
+    QCheckBox* cullCheckBox = new QCheckBox(_preferenceWidget);
+    connect(cullCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setCullFace(int)));
+    layout->addWidget(cullCheckBox, 3, 0);
+
+    QCheckBox* lightCheckBox = new QCheckBox(_preferenceWidget);
+    connect(lightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setLighting(int)));
+    layout->addWidget(lightCheckBox, 3, 1);
+
+    QPushButton* updateButton = new QPushButton(tr("Update faces"), _preferenceWidget);
+    connect(updateButton, SIGNAL(clicked()), this, SLOT(updateFaces()));
+    layout->addWidget(updateButton, 4, 0);
+
+
+    tetrahedrons = new QCheckBox*[14];
+    for (int i = 0; i < 14; i++)
+    {
+        tetrahedrons[i] = new QCheckBox(_preferenceWidget);
+        layout->addWidget(tetrahedrons[i], 5+i, 0);
+    }//for
 
     _preferenceWidget->setLayout(layout);
 }//setupPreferenceWidget

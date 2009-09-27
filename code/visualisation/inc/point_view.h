@@ -23,17 +23,24 @@ class PointView : public BaseView
         virtual void tick(Frame_Data* data);
         virtual void render();
 
+    protected:
+        virtual void initGL();
+
     private slots:
         void setPointAlpha(int value);
+        void setPointSize(int value);
         void pickPointColor();
 
     private:
         Frame_Data* data;
         float _pointColor[4];
+        int _pointSize;
 
         QWidget* _preferenceWidget;
         QGridLayout* layout;
         QPushButton* pointColorButton;
+        QLabel* pointSizeLabel;
+        QSlider* pointSizeSlider;
         QLabel* pointAlphaLabel;
         QSlider* pointAlphaSlider;
 

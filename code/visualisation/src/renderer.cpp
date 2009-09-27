@@ -77,30 +77,6 @@ void Renderer::initializeGL()
     glEnable(GL_POINT_SMOOTH);
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
-
-    float m_amb[] = {0.3f, 0.0f, 0.0f, 1.0f};
-    float m_spe[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    float m_shin[] = {50.0f};
-    float l_pos[] = {1.0f, 1.0f, 1.0f, 0.0f};
-    float l_amb[] = {0.4f, 0.4f, 0.4f, 1.0f};
-    float l_dif[] = {0.7f, 0.7f, 0.7f, 1.0f};
-    float l_spe[] = {0.9f, 0.9f, 0.9f, 1.0f};
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, m_amb);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, m_spe);
-    glMaterialfv(GL_FRONT, GL_SHININESS, m_shin);
-
-    glLightfv(GL_LIGHT0, GL_POSITION, l_pos);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, l_amb);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, l_dif);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, l_spe);
-
-    float g_amb[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    //glLightModelfv(GL_LIGHT_MODEL_AMBIENT, g_amb);
-
-    glColorMaterial(GL_FRONT, GL_DIFFUSE);
-    glEnable(GL_COLOR_MATERIAL);
 }//initializeGL
 
 void Renderer::resizeGL(int w, int h)
@@ -131,7 +107,7 @@ void Renderer::paintGL()
     glPushMatrix();
     glMultMatrixd(rot->matrix);
 
-    renderAxes();
+    // renderAxes();
     renderModes[_renderMode]->render();
     // switch (_renderMode)
     // {

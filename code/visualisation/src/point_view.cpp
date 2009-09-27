@@ -11,8 +11,10 @@
 
 #include "frame_data.h"
 
-#define ALPHA_MAX_SLIDER 100
-#define ALPHA_MAX_VAL 0.1
+#define MAX_ALPHA_SLIDER 100
+#define MAX_ALPHA_VAL 0.1
+
+#define MAX_POINT_SIZE 100
 
 PointView::PointView()
 {
@@ -23,6 +25,7 @@ PointView::PointView()
     _pointColor[3] = 0.02f;
     data = 0;
     _preferenceWidget = NULL;
+    _pointSize = 10;
 }//constructor
 
 PointView::~PointView()
@@ -32,7 +35,8 @@ PointView::~PointView()
 
 void PointView::updatePreferences()
 {
-    pointAlphaSlider->setValue((int)(_pointColor[3] * ALPHA_MAX_SLIDER / ALPHA_MAX_VAL));
+    pointSizeSlider->setValue(_pointSize);
+    pointAlphaSlider->setValue((int)(_pointColor[3] * MAX_ALPHA_SLIDER / MAX_ALPHA_VAL));
 }//updatePreferences
 
 QWidget* PointView::preferenceWidget()
@@ -63,17 +67,37 @@ void PointView::render()
 }//render
 
 
+void PointView::initGL()
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glPointSize(_pointSize);
+
+    glDisable(GL_LIGHTING);
+}//initGL
+
+
 void PointView::setPointAlpha(int value)
 {
-    if (value > ALPHA_MAX_SLIDER) value = ALPHA_MAX_SLIDER;
+    if (value > MAX_ALPHA_SLIDER) value = MAX_ALPHA_SLIDER;
     if (value < 0) value = 0;
-    _pointColor[3] = (float)value * ALPHA_MAX_VAL / ALPHA_MAX_SLIDER;
+    _pointColor[3] = (float)value * MAX_ALPHA_VAL / MAX_ALPHA_SLIDER;
 }//setPointAlpha
+
+void PointView::setPointSize(int value)
+{
+    if (value > MAX_POINT_SIZE) value = MAX_POINT_SIZE;
+    if (value < 1) value = 1;
+    _pointSize = value;
+    glPointSize(_pointSize);
+}//setPointSize
 
 void PointView::pickPointColor()
 {
     pickColor(_pointColor);
 }//pickPointColor
+
 
 void PointView::setupPreferenceWidget()
 {
@@ -85,14 +109,23 @@ void PointView::setupPreferenceWidget()
     connect(pointColorButton, SIGNAL(clicked()), this, SLOT(pickPointColor()));
     layout->addWidget(pointColorButton, 0, 0, 1, 2);
 
+    pointSizeLabel = new QLabel(tr("Point size"), _preferenceWidget);
+    layout->addWidget(pointSizeLabel, 1, 0);
+
+    pointSizeSlider = new QSlider(_preferenceWidget);
+    pointSizeSlider->setOrientation(Qt::Horizontal);
+    pointSizeSlider->setRange(0, MAX_POINT_SIZE);
+    connect(pointSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(setPointSize(int)));
+    layout->addWidget(pointSizeSlider, 1, 1);
+
     pointAlphaLabel = new QLabel(tr("Point alpha"), _preferenceWidget);
-    layout->addWidget(pointAlphaLabel, 1, 0);
+    layout->addWidget(pointAlphaLabel, 2, 0);
 
     pointAlphaSlider = new QSlider(_preferenceWidget);
     pointAlphaSlider->setOrientation(Qt::Horizontal);
-    pointAlphaSlider->setRange(0, ALPHA_MAX_SLIDER);
+    pointAlphaSlider->setRange(0, MAX_ALPHA_SLIDER);
     connect(pointAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setPointAlpha(int)));
-    layout->addWidget(pointAlphaSlider, 1, 1);
+    layout->addWidget(pointAlphaSlider, 2, 1);
 
     _preferenceWidget->setLayout(layout);
 }//setupPreferenceWidget

@@ -41,8 +41,13 @@ void BaseView::select()
 {
     if (viewID > -1)
         emit selectView(viewID);
+    initGL();
 }//select
 
+
+void BaseView::initGL()
+{
+}//initGL
 
 bool BaseView::pickColor(float* color)
 {

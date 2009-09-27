@@ -28,7 +28,7 @@ ViewPreferenceDialog::ViewPreferenceDialog(QWidget* parent)
     setLayout(layout);
 
     setWindowTitle(tr("View preferences"));
-    setModal(true);
+    setModal(false);
 }//constructor
 
 ViewPreferenceDialog::~ViewPreferenceDialog()
