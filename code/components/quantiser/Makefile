@@ -1,7 +1,7 @@
 CXX=g++
 CXXFLAGS=-O3 -Wall
 
-all: QFrame.o
+all: QuantisedFrame.o
 
 
 check-syntax:

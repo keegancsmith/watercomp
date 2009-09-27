@@ -1,6 +1,6 @@
 #include "GraphCreator.h"
 
-Graph * createGraph(QFrame * frame) {
+Graph * createGraph(QuantisedFrame * frame) {
     Graph * graph = new Graph(frame, frame->natoms());
 
     for (int i = 0; i < frame->natoms(); i++) {

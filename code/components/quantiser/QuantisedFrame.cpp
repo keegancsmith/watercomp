@@ -1,9 +1,9 @@
-#include "QFrame.h"
+#include "QuantisedFrame.h"
 #include <cassert>
 
 using namespace std;
 
-QFrame::QFrame(const Frame & frame,
+QuantisedFrame::QuantisedFrame(const Frame & frame,
                unsigned int x_subs, unsigned int y_subs, unsigned int z_subs)
     : m_xquant(x_subs), m_yquant(y_subs), m_zquant(z_subs)
 {
@@ -41,12 +41,12 @@ QFrame::QFrame(const Frame & frame,
         }
 }
 
-int QFrame::natoms() const {
+int QuantisedFrame::natoms() const {
     return (int) quantised_frame.size()/3;
 }
 
 
-Frame QFrame::toFrame(float * atom_data) const {
+Frame QuantisedFrame::toFrame(float * atom_data) const {
     unsigned int buckets[3] = {1 << m_xquant, 1 << m_yquant, 1 << m_zquant};
     float range[3];
     for (int d = 0; d < 3; d++)

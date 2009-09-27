@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 #include "WaterMolecule.h"
-#include "QFrame.h"
+#include "QuantisedFrame.h"
 #include "AtomInformation.h"
 
 class FrameSplitter

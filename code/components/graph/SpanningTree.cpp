@@ -1,5 +1,5 @@
 #include "SpanningTree.h"
-#include "../quantiser/QFrame.h"
+#include "../quantiser/QuantisedFrame.h"
 
 #include <vector>
 #include <climits>
@@ -9,7 +9,7 @@ using std::vector;
 using std::queue;
 
 
-int dist_squared(QFrame * frame, int a, int b) {
+int dist_squared(QuantisedFrame * frame, int a, int b) {
     int d = 0;
     for (int i = 0; i < 3; i++) {
         int x = frame->quantised_frame[a*3 + i];
@@ -21,7 +21,7 @@ int dist_squared(QFrame * frame, int a, int b) {
 }
 
 // Find closest unseen atom
-int find_closest_atom(QFrame * frame, std::vector<int> * edges,
+int find_closest_atom(QuantisedFrame * frame, std::vector<int> * edges,
                       vector<bool> * seen, int v) {
     int closest = edges->at(0);
     int closest_dist = INT_MAX;
@@ -43,7 +43,7 @@ Graph * spanningTree(Graph * g, int & root) {
     vector<bool> seen;
     seen.reserve(g->nVerticies);
 
-    QFrame * frame = (QFrame *)g->data;
+    QuantisedFrame * frame = (QuantisedFrame *)g->data;
     Graph * tree = new Graph(frame, g->nVerticies);
 
     root = 0;

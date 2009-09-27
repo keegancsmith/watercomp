@@ -7,10 +7,10 @@
 /// Might put this in one namespace
 
 // Quantised Frame
-class QFrame
+class QuantisedFrame
 {
     public:
-        QFrame(const Frame & frame,
+        QuantisedFrame(const Frame & frame,
                unsigned int x_subs, unsigned int y_subs, unsigned int z_subs);
 
         // atom_data is the buffer used to store the frame.
