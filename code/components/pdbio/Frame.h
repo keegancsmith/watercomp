@@ -10,10 +10,8 @@
 class Frame
 {
 public:
-    Frame(float * atom_data, size_t natoms,
-          std::vector<AtomInformation> *atom_information);
+    Frame(float * atom_data, size_t natoms);
 
     float * atom_data;
     size_t natoms;
-    std::vector<AtomInformation> * atom_information;
 };

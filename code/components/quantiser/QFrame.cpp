@@ -39,12 +39,10 @@ QFrame::QFrame(const Frame & frame,
             
             assert(0 <= scaled && scaled <= buckets[d]-1);
         }
-
-    atom_information = frame.atom_information;
 }
 
 int QFrame::natoms() const {
-    return (int) quantised_frame.size();
+    return (int) quantised_frame.size()/3;
 }
 
 
@@ -64,5 +62,5 @@ Frame QFrame::toFrame(float * atom_data) const {
         }
     }
 
-    return Frame(atom_data, quantised_frame.size(), atom_information);
+    return Frame(atom_data, quantised_frame.size());
 }

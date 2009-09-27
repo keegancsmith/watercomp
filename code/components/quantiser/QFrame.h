@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../pdbio/AtomInformation.h"
 #include "../pdbio/Frame.h"
 
 #include <vector>
@@ -20,7 +19,6 @@ class QFrame
         int natoms() const;
 
         std::vector<unsigned int> quantised_frame;
-        std::vector<AtomInformation>* atom_information;
 
         float min_coord[3];
         float max_coord[3];
