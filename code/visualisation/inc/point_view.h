@@ -3,11 +3,8 @@
 
 #include "base_view.h"
 
-class QGridLayout;
-class QLabel;
-class QPushButton;
+class QSettings;
 class QSlider;
-class QVBoxLayout;
 
 class PointView : public BaseView
 {
@@ -32,16 +29,13 @@ class PointView : public BaseView
         void pickPointColor();
 
     private:
+        QSettings* settings;
         Frame_Data* data;
         float _pointColor[4];
         int _pointSize;
 
         QWidget* _preferenceWidget;
-        QGridLayout* layout;
-        QPushButton* pointColorButton;
-        QLabel* pointSizeLabel;
         QSlider* pointSizeSlider;
-        QLabel* pointAlphaLabel;
         QSlider* pointAlphaSlider;
 
         void setupPreferenceWidget();

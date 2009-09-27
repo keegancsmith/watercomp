@@ -1,10 +1,12 @@
 #include "mainwindow.h"
 
 #include <QAction>
+#include <QCoreApplication>
 #include <QFileDialog>
 #include <QMenu>
 #include <QMenuBar>
 #include <QRegExp>
+#include <QSettings>
 #include <QString>
 #include <QVBoxLayout>
 
@@ -21,10 +23,18 @@
 
 MainWindow::MainWindow()
 {
-    lastLocation = new QString("");
+    QCoreApplication::setOrganizationName("Honours");
+    QCoreApplication::setOrganizationDomain("www.cs.uct.ac.za");
+    QCoreApplication::setApplicationName("Visualisation");
+    settings = new QSettings;
 
-    centralWidget = new QWidget(this);
-    centralLayout = new QVBoxLayout(centralWidget);
+    // recentFiles = settings->value("recentFiles").toStringList();
+    // if (!recentFiles.isEmpty())
+        // lastLocation = recentFiles.front();
+    lastLocation = settings->value("lastFile", "").toString();
+
+    QWidget* centralWidget = new QWidget(this);
+    QVBoxLayout* centralLayout = new QVBoxLayout(centralWidget);
 
     renderer = new Renderer(centralWidget);
     data = renderer->data;
@@ -33,7 +43,6 @@ MainWindow::MainWindow()
 
     playbackControl = new PlaybackControl(centralWidget);
     playbackControl->setTps(10);
-    // connect(playbackControl, SIGNAL(tick()), this, SLOT(doTick()));
     connect(playbackControl, SIGNAL(frameChange(int)), this, SLOT(setFrame(int)));
     centralLayout->addWidget(playbackControl);
 
@@ -45,19 +54,15 @@ MainWindow::MainWindow()
 
     //setup menu last since the renderer views depends on some stuff
     setupMenu();
-    addRenderMode(new PointView());
-    addRenderMode(new MetaballsView());
-    renderer->setRenderMode(0);
-    viewMenu->addSeparator();
-    viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
-    viewPreferencesAction->setShortcut(tr("Ctrl+E"));
-    connect(viewPreferencesAction, SIGNAL(triggered()), this, SLOT(doViewPreferences()));
-    viewMenu->addAction(viewPreferencesAction);
+
+    renderer->setRenderMode(settings->value("renderer/renderMode", 0).toInt());
 }//constructor
 
 MainWindow::~MainWindow()
 {
-    delete lastLocation;
+    settings->sync();
+    delete settings;
+
     if (dcd != NULL)
         delete dcd;
     foreach (BaseView* view, views)
@@ -67,13 +72,18 @@ MainWindow::~MainWindow()
 
 void MainWindow::doOpenFile()
 {
-    *lastLocation = QFileDialog::getOpenFileName(this, tr("Open data"), *lastLocation, tr("All (*.*)"));
-    if (lastLocation->isEmpty())
+    lastLocation = QFileDialog::getOpenFileName(this, tr("Open data"), lastLocation, tr("All (*.*)"));
+    if (lastLocation.isEmpty())
         return;
+    // recentFiles.push_back(lastLocation);
+    // while (recentFiles.size() > 5)
+        // recentFiles.pop_back();
+    // settings->setValue("recentFiles", recentFiles);
+    settings->setValue("lastFile", lastLocation);
 
     PDB_Loader l;
     data->clear();
-    if (!l.load_file(lastLocation->toStdString().c_str(), data))
+    if (!l.load_file(lastLocation.toStdString().c_str(), data))
         return;
     data->update_bbox();
     renderer->resetView();
@@ -81,17 +91,9 @@ void MainWindow::doOpenFile()
     if (dcd == NULL)
         delete dcd;
     dcd = new DCD_Loader();
-    dcd->load_dcd_file(lastLocation->replace(QRegExp(".pdb$"), ".dcd").toStdString().c_str());
+    dcd->load_dcd_file(lastLocation.replace(QRegExp(".pdb$"), ".dcd").toStdString().c_str());
     playbackControl->setTotalFrames(dcd->totalFrames());
 }//doOpenFile
-
-void MainWindow::doTick()
-{
-    // not used?
-    if (dcd == NULL)
-        return;
-    dcd->load_dcd_frame(data);
-}//doTick
 
 void MainWindow::doViewPreferences()
 {
@@ -116,28 +118,19 @@ void MainWindow::setFrame(int value)
 
 void MainWindow::setupMenu()
 {
-    fileMenu = menuBar()->addMenu(tr("&File"));
-    viewMenu = menuBar()->addMenu(tr("&View"));
+    QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
 
-    openFileAction = new QAction(tr("&Open image"), fileMenu);
+    QAction* openFileAction = new QAction(tr("&Open image"), fileMenu);
     openFileAction->setShortcut(tr("Ctrl+O"));
     connect(openFileAction, SIGNAL(triggered()), this, SLOT(doOpenFile()));
 
-    toggleFocusPlaneAction = new QAction(tr("Toggle &zoom focus"), fileMenu);
+    QAction* toggleFocusPlaneAction = new QAction(tr("Toggle &zoom focus"), fileMenu);
     toggleFocusPlaneAction->setShortcut(tr("Tab"));
     connect(toggleFocusPlaneAction, SIGNAL(triggered()), renderer, SLOT(toggleFocusPlane()));
 
-    quitAction = new QAction(tr("&Quit"), fileMenu);
+    QAction* quitAction = new QAction(tr("&Quit"), fileMenu);
     quitAction->setShortcut(tr("Q"));
     connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
-
-    // renderPointsAction = new QAction(tr("Render as &points"), viewMenu);
-    // renderPointsAction->setShortcut(tr("Ctrl+1"));
-    // connect(renderPointsAction, SIGNAL(triggered()), this, SLOT(doRenderPoints()));
-
-    // renderMetaballsAction = new QAction(tr("Render as &metaballs"), viewMenu);
-    // renderMetaballsAction->setShortcut(tr("Ctrl+2"));
-    // connect(renderMetaballsAction, SIGNAL(triggered()), this, SLOT(doRenderMetaballs()));
 
     fileMenu->addAction(openFileAction);
     fileMenu->addSeparator();
@@ -145,20 +138,27 @@ void MainWindow::setupMenu()
     fileMenu->addSeparator();
     fileMenu->addAction(quitAction);
 
-    // viewMenu->addAction(renderPointsAction);
-    // viewMenu->addAction(renderMetaballsAction);
+    QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
+    addRenderMode(new PointView(), viewMenu);
+    addRenderMode(new MetaballsView(), viewMenu);
+
+    viewMenu->addSeparator();
+    QAction* viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
+    viewPreferencesAction->setShortcut(tr("Ctrl+E"));
+    connect(viewPreferencesAction, SIGNAL(triggered()), this, SLOT(doViewPreferences()));
+    viewMenu->addAction(viewPreferencesAction);
 }//setupMenu
 
 
-void MainWindow::addRenderMode(BaseView* view)
+void MainWindow::addRenderMode(BaseView* view, QMenu* menu)
 {
-    QAction* viewAction = new QAction(view->viewName, viewMenu);
+    QAction* viewAction = new QAction(view->viewName, menu);
     int viewID = renderer->addRenderMode(view);
     if (viewID < 9) // shouldn't go beyond 9 for our system?
         viewAction->setShortcut(QString("Ctrl+%1").arg(viewID+1));
     connect(viewAction, SIGNAL(triggered()), view, SLOT(select()));
     connect(view, SIGNAL(selectView(int)), renderer, SLOT(setRenderMode(int)));
-    viewMenu->addAction(viewAction);
+    menu->addAction(viewAction);
     views[viewAction] = view;
     view->tick(data);
 

@@ -3,6 +3,7 @@
 #include <cstdio>
 
 #include <QMouseEvent>
+#include <QSettings>
 #include <QWheelEvent>
 
 #include "base_view.h"
@@ -17,6 +18,7 @@
 Renderer::Renderer(QWidget* parent)
     : QGLWidget(parent)
 {
+    settings = new QSettings;
     zoom = 10.0f;
 
     spinning[0] = 0;
@@ -48,10 +50,13 @@ Renderer::Renderer(QWidget* parent)
 
 Renderer::~Renderer()
 {
+    settings->sync();
+    delete settings;
     delete timer;
     delete rot;
     delete data;
 }//destructor
+
 
 QSize Renderer::minimumSizeHint() const
 {
@@ -180,7 +185,9 @@ int Renderer::renderMode()
 
 BaseView* Renderer::currentView()
 {
-    return renderModes[_renderMode];
+    if (_renderMode > -1)
+        return renderModes[_renderMode];
+    return NULL;
 }//currentView
 
 void Renderer::setRenderMode(int mode)
@@ -189,7 +196,13 @@ void Renderer::setRenderMode(int mode)
         mode = renderModes.size() - 1;
     if (mode < -1)
         mode = -1;
+
+    if (_renderMode > -1)
+        renderModes[_renderMode]->current = false;
     _renderMode = mode;
+    settings->setValue("renderer/renderMode", _renderMode);
+    if (_renderMode > -1)
+        renderModes[_renderMode]->current = true;
 }//setRenderMode
 
 int Renderer::addRenderMode(BaseView* view)
@@ -242,12 +255,6 @@ void Renderer::tick()
         lastpos[1] = pos.y();
         rot->update_matrix();
     }//if
-
-    //depending on _renderMode, may need to do processing
-    // if (_renderMode >= 0)
-    // {
-        // renderModes[_renderMode]->tick(data);
-    // }//if
 
     //change of zoom, rotation, or data update requires an updateGL
     //so instead of checking for all conditions, just updateGL, meh

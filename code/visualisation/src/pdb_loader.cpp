@@ -30,7 +30,7 @@ bool PDB_Loader::load_file(const char* filename, Frame_Data* data)
     }//if
     char line[LINE_LENGTH];
     char field[LINE_LENGTH];
-    int serial;
+    int serial = 0;
     char name[LINE_LENGTH];
     char resname[LINE_LENGTH];
     int resseq;
@@ -38,6 +38,7 @@ bool PDB_Loader::load_file(const char* filename, Frame_Data* data)
     double y;
     double z;
 
+    char serialnum[LINE_LENGTH];
     Atom a;
     while (!feof(f))
     {
@@ -45,7 +46,7 @@ bool PDB_Loader::load_file(const char* filename, Frame_Data* data)
         if (fgets(line, LINE_LENGTH, f) == NULL)
         {
             //reading last line of file causes 'error' o.O
-            //ERROR(stderr, "PDB_Loader::load_file fgets error %i\n", ferror(f));
+            ERROR(stderr, "PDB_Loader::load_file fgets error %i\n", ferror(f));
             fclose(f);
             return true;
         }//if
@@ -54,10 +55,11 @@ bool PDB_Loader::load_file(const char* filename, Frame_Data* data)
         //if (strnlen(line, LINE_LENGTH) == LINE_LENGTH)
         //    handle super long line
 
+        serial += 1;
         sscanf(line, "%s", field);
         if (strcmp("ATOM", field) == 0)
         {
-            sscanf(line, "%s %i %s %s %i %lf %lf %lf", field, &serial, name, resname, &resseq, &x, &y, &z);
+            sscanf(line, "%s %s %s %s %i %lf %lf %lf", field, serialnum, name, resname, &resseq, &x, &y, &z);
             if (strcmp("OH2", name) == 0)
             {
                 // printf("OH2: %f %f %f\n", x, y, z);

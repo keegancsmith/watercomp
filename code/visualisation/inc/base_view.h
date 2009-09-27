@@ -16,6 +16,7 @@ class BaseView : public QObject
         int viewID;
         int preferenceID;
         QWidget* preferenceParent;
+        bool current;
 
         BaseView();
         virtual ~BaseView();

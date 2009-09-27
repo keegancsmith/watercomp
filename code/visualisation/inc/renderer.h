@@ -5,6 +5,8 @@
 #include <QTimer>
 #include <QVector>
 
+class QSettings;
+
 class BaseView;
 class Frame_Data;
 class Quaternion;
@@ -53,6 +55,7 @@ class Renderer : public QGLWidget
         void wheelEvent(QWheelEvent* event);
 
     private:
+        QSettings* settings;
         float zoom;
         float spinning[3];
         bool dragging[3];

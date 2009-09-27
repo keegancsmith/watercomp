@@ -11,6 +11,7 @@ BaseView::BaseView()
     viewID = -1;
     preferenceID = -1;
     preferenceParent = 0;
+    current = false;
 }//constructor
 
 BaseView::~BaseView()

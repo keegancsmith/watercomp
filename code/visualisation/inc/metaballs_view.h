@@ -5,31 +5,14 @@
 
 #include <QVector>
 
-class QGridLayout;
-class QLabel;
-class QPushButton;
+class QSettings;
 class QSlider;
-
-class QCheckBox;
-
-
-struct Point3f
-{
-    float p[3];
-};//Point3f
 
 struct Triangle
 {
     float p[3][3]; // 3 positions
     float n[3][3]; // 3 normals
 };//Triangle
-
-struct GridCell
-{
-    Point3f p[8]; // 8 positions
-    Point3f n[8]; // 8 normals
-    float val[8]; // 8 values
-};//GridCell
 
 
 class MetaballsView : public BaseView
@@ -61,6 +44,7 @@ class MetaballsView : public BaseView
         void updateFaces();
 
     private:
+        QSettings* settings;
         bool cullFace;
         bool lighting;
         int maxStepSize;
@@ -69,16 +53,10 @@ class MetaballsView : public BaseView
         float _metaballsColor[4];
         QVector<Triangle> _surface;
 
-
         unsigned char*** mridata;
-        QCheckBox** tetrahedrons;
 
         QWidget* _preferenceWidget;
-        QGridLayout* layout;
-        QPushButton* metaballsColorButton;
-        QLabel* metaballsAlphaLabel;
         QSlider* metaballsAlphaSlider;
-        QLabel* stepSizeLabel;
         QSlider* stepSizeSlider;
 
         void init();

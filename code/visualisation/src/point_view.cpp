@@ -5,6 +5,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QSettings>
 #include <QSlider>
 #include <QWidget>
 #include <GL/gl.h>
@@ -14,22 +15,25 @@
 #define MAX_ALPHA_SLIDER 100
 #define MAX_ALPHA_VAL 0.1
 
-#define MAX_POINT_SIZE 100
+#define MAX_POINT_SIZE 20
 
 PointView::PointView()
 {
+    settings = new QSettings;
     viewName = "Point data view";
-    _pointColor[0] = 0.0f;
-    _pointColor[1] = 0.0f;
-    _pointColor[2] = 1.0f;
-    _pointColor[3] = 0.02f;
+    _pointColor[0] = settings->value("pointView/colorR", 0.0).toDouble();
+    _pointColor[1] = settings->value("pointView/colorG", 0.0).toDouble();
+    _pointColor[2] = settings->value("pointView/colorB", 1.0).toDouble();
+    _pointColor[3] = settings->value("pointView/colorA", 0.02).toDouble();
     data = 0;
     _preferenceWidget = NULL;
-    _pointSize = 10;
+    _pointSize = settings->value("pointView/pointSize", 10).toInt();
 }//constructor
 
 PointView::~PointView()
 {
+    settings->sync();
+    delete settings;
 }//destructor
 
 
@@ -83,6 +87,8 @@ void PointView::setPointAlpha(int value)
     if (value > MAX_ALPHA_SLIDER) value = MAX_ALPHA_SLIDER;
     if (value < 0) value = 0;
     _pointColor[3] = (float)value * MAX_ALPHA_VAL / MAX_ALPHA_SLIDER;
+
+    settings->setValue("pointView/colorA", _pointColor[3]);
 }//setPointAlpha
 
 void PointView::setPointSize(int value)
@@ -90,12 +96,18 @@ void PointView::setPointSize(int value)
     if (value > MAX_POINT_SIZE) value = MAX_POINT_SIZE;
     if (value < 1) value = 1;
     _pointSize = value;
-    glPointSize(_pointSize);
+    if (current) glPointSize(_pointSize);
+
+    settings->setValue("pointView/pointSize", _pointSize);
 }//setPointSize
 
 void PointView::pickPointColor()
 {
     pickColor(_pointColor);
+
+    settings->setValue("pointView/colorR", _pointColor[0]);
+    settings->setValue("pointView/colorG", _pointColor[1]);
+    settings->setValue("pointView/colorB", _pointColor[2]);
 }//pickPointColor
 
 
@@ -103,13 +115,13 @@ void PointView::setupPreferenceWidget()
 {
     _preferenceWidget = new QWidget;
 
-    layout = new QGridLayout(_preferenceWidget);
+    QGridLayout* layout = new QGridLayout(_preferenceWidget);
 
-    pointColorButton = new QPushButton(tr("Select point colour"), _preferenceWidget);
+    QPushButton* pointColorButton = new QPushButton(tr("Select point colour"), _preferenceWidget);
     connect(pointColorButton, SIGNAL(clicked()), this, SLOT(pickPointColor()));
     layout->addWidget(pointColorButton, 0, 0, 1, 2);
 
-    pointSizeLabel = new QLabel(tr("Point size"), _preferenceWidget);
+    QLabel* pointSizeLabel = new QLabel(tr("Point size"), _preferenceWidget);
     layout->addWidget(pointSizeLabel, 1, 0);
 
     pointSizeSlider = new QSlider(_preferenceWidget);
@@ -118,7 +130,7 @@ void PointView::setupPreferenceWidget()
     connect(pointSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(setPointSize(int)));
     layout->addWidget(pointSizeSlider, 1, 1);
 
-    pointAlphaLabel = new QLabel(tr("Point alpha"), _preferenceWidget);
+    QLabel* pointAlphaLabel = new QLabel(tr("Point alpha"), _preferenceWidget);
     layout->addWidget(pointAlphaLabel, 2, 0);
 
     pointAlphaSlider = new QSlider(_preferenceWidget);

@@ -2,13 +2,14 @@
 
 #include <GL/gl.h>
 #include <cmath>
+
+#include <QCheckBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QSettings>
 #include <QSlider>
 #include <QWidget>
-
-#include <QCheckBox>
 
 #include "frame_data.h"
 
@@ -72,20 +73,21 @@ float* normalize(float* v)
 
 MetaballsView::MetaballsView()
 {
+    settings = new QSettings;
     // TODO: define maxStepSize relative to the volume size
     // TODO: define _stepSize relative to the volume size
     maxStepSize = 80;
-    _stepSize = 5;
+    _stepSize = settings->value("metaballsView/stepSize", 5).toInt();
 
     viewName = "Metaballs view";
-    _metaballsColor[0] = 0.5f;
-    _metaballsColor[1] = 0.5f;
-    _metaballsColor[2] = 0.5f;
-    _metaballsColor[3] = 1.0f;
+    _metaballsColor[0] = settings->value("metaballsView/colorR", 0.5).toDouble();
+    _metaballsColor[1] = settings->value("metaballsView/colorG", 0.5).toDouble();
+    _metaballsColor[2] = settings->value("metaballsView/colorB", 0.5).toDouble();
+    _metaballsColor[3] = settings->value("metaballsView/colorA", 1.0).toDouble();
     data = 0;
 
-    lighting = false;
-    cullFace = true;
+    lighting = settings->value("metaballsView/lighting", false).toBool();
+    cullFace = settings->value("metaballsView/cullFace", false).toBool();
 
     _preferenceWidget = NULL;
     setupPreferenceWidget();
@@ -94,6 +96,8 @@ MetaballsView::MetaballsView()
 
 MetaballsView::~MetaballsView()
 {
+    settings->sync();
+    delete settings;
     int nz = 160;
     int ny = 160;
     int nx = 200;
@@ -324,8 +328,11 @@ void MetaballsView::initGL()
     glColorMaterial(GL_FRONT, GL_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
 
-    setLighting(lighting);
-    setCullFace(cullFace);
+    if (lighting) glEnable(GL_LIGHTING);
+    else glDisable(GL_LIGHTING);
+
+    if (cullFace) glEnable(GL_CULL_FACE);
+    else glDisable(GL_CULL_FACE);
 
     glDepthFunc(GL_LEQUAL);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -337,33 +344,53 @@ void MetaballsView::setMetaballsAlpha(int value)
     if (value > ALPHA_MAX_SLIDER) value = ALPHA_MAX_SLIDER;
     if (value < 0) value = 0;
     _metaballsColor[3] = (float)value * ALPHA_MAX_VAL / ALPHA_MAX_SLIDER;
+
+    settings->setValue("metaballsView/colorA", _metaballsColor[3]);
 }//setMetaballsAlpha
 
 void MetaballsView::setStepSize(int value)
 {
     _stepSize = value;
+
+    settings->setValue("metaballsView/stepSize", _stepSize);
 }//setStepSize
 
 void MetaballsView::pickMetaballsColor()
 {
     pickColor(_metaballsColor);
+
+    settings->setValue("metaballsView/colorR", _metaballsColor[0]);
+    settings->setValue("metaballsView/colorG", _metaballsColor[1]);
+    settings->setValue("metaballsView/colorB", _metaballsColor[2]);
 }//pickMetaballsColor
 
 
 void MetaballsView::setCullFace(int state)
 {
-    if (state == 0)
-        glDisable(GL_CULL_FACE);
-    else
-        glEnable(GL_CULL_FACE);
+    cullFace = state != 0;
+    settings->setValue("metaballsView/cullFace", cullFace);
+
+    if (current)
+    {
+        if (state == 0)
+            glDisable(GL_CULL_FACE);
+        else
+            glEnable(GL_CULL_FACE);
+    }//if
 }//setCullFace
 
 void MetaballsView::setLighting(int state)
 {
-    if (state == 0)
-        glDisable(GL_LIGHTING);
-    else
-        glEnable(GL_LIGHTING);
+    lighting = state != 0;
+    settings->setValue("metaballsView/lighting", lighting);
+
+    if (current)
+    {
+        if (state == 0)
+            glDisable(GL_LIGHTING);
+        else
+            glEnable(GL_LIGHTING);
+    }//if
 }//setLighting
 
 void MetaballsView::updateFaces()
@@ -598,18 +625,17 @@ void MetaballsView::callMarchingCubes(float x, float y, float z, float scale)
 }//callMarchingCubes
 
 
-
 void MetaballsView::setupPreferenceWidget()
 {
     _preferenceWidget = new QWidget;
 
-    layout = new QGridLayout(_preferenceWidget);
+    QGridLayout* layout = new QGridLayout(_preferenceWidget);
 
-    metaballsColorButton = new QPushButton(tr("Select metaballs colour"), _preferenceWidget);
+    QPushButton* metaballsColorButton = new QPushButton(tr("Select metaballs colour"), _preferenceWidget);
     connect(metaballsColorButton, SIGNAL(clicked()), this, SLOT(pickMetaballsColor()));
     layout->addWidget(metaballsColorButton, 0, 0, 1, 2);
 
-    metaballsAlphaLabel = new QLabel(tr("Metaballs alpha"), _preferenceWidget);
+    QLabel* metaballsAlphaLabel = new QLabel(tr("Metaballs alpha"), _preferenceWidget);
     layout->addWidget(metaballsAlphaLabel, 1, 0);
 
     metaballsAlphaSlider = new QSlider(_preferenceWidget);
@@ -618,7 +644,7 @@ void MetaballsView::setupPreferenceWidget()
     connect(metaballsAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setMetaballsAlpha(int)));
     layout->addWidget(metaballsAlphaSlider, 1, 1);
 
-    stepSizeLabel = new QLabel(tr("Grid size"), _preferenceWidget);
+    QLabel* stepSizeLabel = new QLabel(tr("Grid size"), _preferenceWidget);
     layout->addWidget(stepSizeLabel, 2, 0);
 
     stepSizeSlider = new QSlider(_preferenceWidget);
@@ -627,25 +653,23 @@ void MetaballsView::setupPreferenceWidget()
     connect(stepSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(setStepSize(int)));
     layout->addWidget(stepSizeSlider, 2, 1);
 
+    QLabel* cullLabel = new QLabel(tr("Cull faces"), _preferenceWidget);
+    layout->addWidget(cullLabel, 3, 0);
+
     QCheckBox* cullCheckBox = new QCheckBox(_preferenceWidget);
     connect(cullCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setCullFace(int)));
-    layout->addWidget(cullCheckBox, 3, 0);
+    layout->addWidget(cullCheckBox, 3, 1);
+
+    QLabel* lightLabel = new QLabel(tr("Enable lighting"), _preferenceWidget);
+    layout->addWidget(lightLabel, 4, 0);
 
     QCheckBox* lightCheckBox = new QCheckBox(_preferenceWidget);
     connect(lightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setLighting(int)));
-    layout->addWidget(lightCheckBox, 3, 1);
+    layout->addWidget(lightCheckBox, 4, 1);
 
     QPushButton* updateButton = new QPushButton(tr("Update faces"), _preferenceWidget);
     connect(updateButton, SIGNAL(clicked()), this, SLOT(updateFaces()));
-    layout->addWidget(updateButton, 4, 0);
-
-
-    tetrahedrons = new QCheckBox*[14];
-    for (int i = 0; i < 14; i++)
-    {
-        tetrahedrons[i] = new QCheckBox(_preferenceWidget);
-        layout->addWidget(tetrahedrons[i], 5+i, 0);
-    }//for
+    layout->addWidget(updateButton, 5, 0);
 
     _preferenceWidget->setLayout(layout);
 }//setupPreferenceWidget
