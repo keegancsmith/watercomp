@@ -1,11 +1,13 @@
 #pragma once
-#include <ANN/ANN.h>
 #include <map>
 #include <vector>
 #include <set>
 #include <cmath>
 #include <cassert>
 #include <utility>
+#include <ANN/ANN.h>
+#include "WaterMolecule.h"
+#include "Frame.h"
 
 class ANNGraphCreator
 {
@@ -13,7 +15,7 @@ class ANNGraphCreator
         
         static std::map< unsigned int, std::vector<unsigned int> > create_graph(std::vector<WaterMolecule>& waters, Frame& frame)
         {
-            std::map< std::pair< std::pair< int, int>, int>, std::vector<int> > grid;
+//             std::map< std::pair< std::pair< int, int>, int>, std::vector<int> > grid;
             std::map< unsigned int, std::vector<unsigned int> > graph;
             
             int nPts = waters.size();
@@ -27,16 +29,16 @@ class ANNGraphCreator
             ANNdistArray dists = new ANNdist[1];
             ANNkd_tree* kdTree = new ANNkd_tree(dataPts, nPts, 3);
             
-            for(size_t i = 0; i < waters.size(); ++i)
-            {
-                int index = waters[i].OH2_index;
-                int x = frame.atom_data[3*index];
-                int y = frame.atom_data[3*index+1];
-                int z = frame.atom_data[3*index+2];
-                
-                std::pair< std::pair<int, int>, int> coord = std::make_pair(std::make_pair(x, y), z);
-                grid[coord].push_back(i);
-            }
+//             for(size_t i = 0; i < waters.size(); ++i)
+//             {
+//                 int index = waters[i].OH2_index;
+//                 int x = frame.atom_data[3*index];
+//                 int y = frame.atom_data[3*index+1];
+//                 int z = frame.atom_data[3*index+2];
+//                 
+//                 std::pair< std::pair<int, int>, int> coord = std::make_pair(std::make_pair(x, y), z);
+//                 grid[coord].push_back(i);
+//             }
             
             for(size_t i = 0; i < waters.size(); ++i)
             {
@@ -81,6 +83,7 @@ class ANNGraphCreator
                     float max_dist = 1.0; 
                     int neighbour = -1;
                     
+                    // kdTree->annkFRSearch(queryPt, 1.0, 1, nnIdx, dists);
                     kdTree->annkSearch(queryPt, 1, nnIdx, dists, 0.0);
                     
                     if(dists[0] <= 1.0)

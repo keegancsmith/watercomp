@@ -5,6 +5,8 @@
 #include <cmath>
 #include <cassert>
 #include <utility>
+#include "WaterMolecule.h"
+#include "Frame.h"
 
 class GridGraphCreator
 {

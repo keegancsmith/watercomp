@@ -5,6 +5,7 @@
 #include "FrameSplitter.h"
 #include "WaterMolecule.h"
 #include "ANNGraphCreator.h"
+#include "GridGraphCreator.h"
 #include <cstdio>
 #include <vector>
 #include <map>
@@ -62,7 +63,9 @@ int main(int argc, char** argv)
         vector<unsigned int> others;
         FrameSplitter::split_frame(pdb, waters, others);
         
+//         graph = ANNGraphCreator::create_graph(waters, frame);
         graph = ANNGraphCreator::create_graph(waters, frame);
+        
         printf("%d\n", graph.size());
         
         
