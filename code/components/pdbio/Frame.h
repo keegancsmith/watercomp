@@ -4,14 +4,13 @@
 
 #include <vector>
 
-// Simple container for info relevant to atom information. Does not "own" any
-// of its members. So does not free atom_data and atom_information in the
-// deconstructor.
 class Frame
 {
 public:
-    Frame(float * atom_data, size_t natoms);
+    Frame(size_t natoms);
+    Frame(const float * atom_data, size_t natoms);
 
-    float * atom_data;
-    size_t natoms;
+    size_t natoms() const;
+
+    std::vector<float> atom_data;
 };

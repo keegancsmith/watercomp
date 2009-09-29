@@ -11,11 +11,11 @@ class QuantisedFrame
 {
     public:
         QuantisedFrame(const Frame & frame,
-               unsigned int x_subs, unsigned int y_subs, unsigned int z_subs);
+                       unsigned int x_subs,
+                       unsigned int y_subs,
+                       unsigned int z_subs);
 
-        // atom_data is the buffer used to store the frame.
-        // Must be of size 3 * natoms()
-        Frame toFrame(float * atom_data) const;
+        Frame toFrame() const;
         int natoms() const;
 
         std::vector<unsigned int> quantised_frame;
