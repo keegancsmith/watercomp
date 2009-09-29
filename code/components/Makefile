@@ -6,3 +6,6 @@ all: FrameWriter.o
 	cd graph; $(MAKE) $(MFLAGS)
 	cd pdbio; $(MAKE) $(MFLAGS)
 	cd quantiser; $(MAKE) $(MFLAGS)
+
+clean:
+	rm -f *.o */*.o */*/*.o
