@@ -1,23 +1,33 @@
 #pragma once
 
-#include "../../dcd_loader/dcdplugin.h"
+#include <sys/types.h>
 
 class DCDReader {
 public:
-    DCDReader(const char * dcd_path);
+    DCDReader();
+    ~DCDReader();
 
-    /**
-     * Reads the next frame into frame.
-     *
-     * frame has to be an array of size = 3 * natoms().
-     * Atom i's j'th coordinate is stored in frame[3*i + j].
-     */
-    void next_frame(float * frame);
+    int frame() const;
+    void set_frame(int frame);
+    size_t nframes() const;
+    int natoms() const;
 
-    size_t nframes() const { return m_dcdhandle->nsets; }
-    int natoms() const  { return m_natoms; }
+    bool open_file(const char* filename);
+    bool next_frame(float * frame);
 
 private:
-    dcdhandle * m_dcdhandle;
-    int m_natoms;
+    void* _dcd;
+    int _natoms;
+
+    int _frame;
+    int _nframes;
+    int header_size;
+    long long extrablocksize;
+    long long ndims;
+    long long firstframesize;
+    long long framesize;
+
+    //used in next_frame
+    float unitcell[6];
 };
+
