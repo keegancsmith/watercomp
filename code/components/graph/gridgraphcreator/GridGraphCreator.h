@@ -15,12 +15,9 @@ class GridGraphCreator
         static std::map< unsigned int, std::vector<unsigned int> > create_graph(std::vector<WaterMolecule>& waters, Frame& frame)
         {
             /// A grid maintaining a 1 angstrom cubed dimensions
-//             std::map< int, std::map< int, std::map< int, std::vector<int> > > > grid;
-            
             std::map< std::pair< std::pair< int, int>, int>, std::vector<int> > grid;
             std::map< unsigned int, std::vector<unsigned int> > graph;
             
-//             printf("WATERS %d\n", waters.size());
             for(size_t i = 0; i < waters.size(); ++i)
             {
                 int index = waters[i].OH2_index;
@@ -29,11 +26,9 @@ class GridGraphCreator
                 int z = frame.atom_data[3*index+2];
                 
                 std::pair< std::pair<int, int>, int> coord = std::make_pair(std::make_pair(x, y), z);
-//                 grid[x][y][z].push_back(i);
                 grid[coord].push_back(i);
             }
             
-            int neigs = 0;
             for(size_t i = 0; i < waters.size(); ++i)
             {
                 int O_index = waters[i].OH2_index;
@@ -53,7 +48,7 @@ class GridGraphCreator
                     for(int k = 0; k < 3; ++k)
                         magnitude += displacement[k]*displacement[k];
                     
-                    assert(magnitude > 0);
+                    assert(magnitude >= 0);
                     
                     magnitude = sqrt(magnitude);
                     
@@ -63,7 +58,7 @@ class GridGraphCreator
                     
                     float predicted[3];
                     for(int k = 0; k < 3; ++k)
-                        predicted[k] = O_position[k] + direction[k]*2.98;
+                        predicted[k] = O_position[k] + direction[k]*2.95;
                     
                     std::vector<int> search_indices;
                     
@@ -73,12 +68,12 @@ class GridGraphCreator
                     /// However we may not want to do this.
                     
                     /// Maximum squared distance allowed
-                    float max_dist = 1.0; 
+                    float max_dist = 0.2; 
                     int neighbour = -1;
                     
-                    for(int x = predicted[0]-2; x <= predicted[0]+2; ++x)
-                        for(int y = predicted[1]-2; y <= predicted[1]+2; ++y)
-                            for(int z = predicted[2]-2; z <= predicted[2]+2; ++z)
+                    for(int x = predicted[0]-1; x <= predicted[0]+1; ++x)
+                        for(int y = predicted[1]-1; y <= predicted[1]+1; ++y)
+                            for(int z = predicted[2]-1; z <= predicted[2]+1; ++z)
                             {
                                 std::pair< std::pair<int, int>, int> coord = std::make_pair(std::make_pair(x, y), z);
                                 
@@ -101,7 +96,6 @@ class GridGraphCreator
                                     
                                     float dist = dx*dx + dy*dy + dz*dz;
                                     
-//                                     printf("%d %d: %f\n", i, index, dist);
                                     if(dist < max_dist)
                                     {
                                         max_dist = dist;
@@ -114,12 +108,10 @@ class GridGraphCreator
                     {
                         graph[O_index].push_back(neighbour);
                         graph[neighbour].push_back(O_index);
-//                         neigs++;
                     }
                 }
             }
             
-//             printf("HURR %d\n", neigs);
             return graph;
         }
 };
