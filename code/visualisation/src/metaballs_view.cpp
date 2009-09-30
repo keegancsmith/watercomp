@@ -70,6 +70,47 @@ float* normalize(float* v)
 }//normalize
 
 
+void sampleSphere(gdouble** f, GtsCartesianGrid g, guint k, gpointer data)
+{
+    double x, y, z = g.z;
+    int i, j;
+    float dd, dx, dy, dz = z - 80;
+    float r2 = 300.0 * 255;
+    for (i = 0, x = g.x; i < g.nx; i++, x+=g.dx)
+    {
+        dx = x - 100;
+        for (j = 0, y = g.y; j < g.ny; j++, y+=g.dy)
+        {
+            dy = y - 80;
+            dd = dx*dx + dy*dy + dz*dz;
+            f[i][j] = (dd <= 0.001) ? 255 : r2 / dd;
+        }//for
+    }//for
+}//sampleVolume
+
+int draw_face(gpointer item, gpointer data)
+{
+    GtsFace* face = (GtsFace*)item;
+    GtsPoint *v1, *v2, *v3;
+    GtsPoint *p1, *p2;
+    v1 = &(face->triangle.e1->segment.v1->p);
+    v2 = &(face->triangle.e1->segment.v2->p);
+
+    p1 = &(face->triangle.e2->segment.v1->p);
+    p2 = &(face->triangle.e2->segment.v2->p);
+    v3 = ((p1 == v1) || (p1 == v2)) ? p2 : p1;
+
+    float e1[] = {v1->x - v2->x, v1->y - v2->y, v1->z - v2->z};
+    float e2[] = {v1->x - v3->x, v1->y - v3->y, v1->z - v3->z};
+    float e3[3];
+    normalize(cross(e1, e2, e3));
+
+    glNormal3fv(e3);
+    glVertex3d(v1->x, v1->y, v1->z);
+    glVertex3d(v2->x, v2->y, v2->z);
+    glVertex3d(v3->x, v3->y, v3->z);
+    return 0;
+}//draw_face
 
 MetaballsView::MetaballsView()
 {
@@ -91,6 +132,15 @@ MetaballsView::MetaballsView()
 
     _preferenceWidget = NULL;
     setupPreferenceWidget();
+
+    g_surface = gts_surface_new(gts_surface_class(),
+                                gts_face_class(),
+                                gts_edge_class(),
+                                gts_vertex_class());
+    g_grid.x = 0;
+    g_grid.y = 0;
+    g_grid.z = 0;
+
     init();
 }//constructor
 
@@ -102,13 +152,16 @@ MetaballsView::~MetaballsView()
     int ny = 160;
     int nx = 200;
     int x, y, z;
-    for (z = 0; z < nz; z++)
+    if (mridata != NULL)
     {
-        for (y = 0; y < ny; y++)
-            delete [] mridata[z][y];
-        delete [] mridata[z];
-    }//for
-    delete [] mridata;
+        for (z = 0; z < nz; z++)
+        {
+            for (y = 0; y < ny; y++)
+                delete [] mridata[z][y];
+            delete [] mridata[z];
+        }//for
+        delete [] mridata;
+    }//if
 }//destructor
 
 
@@ -120,6 +173,13 @@ int MetaballsView::stepSize()
 
 void MetaballsView::init()
 {
+    g_grid.nx = 200;
+    g_grid.ny = 160;
+    g_grid.nz = 160;
+
+    g_grid.dx = 1;
+    g_grid.dy = 1;
+    g_grid.dz = 1;
 
     int nz = 160;
     int ny = 160;
@@ -187,10 +247,25 @@ void MetaballsView::render()
     glTranslatef(-80, -80, -100);
     glColor4fv(_metaballsColor);
     glBegin(GL_TRIANGLES);
+    gts_surface_foreach_face(g_surface, draw_face, NULL);
+    // GtsSurfaceTraverse* traverse = gts_surface_traverse_new(g_surface, NULL);
+    // GtsFace* face = gts_surface_traverse_next(traverse, NULL);
+    // GtsPoint p;
+    // while (face != NULL)
+    // {
+        // p = face->triangle.e1->segment.v1->p;
+        // glVertex3d(p.x, p.y, p.z);
+        // p = face->triangle.e2->segment.v1->p;
+        // glVertex3d(p.x, p.y, p.z);
+        // p = face->triangle.e3->segment.v1->p;
+        // glVertex3d(p.x, p.y, p.z);
+        // face = gts_surface_traverse_next(traverse, NULL);
+    // }//while
     // glBegin(GL_LINE_LOOP);
     // glVertex3f(0.0f, 0.0f, 0.0f);
     // glVertex3f(1.0f, 0.0f, 0.0f);
     // glVertex3f(1.0f, 1.0f, 0.0f);
+    /*
     Triangle t;
     for (int i = 0; i < _surface.size(); i++)
     {
@@ -202,12 +277,39 @@ void MetaballsView::render()
         glNormal3fv(t.n[2]);
         glVertex3fv(t.p[2]);
     }//for
+    */
     glEnd();
 }//render
 
 void MetaballsView::tick(Frame_Data* data)
 {
     this->data = data;
+
+    gts_isosurface_cartesian(g_surface, g_grid, sampleSphere, NULL, 128);
+    printf("face number: %u\n", gts_surface_face_number(g_surface));
+
+    GtsVolumeOptimizedParams params = {0.5, 0.5, 0.0};
+
+    GtsKeyFunc cost_func = (GtsKeyFunc)gts_volume_optimized_cost;
+    gpointer cost_data = &params;
+
+    GtsCoarsenFunc coarsen_func = (GtsCoarsenFunc)gts_volume_optimized_vertex;
+    gpointer coarsen_data = &params;
+
+    // GtsStopFunc stop_func = (GtsStopFunc)gts_coarsen_stop_cost;
+    // gdouble cmax = 0.001;
+    // gpointer stop_data = &cmax;
+    GtsStopFunc stop_func = (GtsStopFunc)gts_coarsen_stop_number;
+    guint number = 22000;
+    gpointer stop_data = &number;
+
+    gts_surface_coarsen(g_surface,
+            cost_func, cost_data,
+            coarsen_func, coarsen_data,
+            stop_func, stop_data,
+            M_PI/180);
+    printf("coarsen number: %u\n", gts_surface_face_number(g_surface));
+    return;
 
     int nz = 160 - _stepSize - 1;
     int ny = 160 - _stepSize - 1;
@@ -245,13 +347,17 @@ void MetaballsView::tick(Frame_Data* data)
     min = dd;
     max = dd;
 
+    bool w = true;
     for (int i = 0; i < _surface.size(); i++)
     {
         t = _surface.at(i);
         for (v = 0; v < 3; v++)
         {
-            // if (t->p[v][0] < 5)
-                // printf("wtf?\n");
+            if ((t.p[v][0] < 5) && w)
+            {
+                printf("wtf?\n");
+                w = false;
+            }//if
 
             dx = t.p[v][0] - 100;
             dy = t.p[v][1] - 80;
@@ -275,6 +381,7 @@ void MetaballsView::tick(Frame_Data* data)
 
 void MetaballsView::initGL()
 {
+    printf("initGL\n");
     // float m_amb[] = {0.3f, 0.3f, 0.3f, 1.0f};
     // float m_spe[] = {1.0f, 1.0f, 1.0f, 1.0f};
     // float m_shin[] = {50.0f};
@@ -352,6 +459,10 @@ void MetaballsView::setStepSize(int value)
 {
     _stepSize = value;
 
+    g_grid.dx = _stepSize;
+    g_grid.dy = _stepSize;
+    g_grid.dz = _stepSize;
+
     settings->setValue("metaballsView/stepSize", _stepSize);
 }//setStepSize
 
@@ -372,10 +483,10 @@ void MetaballsView::setCullFace(int state)
 
     if (current)
     {
-        if (state == 0)
-            glDisable(GL_CULL_FACE);
-        else
+        if (cullFace)
             glEnable(GL_CULL_FACE);
+        else
+            glDisable(GL_CULL_FACE);
     }//if
 }//setCullFace
 
@@ -386,10 +497,10 @@ void MetaballsView::setLighting(int state)
 
     if (current)
     {
-        if (state == 0)
-            glDisable(GL_LIGHTING);
-        else
+        if (lighting)
             glEnable(GL_LIGHTING);
+        else
+            glDisable(GL_LIGHTING);
     }//if
 }//setLighting
 

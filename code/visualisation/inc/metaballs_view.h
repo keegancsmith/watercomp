@@ -3,6 +3,7 @@
 
 #include "base_view.h"
 
+#include <gts.h>
 #include <QVector>
 
 class QSettings;
@@ -13,7 +14,6 @@ struct Triangle
     float p[3][3]; // 3 positions
     float n[3][3]; // 3 normals
 };//Triangle
-
 
 class MetaballsView : public BaseView
 {
@@ -69,6 +69,9 @@ class MetaballsView : public BaseView
         void doMarchingTetrahedron(float tetrahedronPosition[4][3], float tetrahedronValue[3]);
         void callMarchingTetrahedrons(float x, float y, float z, float scale);
         void callMarchingCubes(float x, float y, float z, float scale);
+
+        GtsSurface* g_surface;
+        GtsCartesianGrid g_grid;
 
 };//MetaballsView
 

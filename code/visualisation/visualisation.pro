@@ -1,9 +1,10 @@
 TEMPLATE = app
 QT += opengl
+LIBS += -lgts
 DESTDIR = bin
 TARGET = vis
 DEPENDPATH += src
-INCLUDEPATH += inc ../dcd_loader
+INCLUDEPATH += inc ../dcd_loader /usr/include/glib-2.0 /usr/lib/glib-2.0/include
 MOC_DIR = .moc
 OBJECTS_DIR = .obj
 
