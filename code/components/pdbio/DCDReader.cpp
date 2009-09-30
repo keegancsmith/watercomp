@@ -1,4 +1,4 @@
-#include "../../dcd_loader/dcdplugin.h"
+#include "../../dcd_loader/dcd.h"
 #include "DCDReader.h"
 
 #include <cassert>
@@ -87,7 +87,7 @@ bool DCDReader::open_file(const char* filename)
     return true;
 }//open_file
 
-bool DCDReader::next_frame(float * frame)
+bool DCDReader::next_frame(Frame& frame)
 {
     dcdhandle* dcd = DCDHANDLE(_dcd);
     if (dcd->setsread == dcd->nsets) return false;
@@ -111,11 +111,15 @@ bool DCDReader::next_frame(float * frame)
     float* bufy = dcd->y;
     float* bufz = dcd->z;
     int natoms = dcd->natoms;
+    
+    if(frame.atom_data.size() != natoms*3)
+        frame.atom_data.resize(natoms*3);
+    
     for (i=0, j=0; i < natoms; i+=1, j+=3)
     {
-        frame[j  ] = bufx[i];
-        frame[j+1] = bufy[i];
-        frame[j+2] = bufz[i];
+        frame.atom_data[j  ] = bufx[i];
+        frame.atom_data[j+1] = bufy[i];
+        frame.atom_data[j+2] = bufz[i];
     }//for
     return true;
 }//next_frame

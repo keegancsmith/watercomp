@@ -1,152 +1,103 @@
-#include "../dcd_loader/dcdplugin.h"
+#include "pdbio/DCDWriter.h"
+#include "pdbio/DCDReader.h"
+#include "pdbio/PDBReader.h"
+#include "OmelWriter.h"
+#include "OmelReader.h"
+#include "pdbio/AtomInformation.h"
+#include "pdbio/Frame.h"
+#include "quantiser/QuantisedFrame.h"
+#include "SortedQuantisedFrame.h"
 #include <cstdio>
-#include <cmath>
-#include <cstdlib>
-#include <ctime>
 #include <vector>
 #include <map>
-#include <algorithm>
-#include <queue>
-#include <cassert>
-#include <limits>
-#include <string>
-#include "Atom.h"
-#include "OmelReader.h"
-#include "OmelWriter.h"
 
 using namespace std;
 
 void print_usage()
 {
-    printf("USAGE: ./driver [c|x] [INPUT FILE] [OUTPUT FILE]\n");
-    printf("Compresses(c) or uncompresses(x) a file using the Omeltchenko reference scheme.\n");
-    printf("When compressing output file is [FILE].cmp\n");
-    printf("When uncompressing output file is [FILE].dcd\n");
-    
+    printf("Usage:\n");
+    printf("Compression: driver c <input DCD file> <output compressed file>\n");
+    printf("Decompression: driver x <input compressed file> <output DCD file>\n");
+    printf("Switches: -x X-quantisation levels\n");
+    printf("          -y Y-quantisation levels\n");
+    printf("          -z Z-quantisation levels\n");   
 }
 
 int main(int argc, char** argv)
 {
-    if(argc != 3 && argc != 4)
+    /// ./driver <c> <input DCD_file> <output Compressed_file>
+    /// ./driver <x> <input Compressed_file> <output DCD_file>
+    /// Switches: -x: X quantisation levels, -y: Y quantisation levels, -z: Z quantisation levels
+    
+    if(argc < 4)
     {
         print_usage();
         return 0;
     }
-    
-    string method = argv[1];
-    
-    if(method == "c")
-    {
-        string in_file = string(argv[2]);
-        string out_file = in_file + ".cmp";
-        
-        if(argc == 4)
-            out_file = string(argv[3]);
-        
-        if(in_file == out_file)
-        {
-            printf("Error: Input File = Output File\n");
-            exit(1);
-        }
-        
-        OmelWriter writer(out_file.c_str());
-        int natoms = 0;
-        
-        dcdhandle* dcd = (dcdhandle*) open_dcd_read(in_file.c_str(), "dcd", &natoms);
-        molfile_timestep_t timestep;
-        timestep.coords = new float[3*natoms];
-        
-        writer.start_write(dcd->istart, dcd->nsavc, dcd->delta);
-        
-        // Read atoms and compress
-        for(int i = 0; i < dcd->nsets; ++i)
-        {
-            printf("Processing Frame %d\n", i+1);
-            
-            if(read_next_timestep(dcd, natoms, &timestep)) 
-            {
-                fprintf(stderr, "error in read_next_timestep on frame %d\n", i);
-                return 1;
-            }
-            
-            vector<Atom> frame;
-            
-            for(int j = 0; j < natoms; ++j)
-                frame.push_back(Atom(timestep.coords[3*j], timestep.coords[1+3*j], timestep.coords[2+3*j]));
-            
-            writer.write_frame(frame, 10, 10, 10);
-        }
-        
-        writer.end_write();
-    }
-    else if(method == "x")
-    {
-        string in_file = string(argv[2]);
-        string out_file = in_file + ".dcd";
-        
-        if(argc == 4)
-            out_file = string(argv[3]);
-        
-        if(in_file == out_file)
-        {
-            printf("Error: Input File = Output File\n");
-            exit(1);
-        }
-        
-        // Open compressed file for reading
-        OmelReader reader(in_file.c_str());
-        
-        // Reads all the necessary information for creating a dcd headers
-        reader.start_read(); 
-        
-        // Open dcd file for writing
-        fio_fd fd;
-        
-        if (fio_open(out_file.c_str(), FIO_WRITE, &fd) < 0) 
-        {
-            printf("Could not open file '%s' for writing\n", out_file.c_str());
-            return 1;
-        }
 
-        write_dcdheader(fd, "Created by Omelchenko Compressor by VMD plugin.", reader.get_atoms(), reader.get_istart(), reader.get_nsavc(), reader.get_delta(), 0, 1);
+    unsigned int x_quant = 8;
+    unsigned int y_quant = 8;
+    unsigned int z_quant = 8;
+    
+    for(int i = 2; i < argc-1; ++i)
+        if(strncmp(argv[i], "-x", 2) == 0)
+            sscanf(argv[i+1], "%d", &x_quant);
+        else if(strncmp(argv[i], "-y", 2) == 0)
+            sscanf(argv[i+1], "%d", &y_quant);
+        else if(strncmp(argv[i], "-z", 2) == 0)
+            sscanf(argv[i+1], "%d", &z_quant);
+
+    if(argv[1][0] == 'c')
+    {
+        DCDReader dcdreader;
+        dcdreader.open_file(argv[2]);
+        Frame atoms(dcdreader.natoms());
+
+        FILE* fout = fopen(argv[3], "w");
+        OmelWriter writer(fout);
+        writer.start(dcdreader.natoms(), dcdreader.nframes()); 
         
-        // This is a fail way, it involves copying data again, can fix this later.
-        float* xs = new float[reader.get_atoms()];
-        float* ys = new float[reader.get_atoms()];
-        float* zs = new float[reader.get_atoms()];
-        vector<Atom> frame;
-        
-        int frame_no = 0;
-        
-        while(reader.read_frame(frame))
+        for(int i = 0 ; i < dcdreader.nframes(); ++i)
         {
-            ++frame_no;
-            printf("Processing Frame %d\n", frame_no);
-            // Read compressed atoms
-            for(int i = 0; i < frame.size(); ++i)
-            {
-                xs[i] = frame[i].x;
-                ys[i] = frame[i].y;
-                zs[i] = frame[i].z;
-            }
-            frame.clear();
+            dcdreader.next_frame(atoms);
+            QuantisedFrame qframe(atoms, x_quant, y_quant, z_quant);
             
-            // Write uncompressed atoms
-            write_dcdstep(fd, frame_no, reader.get_istart() + reader.get_nsavc()*frame_no, reader.get_atoms(), xs, ys, zs, NULL, 1);
+            printf("Compressing: Frame %d written\n", i);
+            writer.next_frame(qframe);
         }
         
-        printf("End processing\n");
+        writer.end();
+        fclose(fout);
+    
+    }
+    else if(argv[1][0] == 'x')
+    {
         
-        fio_fclose(fd);
-        delete [] xs;
-        delete [] ys;
-        delete [] zs;
+        FILE* fin = fopen(argv[2], "r");
         
-        reader.end_read();
+        OmelReader reader(fin);
+        reader.start();
+        
+        DCDWriter dcdwriter;
+        dcdwriter.save_dcd_file(argv[3], reader.get_atoms());
+            
+        for(int i = reader.get_frames(); i > 0 ; --i)
+        {
+            printf("Uncompressing: %d frames left\n", i);
+            QuantisedFrame qframe(reader.get_atoms(), 8, 8, 8);
+            
+            if(!reader.next_frame(qframe))
+                break;
+
+            Frame uncompressed = qframe.toFrame();
+            dcdwriter.save_dcd_frame(uncompressed);
+        }
+        
+        reader.end();
+        fclose(fin);    
     }
     else
     {
         print_usage();
-        return 0;
     }
 }

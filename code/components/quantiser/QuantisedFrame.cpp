@@ -23,7 +23,7 @@ QuantisedFrame::QuantisedFrame(const Frame & frame,
         range[d] = max_coord[d] - min_coord[d];
 
     unsigned int buckets[3] = {1 << x_subs, 1 << y_subs, 1 << z_subs};
-
+    
     for(size_t i = 0; i < frame.natoms(); ++i)
         for(int d = 0; d < 3; ++d)
         {
@@ -37,8 +37,14 @@ QuantisedFrame::QuantisedFrame(const Frame & frame,
 
             quantised_frame.push_back(scaled);
 
-            assert(0 <= scaled && scaled <= buckets[d]-1);
+            assert(0 <= scaled && scaled <= buckets[d]);
         }
+}
+
+QuantisedFrame::QuantisedFrame(unsigned int size, unsigned int x_subs, unsigned int y_subs, unsigned int z_subs)
+   : m_xquant(x_subs), m_yquant(y_subs), m_zquant(z_subs)
+{
+    quantised_frame.resize(3*size);
 }
 
 int QuantisedFrame::natoms() const {
