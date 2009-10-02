@@ -13,7 +13,7 @@ naivegraph: naivegraph.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) $(CXXLIBS) -o naivegraph naivegraph.cpp $(OBJS)
 
 clean:
-	rm naivegraph
+	rm -f naivegraph $(OBJS)
 
 check-syntax:
 	$(CXX) $(CXXFLAGS) -Wextra -Wno-sign-compare -fsyntax-only $(CHK_SOURCES)

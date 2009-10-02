@@ -41,7 +41,7 @@ int find_closest_atom(QuantisedFrame * frame, std::vector<int> * edges,
 
 Graph * spanning_tree(Graph * g, int & root) {
     vector<bool> seen;
-    seen.reserve(g->nVerticies);
+    seen.resize(g->nVerticies);
 
     QuantisedFrame * frame = (QuantisedFrame *)g->data;
     Graph * tree = new Graph(frame, g->nVerticies);
