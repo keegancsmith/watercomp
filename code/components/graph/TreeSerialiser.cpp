@@ -1,15 +1,18 @@
 #include "TreeSerialiser.h"
 
 #include "../arithmetic/AdaptiveModelEncoder.h"
+#include "../arithmetic/AdaptiveModelDecoder.h"
 #include "../quantiser/QuantisedFrame.h"
 
 #include <cassert>
 #include <cstdio>
+#include <cstdlib>
 #include <queue>
 
 using namespace std;
 
-void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root) {
+void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
+{
     QuantisedFrame * frame = (QuantisedFrame *)g->data;
 
     AdaptiveModelEncoder tree_encoder(&ae);
@@ -39,6 +42,9 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root) {
 	assert(g->adjacent[v].size() <= 2);
 	tree_encoder.encode(tree_symbols[g->adjacent[v].size()]);
 
+	sprintf(buf, "%d", index);
+	index_encoder.encode(buf);
+
 	sprintf(buf, "%d", error[0]);
 	errx_encoder.encode(buf);
 
@@ -48,9 +54,6 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root) {
 	sprintf(buf, "%d", error[2]);
 	errz_encoder.encode(buf);
 
-	sprintf(buf, "%d", index);
-	index_encoder.encode(buf);
-
 	for (size_t i = 0; i < g->adjacent[v].size(); i++) {
 	    int u = g->adjacent[v][i];
 	    for (int j = 0; j < 3; j++)
@@ -58,4 +61,42 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root) {
 	    q.push(u);
 	}
     }
+}
+
+
+void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame)
+{
+    AdaptiveModelDecoder tree_decoder(&ad);
+    AdaptiveModelDecoder errx_decoder(&ad);
+    AdaptiveModelDecoder erry_decoder(&ad);
+    AdaptiveModelDecoder errz_decoder(&ad);
+    AdaptiveModelDecoder index_decoder(&ad);
+
+    queue<int> q;
+    q.push(-1);
+
+    while(!q.empty()) {
+        int v = q.front();
+	q.pop();
+
+        unsigned int p[3];
+        for (int i = 0; i < 3; i++)
+            p[i] = v != -1 ? frame.quantised_frame[3*v + i] : 0;
+
+        int size = atoi(tree_decoder.decode().c_str());
+	assert(0 <= size && size <= 2);
+
+        int index = atoi(index_decoder.decode().c_str());
+
+	int error[3];
+	error[0] = atoi(errx_decoder.decode().c_str());
+	error[1] = atoi(erry_decoder.decode().c_str());
+	error[2] = atoi(errz_decoder.decode().c_str());
+
+        for (int i = 0; i < 3; i++)
+            frame.quantised_frame[3*index + i] = p[i] + error[i];
+
+        for (int i = 0; i < size; i++)
+            q.push(index);
+    }    
 }
