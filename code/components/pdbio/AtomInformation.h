@@ -28,5 +28,5 @@ class AtomInformation
         /// Waters tend to have the format: W[APT][1234].
         std::string seg_id;
         
-        bool is_water();
+        bool is_water() const;
 };

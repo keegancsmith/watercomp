@@ -21,7 +21,7 @@ AtomInformation::AtomInformation(unsigned int n_index, string text)
     seg_id = buffer;
 }
 
-bool AtomInformation::is_water()
+bool AtomInformation::is_water() const
 {
     return atom_name == "OH2" || atom_name == "H1" || atom_name == "H2";
 }

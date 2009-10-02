@@ -4,13 +4,15 @@
 #include <map>
 #include <string>
 #include "WaterMolecule.h"
-#include "QuantisedFrame.h"
-#include "AtomInformation.h"
+#include "../quantiser/QuantisedFrame.h"
+#include "../pdbio/AtomInformation.h"
 
 class FrameSplitter
 {
     public:
-        static void split_frame(std::vector<AtomInformation> pdb, std::vector<WaterMolecule>&  water_molecules, std::vector<unsigned int>& other_atoms)
+        static void split_frame(const std::vector<AtomInformation> & pdb,
+                                std::vector<WaterMolecule>& water_molecules,
+                                std::vector<unsigned int>& other_atoms)
         {
             /// Index of the atom into PDB the file. 0-based.
 //             unsigned int index;

@@ -3,4 +3,4 @@
 #include "Graph.h"
 
 // Greedily creates a spanning tree
-Graph * spanningTree(Graph *);
+Graph * spanning_tree(Graph * g, int & root);

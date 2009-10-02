@@ -15,7 +15,10 @@ class QuantisedFrame
                        unsigned int y_subs,
                        unsigned int z_subs);
 
-        QuantisedFrame(unsigned int size, unsigned int x_subs, unsigned int y_subs, unsigned int z_subs);
+        QuantisedFrame(unsigned int size,
+                       unsigned int x_subs,
+                       unsigned int y_subs,
+                       unsigned int z_subs);
                        
         Frame toFrame() const;
         int natoms() const;
