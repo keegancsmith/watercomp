@@ -5,4 +5,4 @@
 
 // Simple graph creator at first. Just create fully connected graph of all the
 // atoms.
-Graph * create_graph(QuantisedFrame *);
+Graph * create_graph(const QuantisedFrame *);

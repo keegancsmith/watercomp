@@ -26,6 +26,7 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
 
     string tree_symbols[3] = {"0", "1", "2"};
     char buf[100];
+    int count = 0;
 
     queue<int> q;
     q.push(root);
@@ -33,6 +34,7 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
     while(!q.empty()) {
 	int v = q.front();
 	q.pop();
+        count++;
 
 	int index = v;
 	int error[3];
@@ -47,7 +49,7 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
 
 	sprintf(buf, "%d", error[0]);
 	errx_encoder.encode(buf);
-
+        
 	sprintf(buf, "%d", error[1]);
 	erry_encoder.encode(buf);
 
@@ -61,6 +63,14 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
 	    q.push(u);
 	}
     }
+
+    assert(count == frame->natoms());
+
+    tree_encoder.end_encode();
+    errx_encoder.end_encode();
+    erry_encoder.end_encode();
+    errz_encoder.end_encode();
+    index_encoder.end_encode();
 }
 
 

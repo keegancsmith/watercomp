@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-Graph::Graph(void * data, int nVerticies)
+Graph::Graph(const void * data, int nVerticies)
     : nVerticies(nVerticies), data(data) {
     adjacent = new std::vector<int>[nVerticies];
 }
