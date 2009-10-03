@@ -45,14 +45,20 @@ bool compress(const string & dcdpath)
         QuantisedFrame qframe(frame, QUANTISATION, QUANTISATION, QUANTISATION);
         
         int root;
+	cout << "A" << endl;
         Graph * fully_connected_graph = create_graph(&qframe);
+	cout << "B" << endl;
         Graph * tree = spanning_tree(fully_connected_graph, root);
+	cout << "C" << endl;
 
         serialise_tree(ae, tree, root);
+
+	cout << "D" << endl;
 
         delete tree;
         delete fully_connected_graph;
     }
+    ae.end_encode();
 
     return true;
 }
