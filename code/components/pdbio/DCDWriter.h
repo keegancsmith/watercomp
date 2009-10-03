@@ -9,7 +9,7 @@ class DCDWriter
         DCDWriter();
         ~DCDWriter();
 
-        int natoms();
+        int natoms() const;
 
         bool save_dcd_file(const char* filename, int natoms);
         bool save_dcd_frame(Frame& data);
