@@ -7,7 +7,6 @@
 #include <QWheelEvent>
 
 #include "base_view.h"
-#include "frame_data.h"
 #include "quaternion.h"
 
 #define RAD(x) ((x) * 0.0174532925199433)

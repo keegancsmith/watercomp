@@ -22,10 +22,7 @@
 #include <graph/gridgraphcreator/GridGraphCreator.h>
 
 #include "cluster_view.h"
-#include "dcd_loader.h"
-#include "frame_data.h"
 #include "metaballs_view.h"
-#include "pdb_loader.h"
 #include "playback_control.h"
 #include "point_view.h"
 #include "renderer.h"
