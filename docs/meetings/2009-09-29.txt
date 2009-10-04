@@ -1,0 +1,41 @@
+.. -*- mode: rst -*-
+
+===============================================
+ Minutes of Meeting Tuesday 29 September 2009
+===============================================
+
+Discussion
+==========
+
+* Buckle down and get a basic version working.
+* Focus of the project is experimenting on different techniques, predictors, etc.
+* Get one visualisation technique done first, not two half done.
+
+
+Visualisation
+=============
+
+* Focus on getting metaballs complete.
+* Using ribbons for water cluster won't work since there's multiple connections
+  per water molecule. Alternative is to use generalised cylinders. The water
+  molecules are just points along a tube that bends, splits and joins. Tube is
+  a series of circles/cylinders following a path.
+* Decimation should use a simple implementation, get something working.
+  ('94 Siggraph paper)
+* User experients...
+  + Experiments should be around quantisation levels detectable by user.
+  + Have several visualisations, quantisation levels, see what is noticeable.
+
+
+Compression
+===========
+
+* Compression should be compared before and after quantisation.
+
+
+General
+=======
+
+* Quantisation could make data extra jittery? This could cause large perceptual
+  errors.
+

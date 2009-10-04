@@ -1,6 +1,6 @@
 #include "dcd_loader.h"
 
-#include "dcdplugin.h"
+#include "dcd.h"
 
 #include "frame_data.h"
 

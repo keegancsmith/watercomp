@@ -105,6 +105,8 @@ void MainWindow::doOpenFile()
 
     if (atoms) delete [] atoms;
     atoms = new float[3 * dcdreader->natoms()];
+    if (frame) delete frame;
+    frame = new Frame(atoms, dcdreader->natoms());
     setFrame(0);
     float volumeSize[] = {1<<8, 1<<8, 1<<8};
     renderer->resetView(volumeSize);
@@ -124,12 +126,10 @@ void MainWindow::doViewPreferences()
 void MainWindow::setFrame(int value)
 {
     dcdreader->set_frame(value);
-    if (!dcdreader->next_frame(atoms))
+    if (!dcdreader->next_frame(*frame))
         return;
 
-    if (frame) delete frame;
     if (data) delete data;
-    frame = new Frame(atoms, dcdreader->natoms());
     data = new QuantisedFrame(*frame, 8, 8, 8);
     renderer->dataTick(frame, data);
 }//setFrame

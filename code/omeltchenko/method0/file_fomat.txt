@@ -1,7 +1,0 @@
-Header
-Atoms, Sets, Start_Timestep, Save_Timesteps, Delta
-initial_l, delta_l
-
-Set
-lx ly lz
-<Data>

@@ -3,6 +3,6 @@
 #include "Graph.h"
 #include "../quantiser/QuantisedFrame.h"
 
-// Simple graph creator at first. Just create full connected graph of all the
+// Simple graph creator at first. Just create fully connected graph of all the
 // atoms.
-Graph * createGraph(QuantisedFrame *);
+Graph * create_graph(QuantisedFrame *);

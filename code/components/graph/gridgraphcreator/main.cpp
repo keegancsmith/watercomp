@@ -56,7 +56,7 @@ int main(int argc, char** argv)
         sizes.clear();
         
         dcdreader.next_frame(atoms);
-        Frame frame(atoms, dcdreader.natoms(), &pdb);
+        Frame frame(atoms, dcdreader.natoms());
         QuantisedFrame qframe(frame, 8, 8, 8);
         
         vector<WaterMolecule> waters;

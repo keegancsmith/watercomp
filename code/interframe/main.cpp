@@ -1,12 +1,11 @@
 #include "pdbio/DCDWriter.h"
 #include "pdbio/DCDReader.h"
 #include "pdbio/PDBReader.h"
-#include "OmelWriter.h"
-#include "OmelReader.h"
+#include "InterframeWriter.h"
+//#include "OmelReader.h"
 #include "pdbio/AtomInformation.h"
 #include "pdbio/Frame.h"
 #include "quantiser/QuantisedFrame.h"
-#include "SortedQuantisedFrame.h"
 #include <cstdio>
 #include <vector>
 #include <map>
@@ -54,7 +53,7 @@ int main(int argc, char** argv)
         Frame atoms(dcdreader.natoms());
 
         FILE* fout = fopen(argv[3], "w");
-        OmelWriter writer(fout);
+        InterframeWriter writer(fout, 10);
         writer.start(dcdreader.natoms(), dcdreader.nframes()); 
         
         for(int i = 0 ; i < dcdreader.nframes(); ++i)
@@ -75,25 +74,25 @@ int main(int argc, char** argv)
         
         FILE* fin = fopen(argv[2], "r");
         
-        OmelReader reader(fin);
-        reader.start();
+        //OmelReader reader(fin);
+        //reader.start();
         
         DCDWriter dcdwriter;
-        dcdwriter.save_dcd_file(argv[3], reader.get_atoms());
+        //dcdwriter.save_dcd_file(argv[3], reader.get_atoms());
             
-        for(int i = reader.get_frames(); i > 0 ; --i)
-        {
-            printf("Uncompressing: %d frames left\n", i);
-            QuantisedFrame qframe(reader.get_atoms(), 8, 8, 8);
+        //for(int i = reader.get_frames(); i > 0 ; --i)
+        //{
+            //printf("Uncompressing: %d frames left\n", i);
+            //QuantisedFrame qframe(reader.get_atoms(), 8, 8, 8);
             
-            if(!reader.next_frame(qframe))
-                break;
+            //if(!reader.next_frame(qframe))
+            //    break;
 
-            Frame uncompressed = qframe.toFrame();
-            dcdwriter.save_dcd_frame(uncompressed);
-        }
+            //Frame uncompressed = qframe.toFrame();
+            //dcdwriter.save_dcd_frame(uncompressed);
+        //}
         
-        reader.end();
+        //reader.end();
         fclose(fin);    
     }
     else

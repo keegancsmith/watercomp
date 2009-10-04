@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sys/types.h>
+#include "Frame.h"
 
 class DCDReader {
 public:
@@ -13,7 +14,7 @@ public:
     int natoms() const;
 
     bool open_file(const char* filename);
-    bool next_frame(float * frame);
+    bool next_frame(Frame& frame);
 
 private:
     void* _dcd;

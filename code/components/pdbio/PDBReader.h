@@ -1,4 +1,6 @@
 #pragma once
+
+#include <cassert>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -20,7 +22,7 @@ class PDBReader
             {
                 for(int i = 0; i < 80; ++i)
                 {
-                    fscanf(pdb_file, "%c", buffer+i);
+                    assert(fscanf(pdb_file, "%c", buffer+i) == 1);
                     
                     if(buffer[i] == '\n')
                     {
