@@ -1,4 +1,4 @@
-#include "../../dcd_loader/dcd.h"
+#include "../../dcd_loader/dcdplugin.h"
 #include "DCDReader.h"
 
 #include <cassert>
