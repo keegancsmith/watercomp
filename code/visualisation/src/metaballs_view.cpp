@@ -91,6 +91,7 @@ void sampleSphere(gdouble** f, GtsCartesianGrid g, guint k, gpointer data)
 
 int draw_face(gpointer item, gpointer data)
 {
+    QVector<Triangle>* surface = (QVector<Triangle>*)data;
     GtsFace* face = (GtsFace*)item;
     GtsPoint *v1, *v2, *v3;
     GtsPoint *p1, *p2;
@@ -99,17 +100,59 @@ int draw_face(gpointer item, gpointer data)
 
     p1 = &(face->triangle.e2->segment.v1->p);
     p2 = &(face->triangle.e2->segment.v2->p);
-    v3 = ((p1 == v1) || (p1 == v2)) ? p2 : p1;
+    // stupid winding
+    if ((p1 == v1) || (p2 == v1))
+    {
+        v3 = (p1 == v1) ? p2 : p1;
+    }//if
+    else if ((p1 == v2) || (p2 == v2))
+    {
+        v3 = v1;
+        v1 = v2;
+        v2 = v3;
+        v3 = (p1 == v1) ? p2 : p1;
+    }//else
+    else
+    {
+        printf("um: (%f %f %f) (%f %f %f) (%f %f %f) (%f %f %f)\n",
+                v1->x, v1->y, v1->z,
+                v2->x, v2->y, v2->z,
+                p1->x, p1->y, p1->z,
+                p2->x, p2->y, p2->z
+                );
+        return 0;
+    }//else
+    if ((v1 == v2) || (v1 == v3) || (v2 == v3))
+    {
+        printf("whoa: (%f %f %f) (%f %f %f) (%f %f %f) (%f %f %f) (%f %f %f)\n",
+                v1->x, v1->y, v1->z,
+                v2->x, v2->y, v2->z,
+                v3->x, v3->y, v3->z,
+                p1->x, p1->y, p1->z,
+                p2->x, p2->y, p2->z
+                );
+        assert(false);
+        // return 0;
+    }//else
 
     float e1[] = {v1->x - v2->x, v1->y - v2->y, v1->z - v2->z};
     float e2[] = {v1->x - v3->x, v1->y - v3->y, v1->z - v3->z};
     float e3[3];
     normalize(cross(e1, e2, e3));
 
-    glNormal3fv(e3);
-    glVertex3d(v1->x, v1->y, v1->z);
-    glVertex3d(v2->x, v2->y, v2->z);
-    glVertex3d(v3->x, v3->y, v3->z);
+    Triangle t;
+    pack3f(t.p[0], v1->x, v1->y, v1->z);
+    pack3f(t.p[1], v2->x, v2->y, v2->z);
+    pack3f(t.p[2], v3->x, v3->y, v3->z);
+    pack3f(t.n[0], e3[0], e3[1], e3[2]);
+    pack3f(t.n[1], e3[0], e3[1], e3[2]);
+    pack3f(t.n[2], e3[0], e3[1], e3[2]);
+    surface->push_back(t);
+
+    // glNormal3fv(e3);
+    // glVertex3d(v1->x, v1->y, v1->z);
+    // glVertex3d(v2->x, v2->y, v2->z);
+    // glVertex3d(v3->x, v3->y, v3->z);
     return 0;
 }//draw_face
 
@@ -249,25 +292,8 @@ void MetaballsView::render()
     glTranslatef(-80, -80, -100);
     glColor4fv(_metaballsColor);
     glBegin(GL_TRIANGLES);
-    gts_surface_foreach_face(g_surface, draw_face, NULL);
-    // GtsSurfaceTraverse* traverse = gts_surface_traverse_new(g_surface, NULL);
-    // GtsFace* face = gts_surface_traverse_next(traverse, NULL);
-    // GtsPoint p;
-    // while (face != NULL)
-    // {
-        // p = face->triangle.e1->segment.v1->p;
-        // glVertex3d(p.x, p.y, p.z);
-        // p = face->triangle.e2->segment.v1->p;
-        // glVertex3d(p.x, p.y, p.z);
-        // p = face->triangle.e3->segment.v1->p;
-        // glVertex3d(p.x, p.y, p.z);
-        // face = gts_surface_traverse_next(traverse, NULL);
-    // }//while
-    // glBegin(GL_LINE_LOOP);
-    // glVertex3f(0.0f, 0.0f, 0.0f);
-    // glVertex3f(1.0f, 0.0f, 0.0f);
-    // glVertex3f(1.0f, 1.0f, 0.0f);
-    /*
+    // gts_surface_foreach_face(g_surface, draw_face, NULL);
+    //*
     Triangle t;
     for (int i = 0; i < _surface.size(); i++)
     {
@@ -279,7 +305,7 @@ void MetaballsView::render()
         glNormal3fv(t.n[2]);
         glVertex3fv(t.p[2]);
     }//for
-    */
+    // */
     glEnd();
 }//render
 
@@ -293,6 +319,7 @@ void MetaballsView::tick(Frame* frame, QuantisedFrame* data)
     // gts_isosurface_tetra(g_surface, g_grid, sampleSphere, NULL, 128);
     int count = gts_surface_face_number(g_surface);
     printf("face number: %u\n", count);
+    gts_surface_foreach_face(g_surface, draw_face, (void*)&_surface);
     return;
 
     GtsVolumeOptimizedParams params = {0.5, 0.5, 0.0};
