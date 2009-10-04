@@ -53,7 +53,7 @@ class MetaballsView : public BaseView
         float _metaballsColor[4];
         QVector<Triangle> _surface;
 
-        unsigned char*** mridata;
+        unsigned char*** volumedata;
 
         QWidget* _preferenceWidget;
         QSlider* metaballsAlphaSlider;
