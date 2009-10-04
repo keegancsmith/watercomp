@@ -15,6 +15,7 @@ struct Triangle
     float n[3][3]; // 3 normals
 };//Triangle
 
+
 class MetaballsView : public BaseView
 {
     Q_OBJECT
@@ -29,7 +30,7 @@ class MetaballsView : public BaseView
         virtual QWidget* preferenceWidget();
 
         virtual void render();
-        virtual void tick(Frame_Data* data);
+        virtual void tick(Frame* frame, QuantisedFrame* data);
 
     protected:
         virtual void initGL();
@@ -49,7 +50,6 @@ class MetaballsView : public BaseView
         bool lighting;
         int maxStepSize;
         int _stepSize;
-        Frame_Data* data;
         float _metaballsColor[4];
         QVector<Triangle> _surface;
 

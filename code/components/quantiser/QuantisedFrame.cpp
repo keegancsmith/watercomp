@@ -37,7 +37,7 @@ QuantisedFrame::QuantisedFrame(const Frame & frame,
             
             quantised_frame.push_back(scaled);
             
-            assert(0 <= scaled && scaled <= buckets[d]-1);
+            assert(0 <= scaled && scaled <= buckets[d] - 0.5);
         }
 }
 

@@ -38,14 +38,18 @@ Renderer::Renderer(QWidget* parent)
     rot = new Quaternion();
     rot->update_matrix();
 
-    data = new Frame_Data();
-
     timer = new QTimer(this);
     timer->setSingleShot(false);
     connect(timer, SIGNAL(timeout()), this, SLOT(tick()));
 
     setTps(60);
     timer->start();
+
+    scrollSensitivity = 1;
+
+    volume_range[0] = 1;
+    volume_range[1] = 1;
+    volume_range[2] = 1;
 }//constructor
 
 Renderer::~Renderer()
@@ -54,7 +58,6 @@ Renderer::~Renderer()
     delete settings;
     delete timer;
     delete rot;
-    delete data;
 }//destructor
 
 
@@ -108,31 +111,23 @@ void Renderer::paintGL()
         return;
 
     //setup camera
-    glTranslatef(0, 0, data->half_size[2]-zoom);
+    glTranslatef(0, 0, -zoom);
     glPushMatrix();
     glMultMatrixd(rot->matrix);
+    glTranslatef(-volume_middle[0], -volume_middle[1], -volume_middle[2]);
 
     // renderAxes();
     renderModes[_renderMode]->render();
-    // switch (_renderMode)
-    // {
-        // case RENDER_POINTS:
-            // renderPoints();
-            // break;
-        // case RENDER_METABALLS:
-            // renderMetaballs();
-            // break;
-    // }//switch
 
     glPopMatrix();
     if (_focusPlane)
     {
         glBegin(GL_QUADS);
         glColor4f(0.5f, 0.5f, 0.5f, 0.3f);
-        glVertex3f(-data->max_side*1, -data->max_side*1, focusPlaneDepth);
-        glVertex3f( data->max_side*1, -data->max_side*1, focusPlaneDepth);
-        glVertex3f( data->max_side*1,  data->max_side*1, focusPlaneDepth);
-        glVertex3f(-data->max_side*1,  data->max_side*1, focusPlaneDepth);
+        glVertex3f(-max_side*1, -max_side*1, focusPlaneDepth);
+        glVertex3f( max_side*1, -max_side*1, focusPlaneDepth);
+        glVertex3f( max_side*1,  max_side*1, focusPlaneDepth);
+        glVertex3f(-max_side*1,  max_side*1, focusPlaneDepth);
         glEnd();
     }//if
 
@@ -143,13 +138,26 @@ void Renderer::paintGL()
 #endif
 }//paintGL
 
-void Renderer::resetView()
+void Renderer::resetView(float volumeSize[3])
 {
     rot->reset();
+
+    max_side = 0;
+    for (int i = 0; i < 3; i++)
+    {
+        volume_min[i] = 0;
+        volume_max[i] = volumeSize[i];
+        volume_range[i] = volume_max[i] - volume_min[i];
+        volume_middle[i] = (volume_max[i] + volume_min[i]) * 0.5;
+        if (volume_range[i] > max_side)
+            max_side = volume_range[i];
+    }//for
+
     //set a default zoom which should cover the entire volume
-    zoom = data->max_side * 1.7;
-    // focusPlaneDepth = -data->max_side;
+    zoom = max_side * 1.7;
     focusPlaneDepth = 0;
+    scrollSensitivity = max_side * 0.1;
+    if (scrollSensitivity < 1) scrollSensitivity = 1;
 
     //TODO? setup projection matrix so that near and far encompass data?
 }//resetView
@@ -198,7 +206,10 @@ void Renderer::setRenderMode(int mode)
         mode = -1;
 
     if (_renderMode > -1)
+    {
         renderModes[_renderMode]->current = false;
+        renderModes[mode]->tick(renderModes[_renderMode]->frame, renderModes[_renderMode]->data);
+    }//if
     _renderMode = mode;
     settings->setValue("renderer/renderMode", _renderMode);
     if (_renderMode > -1)
@@ -213,10 +224,10 @@ int Renderer::addRenderMode(BaseView* view)
     return viewID;
 }//addRenderMode
 
-void Renderer::dataTick()
+void Renderer::dataTick(Frame* frame, QuantisedFrame* qframe)
 {
     if (_renderMode >= 0)
-        renderModes[_renderMode]->tick(data);
+        renderModes[_renderMode]->tick(frame, qframe);
 }//dataTick
 
 void Renderer::tick()
@@ -306,9 +317,7 @@ void Renderer::mouseReleaseEvent(QMouseEvent* event)
 
 void Renderer::wheelEvent(QWheelEvent* event)
 {
-    double sensitivity = data->max_side * 0.1;
-    if (sensitivity < 1) sensitivity = 1;
-    int numsteps = event->delta() * sensitivity / (8 * 15);
+    int numsteps = event->delta() * scrollSensitivity / (8 * 15);
     zoom -= numsteps;
 }//wheelEvent
 
@@ -316,17 +325,17 @@ void Renderer::renderAxes()
 {
     //draw axes
     glPushMatrix();
-    glTranslatef(data->bbox[0][0], data->bbox[0][1], data->bbox[0][2]);
+    glTranslatef(volume_min[0], volume_min[1], volume_min[2]);
     glBegin(GL_LINES);
     glColor3f(1.0f, 0.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(data->size[0], 0.0f, 0.0f);
+    glVertex3f(volume_range[0], 0.0f, 0.0f);
     glColor3f(0.0f, 1.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, data->size[1], 0.0f);
+    glVertex3f(0.0f, volume_range[1], 0.0f);
     glColor3f(0.0f, 0.0f, 1.0f);
     glVertex3f(0.0f, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, data->size[2]);
+    glVertex3f(0.0f, 0.0f, volume_range[2]);
     glEnd();
     glPopMatrix();
 }//renderAxes

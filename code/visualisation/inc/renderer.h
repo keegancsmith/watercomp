@@ -8,8 +8,10 @@
 class QSettings;
 
 class BaseView;
-class Frame_Data;
 class Quaternion;
+
+class Frame;
+class QuantisedFrame;
 
 class Renderer : public QGLWidget
 {
@@ -19,6 +21,8 @@ class Renderer : public QGLWidget
         const static int RENDER_BLANK = -1;
         const static int RENDER_POINTS = 0;
         const static int RENDER_METABALLS = 1;
+
+        double scrollSensitivity;
 
         Renderer(QWidget* parent=0);
         ~Renderer();
@@ -30,7 +34,7 @@ class Renderer : public QGLWidget
         void resizeGL(int w, int h);
         void paintGL();
 
-        void resetView();
+        void resetView(float volumeSize[3]);
 
         int tps();
         void setTps(int value);
@@ -43,7 +47,7 @@ class Renderer : public QGLWidget
     public slots:
         void toggleFocusPlane();
         void setRenderMode(int mode);
-        void dataTick();
+        void dataTick(Frame* frame, QuantisedFrame* qframe);
 
     private slots:
         void tick();
@@ -62,6 +66,12 @@ class Renderer : public QGLWidget
         int lastpos[2];
         int startdrag[2];
 
+        float volume_min[3];
+        float volume_max[3];
+        float volume_range[3];
+        float volume_middle[3];
+        float max_side;
+
         bool _focusPlane;
         float focusPlaneDepth;
         int _renderMode;
@@ -70,7 +80,6 @@ class Renderer : public QGLWidget
         QTimer* timer;
 
         Quaternion* rot;
-        Frame_Data* data;
 
         QVector<BaseView*> renderModes;
 

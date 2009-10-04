@@ -2,6 +2,7 @@
 
 #include <GL/gl.h>
 #include <cmath>
+#include <cassert>
 
 #include <QCheckBox>
 #include <QGridLayout>
@@ -11,7 +12,7 @@
 #include <QSlider>
 #include <QWidget>
 
-#include "frame_data.h"
+#include <quantiser/QuantisedFrame.h>
 
 #define ALPHA_MAX_SLIDER 100
 #define ALPHA_MAX_VAL 1.0
@@ -111,6 +112,7 @@ int draw_face(gpointer item, gpointer data)
     glVertex3d(v3->x, v3->y, v3->z);
     return 0;
 }//draw_face
+
 
 MetaballsView::MetaballsView()
 {
@@ -281,12 +283,17 @@ void MetaballsView::render()
     glEnd();
 }//render
 
-void MetaballsView::tick(Frame_Data* data)
+void MetaballsView::tick(Frame* frame, QuantisedFrame* data)
 {
+    this->frame = frame;
     this->data = data;
 
     gts_isosurface_cartesian(g_surface, g_grid, sampleSphere, NULL, 128);
-    printf("face number: %u\n", gts_surface_face_number(g_surface));
+    // gts_isosurface_tetra_bcl(g_surface, g_grid, sampleSphere, NULL, 128);
+    // gts_isosurface_tetra(g_surface, g_grid, sampleSphere, NULL, 128);
+    int count = gts_surface_face_number(g_surface);
+    printf("face number: %u\n", count);
+    return;
 
     GtsVolumeOptimizedParams params = {0.5, 0.5, 0.0};
 
@@ -296,11 +303,11 @@ void MetaballsView::tick(Frame_Data* data)
     GtsCoarsenFunc coarsen_func = (GtsCoarsenFunc)gts_volume_optimized_vertex;
     gpointer coarsen_data = &params;
 
-    // GtsStopFunc stop_func = (GtsStopFunc)gts_coarsen_stop_cost;
-    // gdouble cmax = 0.001;
-    // gpointer stop_data = &cmax;
+        // GtsStopFunc stop_func = (GtsStopFunc)gts_coarsen_stop_cost;
+        // gdouble cmax = 0.001;
+        // gpointer stop_data = &cmax;
     GtsStopFunc stop_func = (GtsStopFunc)gts_coarsen_stop_number;
-    guint number = 22000;
+    guint number = 10000;
     gpointer stop_data = &number;
 
     gts_surface_coarsen(g_surface,
@@ -425,6 +432,10 @@ void MetaballsView::initGL()
     glLightfv( GL_LIGHT0, GL_SPECULAR, afPropertiesSpecular);
     glMaterialfv(GL_BACK,  GL_AMBIENT,   afAmbientGreen);
     glMaterialfv(GL_BACK,  GL_DIFFUSE,   afDiffuseGreen);
+    // glMaterialfv(GL_BACK, GL_AMBIENT,   afAmbientBlue);
+    // glMaterialfv(GL_BACK, GL_DIFFUSE,   afDiffuseBlue);
+    // glMaterialfv(GL_BACK, GL_SPECULAR,  afSpecularWhite);
+    // glMaterialf( GL_BACK, GL_SHININESS, 15.0);
     glMaterialfv(GL_FRONT, GL_AMBIENT,   afAmbientBlue);
     glMaterialfv(GL_FRONT, GL_DIFFUSE,   afDiffuseBlue);
     glMaterialfv(GL_FRONT, GL_SPECULAR,  afSpecularWhite);
@@ -506,7 +517,7 @@ void MetaballsView::setLighting(int state)
 
 void MetaballsView::updateFaces()
 {
-    tick(0);
+    tick(0, 0);
 }//updateFaces
 
 

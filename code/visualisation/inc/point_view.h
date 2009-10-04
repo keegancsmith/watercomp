@@ -17,7 +17,7 @@ class PointView : public BaseView
         virtual void updatePreferences();
         virtual QWidget* preferenceWidget();
 
-        virtual void tick(Frame_Data* data);
+        virtual void tick(Frame* frame, QuantisedFrame* data);
         virtual void render();
 
     protected:
@@ -30,7 +30,6 @@ class PointView : public BaseView
 
     private:
         QSettings* settings;
-        Frame_Data* data;
         float _pointColor[4];
         int _pointSize;
 
