@@ -2,6 +2,7 @@
 
 #include <GL/gl.h>
 #include <cmath>
+#include <cassert>
 
 #include <QCheckBox>
 #include <QGridLayout>
@@ -11,7 +12,7 @@
 #include <QSlider>
 #include <QWidget>
 
-#include "frame_data.h"
+#include <quantiser/QuantisedFrame.h>
 
 #define ALPHA_MAX_SLIDER 100
 #define ALPHA_MAX_VAL 1.0
@@ -70,6 +71,102 @@ float* normalize(float* v)
 }//normalize
 
 
+void sampleSphere(gdouble** f, GtsCartesianGrid g, guint k, gpointer data)
+{
+    double x, y, z = g.z;
+    int i, j;
+    float dd, dx, dy, dz = z - 80;
+    float r2 = 300.0 * 255;
+    for (i = 0, x = g.x; i < g.nx; i++, x+=g.dx)
+    {
+        dx = x - 100;
+        for (j = 0, y = g.y; j < g.ny; j++, y+=g.dy)
+        {
+            dy = y - 80;
+            dd = dx*dx + dy*dy + dz*dz;
+            f[i][j] = (dd <= 0.001) ? 255 : r2 / dd;
+        }//for
+    }//for
+}//sampleVolume
+
+int draw_face(gpointer item, gpointer data)
+{
+    QVector<Triangle>* surface = (QVector<Triangle>*)data;
+    GtsFace* face = (GtsFace*)item;
+    GtsPoint *v1, *v2, *v3;
+    GtsPoint *p1, *p2;
+    v1 = &(face->triangle.e1->segment.v1->p);
+    v2 = &(face->triangle.e1->segment.v2->p);
+
+    p1 = &(face->triangle.e2->segment.v1->p);
+    p2 = &(face->triangle.e2->segment.v2->p);
+    // stupid winding
+    if ((p1 == v1) || (p2 == v1))
+    {
+        v3 = (p1 == v1) ? p2 : p1;
+    }//if
+    else if ((p1 == v2) || (p2 == v2))
+    {
+        v3 = v1;
+        v1 = v2;
+        v2 = v3;
+        v3 = (p1 == v1) ? p2 : p1;
+    }//else
+    else
+    {
+        printf("um: (%f %f %f) (%f %f %f) (%f %f %f) (%f %f %f)\n",
+                v1->x, v1->y, v1->z,
+                v2->x, v2->y, v2->z,
+                p1->x, p1->y, p1->z,
+                p2->x, p2->y, p2->z
+                );
+        return 0;
+    }//else
+    if ((v1 == v2) || (v1 == v3) || (v2 == v3))
+    {
+        printf("whoa: (%f %f %f) (%f %f %f) (%f %f %f) (%f %f %f) (%f %f %f)\n",
+                v1->x, v1->y, v1->z,
+                v2->x, v2->y, v2->z,
+                v3->x, v3->y, v3->z,
+                p1->x, p1->y, p1->z,
+                p2->x, p2->y, p2->z
+                );
+        assert(false);
+        // return 0;
+    }//else
+
+    float e1[] = {v1->x - v2->x, v1->y - v2->y, v1->z - v2->z};
+    float e2[] = {v1->x - v3->x, v1->y - v3->y, v1->z - v3->z};
+    float e3[3];
+    normalize(cross(e1, e2, e3));
+
+    Triangle t;
+    pack3f(t.p[0], v1->x, v1->y, v1->z);
+    pack3f(t.p[1], v2->x, v2->y, v2->z);
+    pack3f(t.p[2], v3->x, v3->y, v3->z);
+    pack3f(t.n[0], e3[0], e3[1], e3[2]);
+    pack3f(t.n[1], e3[0], e3[1], e3[2]);
+    pack3f(t.n[2], e3[0], e3[1], e3[2]);
+    surface->push_back(t);
+
+    // glNormal3fv(e3);
+    // glVertex3d(v1->x, v1->y, v1->z);
+    // glVertex3d(v2->x, v2->y, v2->z);
+    // glVertex3d(v3->x, v3->y, v3->z);
+    return 0;
+}//draw_face
+
+
+void sample_volume_data(gdouble** f, GtsCartesianGrid g, guint k, gpointer data)
+{
+    unsigned char*** volume = (unsigned char***)data;
+    int x, y, z = g.z;
+    int i, j;
+    for (i = 0, x = g.x; i < g.nx; i++, x+=g.dx)
+        for (j = 0, y = g.y; j < g.ny; j++, y+=g.dy)
+            f[i][j] = volume[z][y][x];
+}//sampleVolume
+
 
 MetaballsView::MetaballsView()
 {
@@ -91,6 +188,15 @@ MetaballsView::MetaballsView()
 
     _preferenceWidget = NULL;
     setupPreferenceWidget();
+
+    g_surface = gts_surface_new(gts_surface_class(),
+                                gts_face_class(),
+                                gts_edge_class(),
+                                gts_vertex_class());
+    g_grid.x = 0;
+    g_grid.y = 0;
+    g_grid.z = 0;
+
     init();
 }//constructor
 
@@ -98,17 +204,20 @@ MetaballsView::~MetaballsView()
 {
     settings->sync();
     delete settings;
-    int nz = 160;
-    int ny = 160;
-    int nx = 200;
+    int nz = 255;
+    int ny = 255;
+    int nx = 255;
     int x, y, z;
-    for (z = 0; z < nz; z++)
+    if (volumedata != NULL)
     {
-        for (y = 0; y < ny; y++)
-            delete [] mridata[z][y];
-        delete [] mridata[z];
-    }//for
-    delete [] mridata;
+        for (z = 0; z < nz; z++)
+        {
+            for (y = 0; y < ny; y++)
+                delete [] volumedata[z][y];
+            delete [] volumedata[z];
+        }//for
+        delete [] volumedata;
+    }//if
 }//destructor
 
 
@@ -120,49 +229,33 @@ int MetaballsView::stepSize()
 
 void MetaballsView::init()
 {
+    g_grid.nx = 255;
+    g_grid.ny = 255;
+    g_grid.nz = 255;
 
-    int nz = 160;
-    int ny = 160;
-    int nx = 200;
+    g_grid.dx = 5;
+    g_grid.dy = 5;
+    g_grid.dz = 5;
+
+    g_grid.nx /= g_grid.dx;
+    g_grid.ny /= g_grid.dy;
+    g_grid.nz /= g_grid.dz;
+
+    int vz = 255;
+    int vy = 255;
+    int vx = 255;
     int x, y, z;
-    mridata = new unsigned char**[nz];
-    for (z = 0; z < nz; z++)
+    volumedata = new unsigned char**[vz];
+    for (z = 0; z < vz; z++)
     {
-        mridata[z] = new unsigned char*[ny];
-        for (y = 0; y < ny; y++)
-            mridata[z][y] = new unsigned char[nx];
-    }//for
-
-
-    // FILE* f = fopen("mri.raw", "rb");
-    // for (z = 0; z < nz; z++)
-        // for (y = 0; y < ny; y++)
-            // for (x = 0; x < nx; x++)
-                // mridata[z][y][x] = fgetc(f);
-    // fclose(f);
-    // printf("read done\n");
-
-    int dz, dy, dx, dd;
-    float r2 = 300.0 * 255;
-    for (z = 0; z < nz; z++)
-    {
-        dz = z - 80;
-        dz *= dz;
-        for (y = 0; y < ny; y++)
+        volumedata[z] = new unsigned char*[vy];
+        for (y = 0; y < vy; y++)
         {
-            dy = y - 80;
-            dy *= dy;
-            for (x = 0; x < nx; x++)
-            {
-                dx = x - 100;
-                dx *= dx;
-
-                dd = dx + dy + dz;
-                mridata[z][y][x] = (dd <= 0.001) ? 255 : r2 / dd;
-            }//for
+            volumedata[z][y] = new unsigned char[vx];
+            for (x = 0; x < vx; x++)
+                volumedata[z][y][x] = 0;
         }//for
     }//for
-
 }//init
 
 
@@ -181,16 +274,16 @@ QWidget* MetaballsView::preferenceWidget()
 
 void MetaballsView::render()
 {
+    if (data == 0)
+        return;
     float l_pos[] = {200.0f, 200.0f, 200.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, l_pos);
 
-    glTranslatef(-80, -80, -100);
+    // glTranslatef(-80, -80, -100);
     glColor4fv(_metaballsColor);
     glBegin(GL_TRIANGLES);
-    // glBegin(GL_LINE_LOOP);
-    // glVertex3f(0.0f, 0.0f, 0.0f);
-    // glVertex3f(1.0f, 0.0f, 0.0f);
-    // glVertex3f(1.0f, 1.0f, 0.0f);
+    // gts_surface_foreach_face(g_surface, draw_face, NULL);
+    //*
     Triangle t;
     for (int i = 0; i < _surface.size(); i++)
     {
@@ -202,12 +295,107 @@ void MetaballsView::render()
         glNormal3fv(t.n[2]);
         glVertex3fv(t.p[2]);
     }//for
+    // */
     glEnd();
 }//render
 
-void MetaballsView::tick(Frame_Data* data)
+void MetaballsView::tick(Frame* frame, QuantisedFrame* data)
 {
+    this->frame = frame;
     this->data = data;
+
+    int z, y, x;
+    for (z = 0; z < 255; z++)
+        for (y = 0; y < 255; y++)
+            for (x = 0; x < 255; x++)
+                volumedata[z][y][x] = 0;
+
+    int sz, sy, sx, fz, fy, fx;
+    int metaballs_size = 15;
+    int contrib = 10;
+    int v;
+    printf("reset: %i\n", data->natoms());
+    for (int i = 0; i < data->natoms(); i++)
+    {
+        if (pdb[i].atom_name == "OH2")
+        {
+            x = data->quantised_frame[i*3];
+            sx = x - metaballs_size;
+            if (sx < 0) sx = 0;
+            fx = x + metaballs_size;
+            if (fx > 255) fx = 255;
+
+            y = data->quantised_frame[i*3+1];
+            sy = y - metaballs_size;
+            if (sy < 0) sy = 0;
+            fy = y + metaballs_size;
+            if (fy > 255) fy = 255;
+
+            z = data->quantised_frame[i*3+2];
+            sz = z - metaballs_size;
+            if (sz < 0) sz = 0;
+            fz = z + metaballs_size;
+            if (fz > 255) fz = 255;
+
+            for (z = sz; z < fz; z++)
+                for (y = sy; y < fy; y++)
+                    for (x = sx; x < fx; x++)
+                    {
+                        v = volumedata[z][y][x] + contrib;
+                        volumedata[z][y][x] = (v > 255) ? 255 : v;
+                    }//for
+        }//if
+    }//for
+
+    _surface.clear();
+    printf("march march march\n");
+    delete g_surface;
+    g_surface = gts_surface_new(gts_surface_class(),
+                                gts_face_class(),
+                                gts_edge_class(),
+                                gts_vertex_class());
+    gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 128);
+    int count = gts_surface_face_number(g_surface);
+    printf("face number: %u\n", count);
+    gts_surface_foreach_face(g_surface, draw_face, (void*)&_surface);
+    return;
+
+    /*
+
+
+    _surface.clear();
+    printf("woo: 0x%x\n", mridata);
+    gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)mridata, 128);
+    printf("hoo\n");
+    // gts_isosurface_cartesian(g_surface, g_grid, sampleSphere, NULL, 128);
+    // gts_isosurface_tetra_bcl(g_surface, g_grid, sampleSphere, NULL, 128);
+    // gts_isosurface_tetra(g_surface, g_grid, sampleSphere, NULL, 128);
+    int count = gts_surface_face_number(g_surface);
+    printf("face number: %u\n", count);
+    gts_surface_foreach_face(g_surface, draw_face, (void*)&_surface);
+
+    GtsVolumeOptimizedParams params = {0.5, 0.5, 0.0};
+
+    GtsKeyFunc cost_func = (GtsKeyFunc)gts_volume_optimized_cost;
+    gpointer cost_data = &params;
+
+    GtsCoarsenFunc coarsen_func = (GtsCoarsenFunc)gts_volume_optimized_vertex;
+    gpointer coarsen_data = &params;
+
+        // GtsStopFunc stop_func = (GtsStopFunc)gts_coarsen_stop_cost;
+        // gdouble cmax = 0.001;
+        // gpointer stop_data = &cmax;
+    GtsStopFunc stop_func = (GtsStopFunc)gts_coarsen_stop_number;
+    guint number = count * 0.75;
+    gpointer stop_data = &number;
+
+    gts_surface_coarsen(g_surface,
+            cost_func, cost_data,
+            coarsen_func, coarsen_data,
+            stop_func, stop_data,
+            M_PI/180);
+    printf("coarsen number: %u\n", gts_surface_face_number(g_surface));
+    return;
 
     int nz = 160 - _stepSize - 1;
     int ny = 160 - _stepSize - 1;
@@ -245,13 +433,17 @@ void MetaballsView::tick(Frame_Data* data)
     min = dd;
     max = dd;
 
+    bool w = true;
     for (int i = 0; i < _surface.size(); i++)
     {
         t = _surface.at(i);
         for (v = 0; v < 3; v++)
         {
-            // if (t->p[v][0] < 5)
-                // printf("wtf?\n");
+            if ((t.p[v][0] < 5) && w)
+            {
+                printf("wtf?\n");
+                w = false;
+            }//if
 
             dx = t.p[v][0] - 100;
             dy = t.p[v][1] - 80;
@@ -269,12 +461,14 @@ void MetaballsView::tick(Frame_Data* data)
         }//for
     }//for
     printf("min: %f\nmax: %f (%f, %f, %f)\n", min, max, maxv[0], maxv[1], maxv[2]);
+    // */
 
 }//tick
 
 
 void MetaballsView::initGL()
 {
+    printf("initGL\n");
     // float m_amb[] = {0.3f, 0.3f, 0.3f, 1.0f};
     // float m_spe[] = {1.0f, 1.0f, 1.0f, 1.0f};
     // float m_shin[] = {50.0f};
@@ -318,6 +512,10 @@ void MetaballsView::initGL()
     glLightfv( GL_LIGHT0, GL_SPECULAR, afPropertiesSpecular);
     glMaterialfv(GL_BACK,  GL_AMBIENT,   afAmbientGreen);
     glMaterialfv(GL_BACK,  GL_DIFFUSE,   afDiffuseGreen);
+    // glMaterialfv(GL_BACK, GL_AMBIENT,   afAmbientBlue);
+    // glMaterialfv(GL_BACK, GL_DIFFUSE,   afDiffuseBlue);
+    // glMaterialfv(GL_BACK, GL_SPECULAR,  afSpecularWhite);
+    // glMaterialf( GL_BACK, GL_SHININESS, 15.0);
     glMaterialfv(GL_FRONT, GL_AMBIENT,   afAmbientBlue);
     glMaterialfv(GL_FRONT, GL_DIFFUSE,   afDiffuseBlue);
     glMaterialfv(GL_FRONT, GL_SPECULAR,  afSpecularWhite);
@@ -352,6 +550,10 @@ void MetaballsView::setStepSize(int value)
 {
     _stepSize = value;
 
+    g_grid.dx = _stepSize;
+    g_grid.dy = _stepSize;
+    g_grid.dz = _stepSize;
+
     settings->setValue("metaballsView/stepSize", _stepSize);
 }//setStepSize
 
@@ -372,10 +574,10 @@ void MetaballsView::setCullFace(int state)
 
     if (current)
     {
-        if (state == 0)
-            glDisable(GL_CULL_FACE);
-        else
+        if (cullFace)
             glEnable(GL_CULL_FACE);
+        else
+            glDisable(GL_CULL_FACE);
     }//if
 }//setCullFace
 
@@ -386,16 +588,16 @@ void MetaballsView::setLighting(int state)
 
     if (current)
     {
-        if (state == 0)
-            glDisable(GL_LIGHTING);
-        else
+        if (lighting)
             glEnable(GL_LIGHTING);
+        else
+            glDisable(GL_LIGHTING);
     }//if
 }//setLighting
 
 void MetaballsView::updateFaces()
 {
-    tick(0);
+    tick(this->frame, this->data);
 }//updateFaces
 
 
@@ -404,7 +606,7 @@ float MetaballsView::sampleVolume(float x, float y, float z)
     int ix = (int)x;
     int iy = (int)y;
     int iz = (int)z;
-    return mridata[iz][iy][ix];
+    return volumedata[iz][iy][ix];
 }//sampleVolume
 
 

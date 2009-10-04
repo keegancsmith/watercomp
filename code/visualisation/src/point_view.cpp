@@ -10,7 +10,7 @@
 #include <QWidget>
 #include <GL/gl.h>
 
-#include "frame_data.h"
+#include <quantiser/QuantisedFrame.h>
 
 #define MAX_ALPHA_SLIDER 100
 #define MAX_ALPHA_VAL 0.1
@@ -51,20 +51,26 @@ QWidget* PointView::preferenceWidget()
 }//preferenceWidget
 
 
-void PointView::tick(Frame_Data* data)
+void PointView::tick(Frame* frame, QuantisedFrame* data)
 {
+    this->frame = frame;
     this->data = data;
 }//tick
 
 void PointView::render()
 {
+    if (data == NULL)
+        return;
     glDepthFunc(GL_ALWAYS);
     //draw points
     glColor4fv(_pointColor);
     glBegin(GL_POINTS);
     for (int i = 0; i < data->natoms(); i++)
     {
-        glVertex3dv(data->at(i).pos);
+        if (pdb[i].atom_name == "OH2")
+            glVertex3i(data->quantised_frame[i*3],
+                    data->quantised_frame[i*3+1],
+                    data->quantised_frame[i*3+2]);
     }//for
     glEnd();
     glDepthFunc(GL_LEQUAL);

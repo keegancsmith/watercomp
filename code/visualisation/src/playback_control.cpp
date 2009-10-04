@@ -66,7 +66,7 @@ void PlaybackControl::setTotalFrames(int value)
 {
     if (value < 0) value = 0;
     _totalFrames = value;
-    slider->setMaximum(_totalFrames);
+    slider->setMaximum(_totalFrames-1);
 }//setTotalFrames
 
 int PlaybackControl::frame()

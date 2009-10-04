@@ -3,6 +3,7 @@
 
 #include "base_view.h"
 
+#include <gts.h>
 #include <QVector>
 
 class QSettings;
@@ -29,7 +30,7 @@ class MetaballsView : public BaseView
         virtual QWidget* preferenceWidget();
 
         virtual void render();
-        virtual void tick(Frame_Data* data);
+        virtual void tick(Frame* frame, QuantisedFrame* data);
 
     protected:
         virtual void initGL();
@@ -49,11 +50,10 @@ class MetaballsView : public BaseView
         bool lighting;
         int maxStepSize;
         int _stepSize;
-        Frame_Data* data;
         float _metaballsColor[4];
         QVector<Triangle> _surface;
 
-        unsigned char*** mridata;
+        unsigned char*** volumedata;
 
         QWidget* _preferenceWidget;
         QSlider* metaballsAlphaSlider;
@@ -69,6 +69,9 @@ class MetaballsView : public BaseView
         void doMarchingTetrahedron(float tetrahedronPosition[4][3], float tetrahedronValue[3]);
         void callMarchingTetrahedrons(float x, float y, float z, float scale);
         void callMarchingCubes(float x, float y, float z, float scale);
+
+        GtsSurface* g_surface;
+        GtsCartesianGrid g_grid;
 
 };//MetaballsView
 

@@ -12,10 +12,17 @@
 
 #include <string.h>
 
-#include "dcd_loader.h"
-#include "frame_data.h"
+#include <pdbio/AtomInformation.h>
+#include <pdbio/DCDReader.h>
+#include <pdbio/Frame.h>
+#include <pdbio/PDBReader.h>
+#include <quantiser/QuantisedFrame.h>
+#include <splitter/FrameSplitter.h>
+#include <splitter/WaterMolecule.h>
+#include <graph/gridgraphcreator/GridGraphCreator.h>
+
+#include "cluster_view.h"
 #include "metaballs_view.h"
-#include "pdb_loader.h"
 #include "playback_control.h"
 #include "point_view.h"
 #include "renderer.h"
@@ -37,7 +44,6 @@ MainWindow::MainWindow()
     QVBoxLayout* centralLayout = new QVBoxLayout(centralWidget);
 
     renderer = new Renderer(centralWidget);
-    data = renderer->data;
 
     centralLayout->addWidget(renderer);
 
@@ -49,12 +55,15 @@ MainWindow::MainWindow()
     setCentralWidget(centralWidget);
     resize(600, 480);
 
-    dcd = NULL;
+    dcdreader = new DCDReader();
+    atoms = NULL;
     viewPreferenceDialog = new ViewPreferenceDialog(this);
 
     //setup menu last since the renderer views depends on some stuff
     setupMenu();
 
+    frame = 0;
+    data = 0;
     renderer->setRenderMode(settings->value("renderer/renderMode", 0).toInt());
 }//constructor
 
@@ -63,10 +72,11 @@ MainWindow::~MainWindow()
     settings->sync();
     delete settings;
 
-    if (dcd != NULL)
-        delete dcd;
     foreach (BaseView* view, views)
         delete view;
+    delete dcdreader;
+    if (atoms != NULL)
+        delete [] atoms;
 }//destructor
 
 
@@ -81,18 +91,22 @@ void MainWindow::doOpenFile()
     // settings->setValue("recentFiles", recentFiles);
     settings->setValue("lastFile", lastLocation);
 
-    PDB_Loader l;
-    data->clear();
-    if (!l.load_file(lastLocation.toStdString().c_str(), data))
-        return;
-    data->update_bbox();
-    renderer->resetView();
+    pdb = PDBReader::load_pdbfile(lastLocation.toStdString().c_str());
+    dcdreader->open_file(lastLocation.replace(QRegExp(".pdb$"), ".dcd").toStdString().c_str());
+    playbackControl->setTotalFrames(dcdreader->nframes());
 
-    if (dcd == NULL)
-        delete dcd;
-    dcd = new DCD_Loader();
-    dcd->load_dcd_file(lastLocation.replace(QRegExp(".pdb$"), ".dcd").toStdString().c_str());
-    playbackControl->setTotalFrames(dcd->totalFrames());
+    foreach (BaseView* view, views)
+    {
+        view->init(pdb);
+    }//foreach
+
+    if (atoms) delete [] atoms;
+    atoms = new float[3 * dcdreader->natoms()];
+    if (frame) delete frame;
+    frame = new Frame(atoms, dcdreader->natoms());
+    setFrame(0);
+    float volumeSize[] = {1<<8, 1<<8, 1<<8};
+    renderer->resetView(volumeSize);
 }//doOpenFile
 
 void MainWindow::doViewPreferences()
@@ -108,11 +122,13 @@ void MainWindow::doViewPreferences()
 
 void MainWindow::setFrame(int value)
 {
-    if (dcd->frame(value))
-    {
-        dcd->load_dcd_frame(data);
-        renderer->dataTick();
-    }//if
+    dcdreader->set_frame(value);
+    if (!dcdreader->next_frame(*frame))
+        return;
+
+    if (data) delete data;
+    data = new QuantisedFrame(*frame, 8, 8, 8);
+    renderer->dataTick(frame, data);
 }//setFrame
 
 
@@ -141,6 +157,7 @@ void MainWindow::setupMenu()
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     addRenderMode(new PointView(), viewMenu);
     addRenderMode(new MetaballsView(), viewMenu);
+    addRenderMode(new ClusterView(), viewMenu);
 
     viewMenu->addSeparator();
     QAction* viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
@@ -160,7 +177,6 @@ void MainWindow::addRenderMode(BaseView* view, QMenu* menu)
     connect(view, SIGNAL(selectView(int)), renderer, SLOT(setRenderMode(int)));
     menu->addAction(viewAction);
     views[viewAction] = view;
-    view->tick(data);
 
     int tabID = viewPreferenceDialog->addTab(view->preferenceWidget(), view->viewName);
     view->preferenceID = tabID;

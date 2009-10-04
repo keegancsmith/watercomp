@@ -4,8 +4,13 @@
 #include <QObject>
 #include <QString>
 
-class Frame_Data;
+#include <vector>
+#include <pdbio/AtomInformation.h>
+
 class QWidget;
+
+class Frame;
+class QuantisedFrame;
 
 class BaseView : public QObject
 {
@@ -17,15 +22,20 @@ class BaseView : public QObject
         int preferenceID;
         QWidget* preferenceParent;
         bool current;
+        std::vector<AtomInformation> pdb;
+        Frame* frame;
+        QuantisedFrame* data;
 
         BaseView();
         virtual ~BaseView();
+
+        virtual void init(std::vector<AtomInformation> pdb);
 
         virtual void updatePreferences();
         virtual QWidget* preferenceWidget();
 
         virtual void render();
-        virtual void tick(Frame_Data* data);
+        virtual void tick(Frame* frame, QuantisedFrame* data);
 
     signals:
         void selectView(int viewID);

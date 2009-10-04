@@ -3,8 +3,6 @@
 #include <QColor>
 #include <QColorDialog>
 
-#include "frame_data.h"
-
 BaseView::BaseView()
 {
     viewName = "";
@@ -18,6 +16,11 @@ BaseView::~BaseView()
 {
 }//destructor
 
+
+void BaseView::init(std::vector<AtomInformation> pdb)
+{
+    this->pdb = pdb;
+}//init
 
 void BaseView::updatePreferences()
 {
@@ -33,8 +36,10 @@ void BaseView::render()
 {
 }//render
 
-void BaseView::tick(Frame_Data* data)
+void BaseView::tick(Frame* frame, QuantisedFrame* data)
 {
+    this->frame = frame;
+    this->data = data;
 }//tick
 
 

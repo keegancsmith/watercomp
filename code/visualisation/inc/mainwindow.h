@@ -4,15 +4,22 @@
 #include <QMainWindow>
 #include <QMap>
 #include <QString>
-// #include <QStringList>
+
+#include <vector>
+
+#include <pdbio/AtomInformation.h>
+#include <splitter/FrameSplitter.h>
+#include <splitter/WaterMolecule.h>
+#include <graph/gridgraphcreator/GridGraphCreator.h>
 
 class QAction;
 class QMenu;
 class QSettings;
 class QVBoxLayout;
 
-class DCD_Loader;
-class Frame_Data;
+class DCDReader;
+class Frame;
+class QuantisedFrame;
 
 class BaseView;
 class PlaybackControl;
@@ -39,8 +46,11 @@ class MainWindow : public QMainWindow
         QString lastLocation;
         // QStringList recentFiles;
 
-        DCD_Loader* dcd;
-        Frame_Data* data;
+        std::vector<AtomInformation> pdb;
+        DCDReader* dcdreader;
+        float* atoms;
+        Frame* frame;
+        QuantisedFrame* data;
 
         PlaybackControl* playbackControl;
         Renderer* renderer;
