@@ -31,7 +31,6 @@ void NaiveReader::start()
 
 bool NaiveReader::next_frame(QuantisedFrame & qframe)
 {
-
     assert(qframe.natoms() == natoms());
 
     // Frame header
@@ -41,8 +40,8 @@ bool NaiveReader::next_frame(QuantisedFrame & qframe)
     fread(qframe.max_coord, sizeof(float), 3, m_fin);
 
     qframe.m_xquant = header_quant[0];
-    qframe.m_yquant = header_quant[0];
-    qframe.m_zquant = header_quant[0];
+    qframe.m_yquant = header_quant[1];
+    qframe.m_zquant = header_quant[2];
 
     ArithmeticDecoder ad;
     ad.start_decode(m_fin);
