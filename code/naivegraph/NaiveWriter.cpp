@@ -1,5 +1,4 @@
 #include "NaiveWriter.h"
-#include "arithmetic/ArithmeticEncoder.h"
 #include "graph/GraphCreator.h"
 #include "graph/SpanningTree.h"
 #include "graph/TreeSerialiser.h"
@@ -16,6 +15,8 @@ NaiveWriter::~NaiveWriter()
 void NaiveWriter::start(int atoms, int frames, int ISTART,
                         int NSAVC, double DELTA)
 {
+    m_encoder.start_encode(m_fout);
+
     // File header
     int header_int[4] = { atoms, frames, ISTART, NSAVC };
     fwrite(header_int, sizeof(int), 4, m_fout);
@@ -38,10 +39,7 @@ void NaiveWriter::next_frame(const QuantisedFrame& qframe)
     Graph * tree = spanning_tree(fully_connected_graph, root);
 
     // Output the spanning tree
-    ArithmeticEncoder ae;
-    ae.start_encode(m_fout);
-    serialise_tree(ae, tree, root);
-    ae.end_encode();
+    serialise_tree(m_encoder, tree, root);
 
     // Cleanup
     delete tree;
@@ -50,4 +48,5 @@ void NaiveWriter::next_frame(const QuantisedFrame& qframe)
 
 void NaiveWriter::end()
 {
+    m_encoder.end_encode();
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FrameWriter.h"
+#include "arithmetic/ArithmeticEncoder.h"
 #include "quantiser/QuantisedFrame.h"
 
 #include <cstdio>
@@ -18,4 +19,5 @@ public:
 
 private:
     FILE * m_fout;
+    ArithmeticEncoder m_encoder;
 };

@@ -14,6 +14,8 @@ NaiveReader::NaiveReader(FILE * fin)
 
 void NaiveReader::start()
 {
+    m_decoder.start_decode(m_fin);
+
     // Read file header
     int header_int[4];
     fread(header_int, sizeof(int), 4, m_fin);
@@ -43,9 +45,7 @@ bool NaiveReader::next_frame(QuantisedFrame & qframe)
     qframe.m_yquant = header_quant[1];
     qframe.m_zquant = header_quant[2];
 
-    ArithmeticDecoder ad;
-    ad.start_decode(m_fin);
-    deserialise_tree(ad, qframe);
+    deserialise_tree(m_decoder, qframe);
 }
 
 

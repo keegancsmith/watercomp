@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FrameReader.h"
+#include "arithmetic/ArithmeticDecoder.h"
 
 #include <cstdio>
 
@@ -16,4 +17,5 @@ public:
 
 private:
     FILE * m_fin;
+    ArithmeticDecoder m_decoder;
 };

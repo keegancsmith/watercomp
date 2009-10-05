@@ -5,3 +5,6 @@ driver: main.cpp AdaptiveModelEncoder.cpp AdaptiveModelEncoder.h AdaptiveModelDe
 
 clean:
 	rm -f *.o
+
+check-syntax:
+	$(CC) -Wextra -Wno-sign-compare -fsyntax-only $(CHK_SOURCES)
