@@ -75,15 +75,12 @@ bool decompress(Compressor & c, string cmppath, string dcdpath)
 
     // Read in each frame
     QuantisedFrame qframe(reader->natoms(), 0, 0, 0);
-    int frame_num = 0;
-    while(reader->next_frame(qframe)) {
-        cout << frame_num++ << endl;
-
+    for (int frame_num = 0; frame_num < reader->nframes(); frame_num++) {
+        cout << frame_num << endl;
+        reader->next_frame(qframe);
         Frame frame = qframe.toFrame();
         writer.save_dcd_frame(frame);
     }
-
-    assert(frame_num == reader->nframes());
 
     // Clean up
     reader->end();
