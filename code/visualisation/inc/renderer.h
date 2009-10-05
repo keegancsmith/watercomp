@@ -24,6 +24,12 @@ class Renderer : public QGLWidget
 
         double scrollSensitivity;
 
+        float volume_min[3];
+        float volume_max[3];
+        float volume_range[3];
+        float volume_middle[3];
+        float max_side;
+
         Renderer(QWidget* parent=0);
         ~Renderer();
 
@@ -65,12 +71,6 @@ class Renderer : public QGLWidget
         bool dragging[3];
         int lastpos[2];
         int startdrag[2];
-
-        float volume_min[3];
-        float volume_max[3];
-        float volume_range[3];
-        float volume_middle[3];
-        float max_side;
 
         bool _focusPlane;
         float focusPlaneDepth;

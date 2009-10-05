@@ -12,6 +12,8 @@
 
 #include <quantiser/QuantisedFrame.h>
 
+#include "renderer.h"
+
 #define MAX_ALPHA_SLIDER 100
 #define MAX_ALPHA_VAL 0.1
 
@@ -61,6 +63,8 @@ void PointView::render()
 {
     if (data == NULL)
         return;
+    if (parent)
+        glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
     glDepthFunc(GL_ALWAYS);
     //draw points
     glColor4fv(_pointColor);

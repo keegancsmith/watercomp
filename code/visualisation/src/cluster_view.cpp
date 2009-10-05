@@ -23,6 +23,8 @@
 #include <graph/anngraphcreator/ANNGraphCreator.h>
 #include <graph/gridgraphcreator/GridGraphCreator.h>
 
+#include "renderer.h"
+
 #define MAX_ALPHA_SLIDER 100
 #define MAX_ALPHA_VAL 0.9
 
@@ -31,7 +33,7 @@
 ClusterView::ClusterView()
 {
     settings = new QSettings;
-    viewName = "Point data view";
+    viewName = "Water cluster view";
     _lineColor[0] = settings->value("clusterView/colorR", 0.0).toDouble();
     _lineColor[1] = settings->value("clusterView/colorG", 0.0).toDouble();
     _lineColor[2] = settings->value("clusterView/colorB", 1.0).toDouble();
@@ -90,6 +92,8 @@ void ClusterView::tick(Frame* frame, QuantisedFrame* data)
     // graph = GridGraphCreator::create_graph(waters, *frame);
 
     num_clusters = 0;
+    components.clear();
+    sizes.clear();
     for(int i = 0; i < waters.size(); ++i)
     {
         if(components.find(waters[i].OH2_index) == components.end())
@@ -107,6 +111,9 @@ void ClusterView::render()
 {
     if (data == NULL)
         return;
+
+    if (parent)
+        glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
     glColor4fv(_lineColor);
     glBegin(GL_LINES);
     int start;

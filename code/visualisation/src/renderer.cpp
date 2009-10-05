@@ -113,7 +113,7 @@ void Renderer::paintGL()
     glTranslatef(0, 0, -zoom);
     glPushMatrix();
     glMultMatrixd(rot->matrix);
-    glTranslatef(-volume_middle[0], -volume_middle[1], -volume_middle[2]);
+    // glTranslatef(-volume_middle[0], -volume_middle[1], -volume_middle[2]);
 
     // renderAxes();
     renderModes[_renderMode]->render();

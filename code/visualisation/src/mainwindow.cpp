@@ -25,6 +25,7 @@
 #include "metaballs_view.h"
 #include "playback_control.h"
 #include "point_view.h"
+#include "quantise_error_view.h"
 #include "renderer.h"
 #include "view_preference.h"
 
@@ -158,6 +159,7 @@ void MainWindow::setupMenu()
     addRenderMode(new PointView(), viewMenu);
     addRenderMode(new MetaballsView(), viewMenu);
     addRenderMode(new ClusterView(), viewMenu);
+    addRenderMode(new QuantiseErrorView(), viewMenu);
 
     viewMenu->addSeparator();
     QAction* viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
@@ -177,6 +179,7 @@ void MainWindow::addRenderMode(BaseView* view, QMenu* menu)
     connect(view, SIGNAL(selectView(int)), renderer, SLOT(setRenderMode(int)));
     menu->addAction(viewAction);
     views[viewAction] = view;
+    view->parent = renderer;
 
     int tabID = viewPreferenceDialog->addTab(view->preferenceWidget(), view->viewName);
     view->preferenceID = tabID;

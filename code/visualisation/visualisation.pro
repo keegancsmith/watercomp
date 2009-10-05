@@ -26,7 +26,9 @@ HEADERS += \
             inc/renderer.h \
             inc/playback_control.h \
             inc/point_view.h \
+            inc/quantise_error_view.h \
             inc/quaternion.h \
+            inc/util.h \
             inc/view_preference.h \
 
 SOURCES += \
@@ -37,8 +39,10 @@ SOURCES += \
             src/metaballs_view.cpp \
             src/renderer.cpp \
             src/playback_control.cpp \
+            src/quantise_error_view.cpp \
             src/point_view.cpp \
             src/quaternion.cpp \
+            src/util.cpp \
             src/view_preference.cpp \
             ../components/graph/Graph.cpp \
             ../components/graph/GraphCreator.cpp \

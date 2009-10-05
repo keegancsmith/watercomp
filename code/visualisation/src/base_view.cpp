@@ -3,8 +3,11 @@
 #include <QColor>
 #include <QColorDialog>
 
+#include "renderer.h"
+
 BaseView::BaseView()
 {
+    parent = 0;
     viewName = "";
     viewID = -1;
     preferenceID = -1;
