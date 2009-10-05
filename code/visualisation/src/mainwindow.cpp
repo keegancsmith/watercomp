@@ -65,7 +65,7 @@ MainWindow::MainWindow()
 
     frame = 0;
     data = 0;
-    renderer->setRenderMode(settings->value("renderer/renderMode", 0).toInt());
+    renderer->setRenderMode(settings->value("Renderer/renderMode", 0).toInt());
 }//constructor
 
 MainWindow::~MainWindow()

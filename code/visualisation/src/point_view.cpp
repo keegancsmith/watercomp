@@ -23,13 +23,13 @@ PointView::PointView()
 {
     settings = new QSettings;
     viewName = "Point data view";
-    _pointColor[0] = settings->value("pointView/colorR", 0.0).toDouble();
-    _pointColor[1] = settings->value("pointView/colorG", 0.0).toDouble();
-    _pointColor[2] = settings->value("pointView/colorB", 1.0).toDouble();
-    _pointColor[3] = settings->value("pointView/colorA", 0.02).toDouble();
+    _pointColor[0] = settings->value("PointView/colorR", 0.0).toDouble();
+    _pointColor[1] = settings->value("PointView/colorG", 0.0).toDouble();
+    _pointColor[2] = settings->value("PointView/colorB", 1.0).toDouble();
+    _pointColor[3] = settings->value("PointView/colorA", 0.02).toDouble();
     data = 0;
     _preferenceWidget = NULL;
-    _pointSize = settings->value("pointView/pointSize", 10).toInt();
+    _pointSize = settings->value("PointView/pointSize", 10).toInt();
 }//constructor
 
 PointView::~PointView()
@@ -98,7 +98,7 @@ void PointView::setPointAlpha(int value)
     if (value < 0) value = 0;
     _pointColor[3] = (float)value * MAX_ALPHA_VAL / MAX_ALPHA_SLIDER;
 
-    settings->setValue("pointView/colorA", _pointColor[3]);
+    settings->setValue("PointView/colorA", _pointColor[3]);
 }//setPointAlpha
 
 void PointView::setPointSize(int value)
@@ -108,16 +108,16 @@ void PointView::setPointSize(int value)
     _pointSize = value;
     if (current) glPointSize(_pointSize);
 
-    settings->setValue("pointView/pointSize", _pointSize);
+    settings->setValue("PointView/pointSize", _pointSize);
 }//setPointSize
 
 void PointView::pickPointColor()
 {
     pickColor(_pointColor);
 
-    settings->setValue("pointView/colorR", _pointColor[0]);
-    settings->setValue("pointView/colorG", _pointColor[1]);
-    settings->setValue("pointView/colorB", _pointColor[2]);
+    settings->setValue("PointView/colorR", _pointColor[0]);
+    settings->setValue("PointView/colorG", _pointColor[1]);
+    settings->setValue("PointView/colorB", _pointColor[2]);
 }//pickPointColor
 
 

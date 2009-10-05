@@ -34,13 +34,13 @@ ClusterView::ClusterView()
 {
     settings = new QSettings;
     viewName = "Water cluster view";
-    _lineColor[0] = settings->value("clusterView/colorR", 0.0).toDouble();
-    _lineColor[1] = settings->value("clusterView/colorG", 0.0).toDouble();
-    _lineColor[2] = settings->value("clusterView/colorB", 1.0).toDouble();
-    _lineColor[3] = settings->value("clusterView/colorA", 0.02).toDouble();
+    _lineColor[0] = settings->value("ClusterView/colorR", 0.0).toDouble();
+    _lineColor[1] = settings->value("ClusterView/colorG", 0.0).toDouble();
+    _lineColor[2] = settings->value("ClusterView/colorB", 1.0).toDouble();
+    _lineColor[3] = settings->value("ClusterView/colorA", 0.02).toDouble();
     data = 0;
     _preferenceWidget = NULL;
-    _lineWidth = settings->value("clusterView/lineWidth", 2).toInt();
+    _lineWidth = settings->value("ClusterView/lineWidth", 2).toInt();
 
     num_clusters = 0;
     current_cluster = -1;
@@ -166,7 +166,7 @@ void ClusterView::setLineAlpha(int value)
     if (value < 0) value = 0;
     _lineColor[3] = (float)value * MAX_ALPHA_VAL / MAX_ALPHA_SLIDER;
 
-    settings->setValue("clusterView/colorA", _lineColor[3]);
+    settings->setValue("ClusterView/colorA", _lineColor[3]);
 }//setLineAlpha
 
 void ClusterView::setLineWidth(int value)
@@ -176,16 +176,16 @@ void ClusterView::setLineWidth(int value)
     _lineWidth = value;
     if (current) glLineWidth(_lineWidth);
 
-    settings->setValue("clusterView/lineWidth", _lineWidth);
+    settings->setValue("ClusterView/lineWidth", _lineWidth);
 }//setLineWidth
 
 void ClusterView::pickLineColor()
 {
     pickColor(_lineColor);
 
-    settings->setValue("clusterView/colorR", _lineColor[0]);
-    settings->setValue("clusterView/colorG", _lineColor[1]);
-    settings->setValue("clusterView/colorB", _lineColor[2]);
+    settings->setValue("ClusterView/colorR", _lineColor[0]);
+    settings->setValue("ClusterView/colorG", _lineColor[1]);
+    settings->setValue("ClusterView/colorB", _lineColor[2]);
 }//pickLineColor
 
 void ClusterView::setClusterID(int value)

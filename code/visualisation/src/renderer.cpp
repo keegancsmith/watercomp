@@ -210,7 +210,7 @@ void Renderer::setRenderMode(int mode)
         renderModes[mode]->tick(renderModes[_renderMode]->frame, renderModes[_renderMode]->data);
     }//if
     _renderMode = mode;
-    settings->setValue("renderer/renderMode", _renderMode);
+    settings->setValue("Renderer/renderMode", _renderMode);
     if (_renderMode > -1)
         renderModes[_renderMode]->current = true;
 }//setRenderMode

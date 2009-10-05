@@ -264,17 +264,17 @@ MetaballsView::MetaballsView()
     // TODO: define maxStepSize relative to the volume size
     // TODO: define _stepSize relative to the volume size
     maxStepSize = 80;
-    _stepSize = settings->value("metaballsView/stepSize", 5).toInt();
+    _stepSize = settings->value("MetaballsView/stepSize", 5).toInt();
 
     viewName = "Metaballs view";
-    _metaballsColor[0] = settings->value("metaballsView/colorR", 0.5).toDouble();
-    _metaballsColor[1] = settings->value("metaballsView/colorG", 0.5).toDouble();
-    _metaballsColor[2] = settings->value("metaballsView/colorB", 0.5).toDouble();
-    _metaballsColor[3] = settings->value("metaballsView/colorA", 1.0).toDouble();
+    _metaballsColor[0] = settings->value("MetaballsView/colorR", 0.5).toDouble();
+    _metaballsColor[1] = settings->value("MetaballsView/colorG", 0.5).toDouble();
+    _metaballsColor[2] = settings->value("MetaballsView/colorB", 0.5).toDouble();
+    _metaballsColor[3] = settings->value("MetaballsView/colorA", 1.0).toDouble();
     data = 0;
 
-    lighting = settings->value("metaballsView/lighting", false).toBool();
-    cullFace = settings->value("metaballsView/cullFace", false).toBool();
+    lighting = settings->value("MetaballsView/lighting", false).toBool();
+    cullFace = settings->value("MetaballsView/cullFace", false).toBool();
 
     _preferenceWidget = NULL;
     setupPreferenceWidget();
@@ -741,7 +741,7 @@ void MetaballsView::setMetaballsAlpha(int value)
     if (value < 0) value = 0;
     _metaballsColor[3] = (float)value * ALPHA_MAX_VAL / ALPHA_MAX_SLIDER;
 
-    settings->setValue("metaballsView/colorA", _metaballsColor[3]);
+    settings->setValue("MetaballsView/colorA", _metaballsColor[3]);
 }//setMetaballsAlpha
 
 void MetaballsView::setStepSize(int value)
@@ -752,23 +752,23 @@ void MetaballsView::setStepSize(int value)
     g_grid.dy = _stepSize;
     g_grid.dz = _stepSize;
 
-    settings->setValue("metaballsView/stepSize", _stepSize);
+    settings->setValue("MetaballsView/stepSize", _stepSize);
 }//setStepSize
 
 void MetaballsView::pickMetaballsColor()
 {
     pickColor(_metaballsColor);
 
-    settings->setValue("metaballsView/colorR", _metaballsColor[0]);
-    settings->setValue("metaballsView/colorG", _metaballsColor[1]);
-    settings->setValue("metaballsView/colorB", _metaballsColor[2]);
+    settings->setValue("MetaballsView/colorR", _metaballsColor[0]);
+    settings->setValue("MetaballsView/colorG", _metaballsColor[1]);
+    settings->setValue("MetaballsView/colorB", _metaballsColor[2]);
 }//pickMetaballsColor
 
 
 void MetaballsView::setCullFace(int state)
 {
     cullFace = state != 0;
-    settings->setValue("metaballsView/cullFace", cullFace);
+    settings->setValue("MetaballsView/cullFace", cullFace);
 
     if (current)
     {
@@ -782,7 +782,7 @@ void MetaballsView::setCullFace(int state)
 void MetaballsView::setLighting(int state)
 {
     lighting = state != 0;
-    settings->setValue("metaballsView/lighting", lighting);
+    settings->setValue("MetaballsView/lighting", lighting);
 
     if (current)
     {
