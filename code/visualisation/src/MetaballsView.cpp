@@ -360,6 +360,8 @@ void MetaballsView::updatePreferences()
 {
     metaballsAlphaSlider->setValue((int)(_metaballsColor[3] * ALPHA_MAX_SLIDER / ALPHA_MAX_VAL));
     stepSizeSlider->setValue(_stepSize);
+    lightCheckBox->setCheckState(lighting ? Qt::Checked : Qt::Unchecked);
+    cullCheckBox->setCheckState(cullFace ? Qt::Checked : Qt::Unchecked);
 }//updatePreferences
 
 QWidget* MetaballsView::preferenceWidget()
@@ -381,7 +383,7 @@ void MetaballsView::render()
     glColor4fv(_metaballsColor);
     glBegin(GL_TRIANGLES);
 
-    //*
+    /*
 
     int v;
     for (int i = 0; i < triangle_num; i++)
@@ -520,8 +522,8 @@ void MetaballsView::tick(Frame* frame, QuantisedFrame* quantised)
 
     printf("vertex num: %i\n", gts_surface_vertex_number(g_surface));
 
-    // gts_surface_foreach_face(g_surface, draw_face, (void*)&_surface);
-    // return;
+    gts_surface_foreach_face(g_surface, draw_face, (void*)&_surface);
+    return;
     // printf("surface count: %i\n", _surface.count());
     gts_surface_foreach_face(g_surface, process_surface, (void*)this);
 
@@ -1056,14 +1058,14 @@ void MetaballsView::setupPreferenceWidget()
     QLabel* cullLabel = new QLabel(tr("Cull faces"), _preferenceWidget);
     layout->addWidget(cullLabel, 3, 0);
 
-    QCheckBox* cullCheckBox = new QCheckBox(_preferenceWidget);
+    cullCheckBox = new QCheckBox(_preferenceWidget);
     connect(cullCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setCullFace(int)));
     layout->addWidget(cullCheckBox, 3, 1);
 
     QLabel* lightLabel = new QLabel(tr("Enable lighting"), _preferenceWidget);
     layout->addWidget(lightLabel, 4, 0);
 
-    QCheckBox* lightCheckBox = new QCheckBox(_preferenceWidget);
+    lightCheckBox = new QCheckBox(_preferenceWidget);
     connect(lightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setLighting(int)));
     layout->addWidget(lightCheckBox, 4, 1);
 

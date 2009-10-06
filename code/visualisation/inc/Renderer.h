@@ -46,6 +46,8 @@ class Renderer : public QGLWidget
         void setTps(int value);
         bool focusPlane();
 
+        float zoom();
+
         int renderMode();
         BaseView* currentView();
         int addRenderMode(BaseView* view);
@@ -66,7 +68,7 @@ class Renderer : public QGLWidget
 
     private:
         QSettings* settings;
-        float zoom;
+        float _zoom;
         float spinning[3];
         bool dragging[3];
         int lastpos[2];

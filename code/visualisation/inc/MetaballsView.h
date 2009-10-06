@@ -7,6 +7,7 @@
 #include <map>
 #include <QVector>
 
+class QCheckBox;
 class QSettings;
 class QSlider;
 
@@ -77,6 +78,8 @@ class MetaballsView : public BaseView
         QWidget* _preferenceWidget;
         QSlider* metaballsAlphaSlider;
         QSlider* stepSizeSlider;
+        QCheckBox* lightCheckBox;
+        QCheckBox* cullCheckBox;
 
         void init();
 

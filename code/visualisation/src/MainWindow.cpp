@@ -109,6 +109,7 @@ void MainWindow::doOpenFile()
     setFrame(0);
     float volumeSize[] = {1<<8, 1<<8, 1<<8};
     renderer->resetView(volumeSize);
+    renderer->currentView()->select();
 }//doOpenFile
 
 void MainWindow::doViewPreferences()

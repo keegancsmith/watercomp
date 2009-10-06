@@ -18,7 +18,7 @@ Renderer::Renderer(QWidget* parent)
     : QGLWidget(parent)
 {
     settings = new QSettings;
-    zoom = 10.0f;
+    _zoom = 10.0f;
 
     spinning[0] = 0;
     spinning[1] = 0;
@@ -110,7 +110,7 @@ void Renderer::paintGL()
         return;
 
     //setup camera
-    glTranslatef(0, 0, -zoom);
+    glTranslatef(0, 0, -_zoom);
     glPushMatrix();
     glMultMatrixd(rot->matrix);
     // glTranslatef(-volume_middle[0], -volume_middle[1], -volume_middle[2]);
@@ -153,7 +153,7 @@ void Renderer::resetView(float volumeSize[3])
     }//for
 
     //set a default zoom which should cover the entire volume
-    zoom = max_side * 1.7;
+    _zoom = max_side * 1.7;
     focusPlaneDepth = 0;
     scrollSensitivity = max_side * 0.1;
     if (scrollSensitivity < 1) scrollSensitivity = 1;
@@ -184,6 +184,11 @@ void Renderer::toggleFocusPlane()
 {
     _focusPlane = !_focusPlane;
 }//toggleFocusPlane
+
+float Renderer::zoom()
+{
+    return _zoom;
+}//zoom
 
 int Renderer::renderMode()
 {
@@ -317,7 +322,8 @@ void Renderer::mouseReleaseEvent(QMouseEvent* event)
 void Renderer::wheelEvent(QWheelEvent* event)
 {
     int numsteps = event->delta() * scrollSensitivity / (8 * 15);
-    zoom -= numsteps;
+    _zoom -= numsteps;
+    // printf("zoom: %f\n", _zoom);
 }//wheelEvent
 
 void Renderer::renderAxes()

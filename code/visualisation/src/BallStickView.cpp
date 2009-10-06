@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdio>
 
+#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
@@ -16,10 +17,12 @@
 #include <splitter/FrameSplitter.h>
 
 #include "Renderer.h"
+#include "Util.h"
 
 #define MAX_ALPHA_SLIDER 100
 #define MAX_ALPHA_VAL 1.0
 
+#define MIN_SPHERE_SIZE 0.1
 #define MAX_SPHERE_SIZE 20
 
 BallStickView::BallStickView()
@@ -38,6 +41,9 @@ BallStickView::BallStickView()
     _preferenceWidget = NULL;
     _hSize = settings->value("BallStickView/hSize", 10).toDouble();
     _oSize = settings->value("BallStickView/oSize", 10).toDouble();
+    setHSize(_hSize);
+    setOSize(_oSize);
+    lighting = settings->value("BallStickView/lighting", false).toBool();
     quadric = gluNewQuadric();
     // gluQuadricDrawStyle(quadric, GLU_SILHOUETTE);
 }//constructor
@@ -63,6 +69,7 @@ void BallStickView::updatePreferences()
     oSizeSpinBox->setValue(_oSize);
     hAlphaSlider->setValue((int)(_hColor[3] * MAX_ALPHA_SLIDER / MAX_ALPHA_VAL));
     oAlphaSlider->setValue((int)(_oColor[3] * MAX_ALPHA_SLIDER / MAX_ALPHA_VAL));
+    lightCheckBox->setCheckState(lighting ? Qt::Checked : Qt::Unchecked);
 }//updatePreferences
 
 QWidget* BallStickView::preferenceWidget()
@@ -93,13 +100,28 @@ void BallStickView::render()
     glLightfv(GL_LIGHT1, GL_POSITION, l2_pos);
 
     int n = 0;
-    int oslice = (_oSize * 2 * M_PI);
-    int hslice = (_hSize * 2 * M_PI);
-    if (oslice < 1) oslice = 1;
-    if (hslice < 1) hslice = 1;
+    int oslice = oSliceCount * 2;
+    int hslice = hSliceCount * 2;
+    float pos[3];
+    float dis_ratio = 1;
+
+        /*
+        for (int a = 0; a < 3; a++)
+            pos[a] = quantised->quantised_frame[3*waters[i].OH2_index + a] - parent->volume_middle[a];
+        pos[2] += parent->zoom();
+        dis_ratio = 100000 / len2(pos);
+        oslice = oSliceCount * _oSize * _oSize * dis_ratio;
+        hslice = hSliceCount * _hSize * _hSize * dis_ratio;
+        // oslice = oSliceCount;
+        // hslice = hSliceCount;
+        // printf("slice: %i %i\n", oslice, hslice);
+        // */
+    if (oslice < 4) oslice = 4;
+    if (hslice < 4) hslice = 4;
+
     for (int i = 0; i < waters.size(); i++)
     {
-        if (n++ > 100) break;
+        if (n++ > 200) break;
         glColor4fv(_oColor);
         glPushMatrix();
         glTranslatef(quantised->quantised_frame[3*waters[i].OH2_index],
@@ -134,9 +156,10 @@ void BallStickView::initGL()
     glColorMaterial(GL_FRONT, GL_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
 
-    glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_LIGHT1);
+    if (lighting) glEnable(GL_LIGHTING);
+    else glDisable(GL_LIGHTING);
 }//initGL
 
 
@@ -161,8 +184,9 @@ void BallStickView::setOAlpha(int value)
 void BallStickView::setHSize(double value)
 {
     if (value > MAX_SPHERE_SIZE) value = MAX_SPHERE_SIZE;
-    if (value < 1) value = 1;
+    if (value < MIN_SPHERE_SIZE) value = MIN_SPHERE_SIZE;
     _hSize = value;
+    hSliceCount = (_hSize * 2 * M_PI);
 
     settings->setValue("BallStickView/hSize", _hSize);
 }//setHSize
@@ -170,10 +194,11 @@ void BallStickView::setHSize(double value)
 void BallStickView::setOSize(double value)
 {
     if (value > MAX_SPHERE_SIZE) value = MAX_SPHERE_SIZE;
-    if (value < 1) value = 1;
+    if (value < MIN_SPHERE_SIZE) value = MIN_SPHERE_SIZE;
     _oSize = value;
+    oSliceCount = (_oSize * 2 * M_PI);
 
-    settings->setValue("BallStickView/OSize", _oSize);
+    settings->setValue("BallStickView/oSize", _oSize);
 }//setOSize
 
 void BallStickView::pickHColor()
@@ -193,6 +218,20 @@ void BallStickView::pickOColor()
     settings->setValue("BallStickView/oColorG", _oColor[1]);
     settings->setValue("BallStickView/oColorB", _oColor[2]);
 }//pickOColor
+
+void BallStickView::setLighting(int state)
+{
+    lighting = state != 0;
+    settings->setValue("BallStickView/lighting", lighting);
+
+    if (current)
+    {
+        if (lighting)
+            glEnable(GL_LIGHTING);
+        else
+            glDisable(GL_LIGHTING);
+    }//if
+}//setLighting
 
 
 void BallStickView::setupPreferenceWidget()
@@ -242,6 +281,13 @@ void BallStickView::setupPreferenceWidget()
     oSizeSpinBox->setRange(0, MAX_SPHERE_SIZE);
     connect(oSizeSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setOSize(double)));
     layout->addWidget(oSizeSpinBox, 5, 1);
+
+    QLabel* lightLabel = new QLabel(tr("Enable lighting"), _preferenceWidget);
+    layout->addWidget(lightLabel, 6, 0);
+
+    lightCheckBox = new QCheckBox(_preferenceWidget);
+    connect(lightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setLighting(int)));
+    layout->addWidget(lightCheckBox, 6, 1);
 
     _preferenceWidget->setLayout(layout);
 }//setupPreferenceWidget
