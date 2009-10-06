@@ -28,7 +28,7 @@ class BaseView : public QObject
         std::vector<AtomInformation> pdb;
 
         Frame* frame;
-        QuantisedFrame* data;
+        QuantisedFrame* quantised;
 
         BaseView();
         virtual ~BaseView();
@@ -39,7 +39,7 @@ class BaseView : public QObject
         virtual QWidget* preferenceWidget();
 
         virtual void render();
-        virtual void tick(Frame* frame, QuantisedFrame* data);
+        virtual void tick(Frame* frame, QuantisedFrame* quantised);
 
     signals:
         void selectView(int viewID);

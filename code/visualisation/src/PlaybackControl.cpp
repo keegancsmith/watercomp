@@ -1,4 +1,4 @@
-#include "playback_control.h"
+#include "PlaybackControl.h"
 
 #include <QHBoxLayout>
 #include <QPushButton>

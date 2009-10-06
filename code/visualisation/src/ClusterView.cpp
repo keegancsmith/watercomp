@@ -1,4 +1,4 @@
-#include "cluster_view.h"
+#include "ClusterView.h"
 
 #include <cstdio>
 #include <map>
@@ -23,7 +23,7 @@
 #include <graph/anngraphcreator/ANNGraphCreator.h>
 #include <graph/gridgraphcreator/GridGraphCreator.h>
 
-#include "renderer.h"
+#include "Renderer.h"
 
 #define MAX_ALPHA_SLIDER 100
 #define MAX_ALPHA_VAL 0.9
@@ -38,10 +38,10 @@ ClusterView::ClusterView()
     _lineColor[1] = settings->value("ClusterView/colorG", 0.0).toDouble();
     _lineColor[2] = settings->value("ClusterView/colorB", 1.0).toDouble();
     _lineColor[3] = settings->value("ClusterView/colorA", 0.02).toDouble();
-    data = 0;
-    _preferenceWidget = NULL;
     _lineWidth = settings->value("ClusterView/lineWidth", 2).toInt();
+    _preferenceWidget = NULL;
 
+    quantised = 0;
     num_clusters = 0;
     current_cluster = -1;
 }//constructor
@@ -83,10 +83,10 @@ void ClusterView::dfs(int current, int component)
             dfs(graph[current][i], component);
 }//dfs
 
-void ClusterView::tick(Frame* frame, QuantisedFrame* data)
+void ClusterView::tick(Frame* frame, QuantisedFrame* quantised)
 {
     this->frame = frame;
-    this->data = data;
+    this->quantised = quantised;
 
     graph.clear();
     graph = ANNGraphCreator::create_graph(waters, *frame);
@@ -108,7 +108,7 @@ void ClusterView::tick(Frame* frame, QuantisedFrame* data)
 
 void ClusterView::render()
 {
-    if (data == NULL)
+    if (quantised == NULL)
         return;
 
     if (parent)
@@ -123,12 +123,12 @@ void ClusterView::render()
             continue;
         for (std::vector<unsigned int>::iterator vit = it->second.begin(); vit != it->second.end(); vit++)
         {
-            glVertex3i(data->quantised_frame[3*start],
-                       data->quantised_frame[3*start+1],
-                       data->quantised_frame[3*start+2]);
-            glVertex3i(data->quantised_frame[3*(*vit)],
-                       data->quantised_frame[3*(*vit)+1],
-                       data->quantised_frame[3*(*vit)+2]);
+            glVertex3i(quantised->quantised_frame[3*start],
+                       quantised->quantised_frame[3*start+1],
+                       quantised->quantised_frame[3*start+2]);
+            glVertex3i(quantised->quantised_frame[3*(*vit)],
+                       quantised->quantised_frame[3*(*vit)+1],
+                       quantised->quantised_frame[3*(*vit)+2]);
         }//for
     }//for
     glEnd();

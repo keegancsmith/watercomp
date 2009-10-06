@@ -1,4 +1,4 @@
-#include "metaballs_view.h"
+#include "MetaballsView.h"
 
 #include <GL/gl.h>
 #include <cmath>
@@ -18,9 +18,9 @@
 #define ALPHA_MAX_VAL 1.0
 
 
-#include "marching_tables.cpp"
-#include "renderer.h"
-#include "util.h"
+#include "MarchingTables.cpp"
+#include "Renderer.h"
+#include "Util.h"
 
 
 bool Point3f::operator<(const Point3f& p) const
@@ -271,7 +271,7 @@ MetaballsView::MetaballsView()
     _metaballsColor[1] = settings->value("MetaballsView/colorG", 0.5).toDouble();
     _metaballsColor[2] = settings->value("MetaballsView/colorB", 0.5).toDouble();
     _metaballsColor[3] = settings->value("MetaballsView/colorA", 1.0).toDouble();
-    data = 0;
+    quantised = 0;
 
     lighting = settings->value("MetaballsView/lighting", false).toBool();
     cullFace = settings->value("MetaballsView/cullFace", false).toBool();
@@ -371,7 +371,7 @@ QWidget* MetaballsView::preferenceWidget()
 
 void MetaballsView::render()
 {
-    if (data == 0)
+    if (quantised == 0)
         return;
     if (parent)
         glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
@@ -439,12 +439,12 @@ void MetaballsView::render()
     glEnd();
 }//render
 
-void MetaballsView::tick(Frame* frame, QuantisedFrame* data)
+void MetaballsView::tick(Frame* frame, QuantisedFrame* quantised)
 {
     this->frame = frame;
-    this->data = data;
+    this->quantised = quantised;
 
-    if (data == 0)
+    if (quantised == 0)
         return;
 
     int z, y, x;
@@ -457,24 +457,24 @@ void MetaballsView::tick(Frame* frame, QuantisedFrame* data)
     int metaballs_size = 15;
     int contrib = 10;
     int v;
-    printf("reset: %i\n", data->natoms());
-    for (int i = 0; i < data->natoms(); i++)
+    printf("reset: %i\n", quantised->natoms());
+    for (int i = 0; i < quantised->natoms(); i++)
     {
         if (pdb[i].atom_name == "OH2")
         {
-            x = data->quantised_frame[i*3];
+            x = quantised->quantised_frame[i*3];
             sx = x - metaballs_size;
             if (sx < 0) sx = 0;
             fx = x + metaballs_size;
             if (fx > 255) fx = 255;
 
-            y = data->quantised_frame[i*3+1];
+            y = quantised->quantised_frame[i*3+1];
             sy = y - metaballs_size;
             if (sy < 0) sy = 0;
             fy = y + metaballs_size;
             if (fy > 255) fy = 255;
 
-            z = data->quantised_frame[i*3+2];
+            z = quantised->quantised_frame[i*3+2];
             sz = z - metaballs_size;
             if (sz < 0) sz = 0;
             fz = z + metaballs_size;
@@ -795,7 +795,7 @@ void MetaballsView::setLighting(int state)
 
 void MetaballsView::updateFaces()
 {
-    tick(this->frame, this->data);
+    tick(this->frame, this->quantised);
 }//updateFaces
 
 

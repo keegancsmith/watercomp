@@ -1,4 +1,4 @@
-#include "renderer.h"
+#include "Renderer.h"
 
 #include <cstdio>
 
@@ -6,8 +6,8 @@
 #include <QSettings>
 #include <QWheelEvent>
 
-#include "base_view.h"
-#include "quaternion.h"
+#include "BaseView.h"
+#include "Quaternion.h"
 
 #define RAD(x) ((x) * 0.0174532925199433)
 #define DEG(x) ((x) * 57.295779513082323)
@@ -207,7 +207,7 @@ void Renderer::setRenderMode(int mode)
     if (_renderMode > -1)
     {
         renderModes[_renderMode]->current = false;
-        renderModes[mode]->tick(renderModes[_renderMode]->frame, renderModes[_renderMode]->data);
+        renderModes[mode]->tick(renderModes[_renderMode]->frame, renderModes[_renderMode]->quantised);
     }//if
     _renderMode = mode;
     settings->setValue("Renderer/renderMode", _renderMode);

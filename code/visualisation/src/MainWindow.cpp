@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "MainWindow.h"
 
 #include <QAction>
 #include <QCoreApplication>
@@ -21,13 +21,13 @@
 #include <splitter/WaterMolecule.h>
 #include <graph/gridgraphcreator/GridGraphCreator.h>
 
-#include "cluster_view.h"
-#include "metaballs_view.h"
-#include "playback_control.h"
-#include "point_view.h"
-#include "quantise_error_view.h"
-#include "renderer.h"
-#include "view_preference.h"
+#include "ClusterView.h"
+#include "MetaballsView.h"
+#include "PlaybackControl.h"
+#include "PointView.h"
+#include "QuantiseErrorView.h"
+#include "Renderer.h"
+#include "ViewPreference.h"
 
 MainWindow::MainWindow()
 {

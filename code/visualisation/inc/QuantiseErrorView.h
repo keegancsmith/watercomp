@@ -1,7 +1,7 @@
 #ifndef QUANTISE_ERROR_VIEW_H
 #define QUANTISE_ERROR_VIEW_H
 
-#include "base_view.h"
+#include "BaseView.h"
 
 #include <pdbio/Frame.h>
 
@@ -20,7 +20,7 @@ class QuantiseErrorView : public BaseView
         virtual void updatePreferences();
         virtual QWidget* preferenceWidget();
 
-        virtual void tick(Frame* frame, QuantisedFrame* data);
+        virtual void tick(Frame* frame, QuantisedFrame* quantised);
         virtual void render();
 
     protected:

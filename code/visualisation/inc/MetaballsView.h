@@ -1,7 +1,7 @@
 #ifndef METABALLS_VIEW_H
 #define METABALLS_VIEW_H
 
-#include "base_view.h"
+#include "BaseView.h"
 
 #include <gts.h>
 #include <map>
@@ -49,7 +49,7 @@ class MetaballsView : public BaseView
         virtual QWidget* preferenceWidget();
 
         virtual void render();
-        virtual void tick(Frame* frame, QuantisedFrame* data);
+        virtual void tick(Frame* frame, QuantisedFrame* quantised);
 
     protected:
         virtual void initGL();

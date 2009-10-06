@@ -1,4 +1,4 @@
-#include "quantise_error_view.h"
+#include "QuantiseErrorView.h"
 
 #include <cmath>
 #include <cstdio>
@@ -14,7 +14,7 @@
 
 #include <quantiser/QuantisedFrame.h>
 
-#include "util.h"
+#include "Util.h"
 
 #define MAX_ALPHA_SLIDER 100
 #define MAX_ALPHA_VAL 1.0
@@ -29,8 +29,8 @@ QuantiseErrorView::QuantiseErrorView()
     _lineColor[1] = settings->value("QuantiseErrorView/colorG", 0.0).toDouble();
     _lineColor[2] = settings->value("QuantiseErrorView/colorB", 0.0).toDouble();
     _lineColor[3] = settings->value("QuantiseErrorView/colorA", 0.8).toDouble();
-    data = 0;
     _preferenceWidget = NULL;
+    quantised = 0;
     dequantised = 0;
     _lineSize = settings->value("QuantiseErrorView/lineSize", 2).toInt();
     _errorValue = settings->value("QuantiseErrorView/error", 0.06).toDouble();
@@ -58,28 +58,28 @@ QWidget* QuantiseErrorView::preferenceWidget()
 }//preferenceWidget
 
 
-void QuantiseErrorView::tick(Frame* frame, QuantisedFrame* data)
+void QuantiseErrorView::tick(Frame* frame, QuantisedFrame* quantised)
 {
     this->frame = frame;
-    this->data = data;
+    this->quantised = quantised;
 
     // printf("frame size: %i\n", frame->atom_data.size());
     // printf("quant size: %i\n", data->toFrame().atom_data.size());
     if (dequantised) delete dequantised;
-    dequantised = new Frame(data->toFrame());
+    dequantised = new Frame(quantised->toFrame());
     // printf("deqnt size: %i\n", dequantised->atom_data.size());
 }//tick
 
 void QuantiseErrorView::render()
 {
-    if (data == NULL)
+    if (quantised == NULL)
         return;
 
     //draw points
     float dif[3];
     float d;
     glBegin(GL_LINES);
-    for (int i = 0; i < data->natoms(); i++)
+    for (int i = 0; i < quantised->natoms(); i++)
     {
         if (pdb[i].atom_name == "OH2")
         {

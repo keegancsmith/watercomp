@@ -1,7 +1,7 @@
 #ifndef POINT_VIEW_H
 #define POINT_VIEW_H
 
-#include "base_view.h"
+#include "BaseView.h"
 
 class QSettings;
 class QSlider;
@@ -17,7 +17,7 @@ class PointView : public BaseView
         virtual void updatePreferences();
         virtual QWidget* preferenceWidget();
 
-        virtual void tick(Frame* frame, QuantisedFrame* data);
+        virtual void tick(Frame* frame, QuantisedFrame* quantised);
         virtual void render();
 
     protected:
