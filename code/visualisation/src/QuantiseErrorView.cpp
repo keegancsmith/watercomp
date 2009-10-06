@@ -62,6 +62,7 @@ void QuantiseErrorView::tick(Frame* frame, QuantisedFrame* quantised)
 {
     this->frame = frame;
     this->quantised = quantised;
+    if (quantised == NULL) return;
 
     // printf("frame size: %i\n", frame->atom_data.size());
     // printf("quant size: %i\n", data->toFrame().atom_data.size());

@@ -17,7 +17,6 @@ class ClusterView : public BaseView
     Q_OBJECT
 
     public:
-        std::vector<AtomInformation> pdb;
         ClusterView();
         virtual ~ClusterView();
 

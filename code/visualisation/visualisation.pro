@@ -20,6 +20,7 @@ OBJECTS_DIR = .obj
 
 # Input
 HEADERS += \
+            inc/BallStickView.h \
             inc/BaseView.h \
             inc/ClusterView.h \
             inc/MainWindow.h \
@@ -33,6 +34,7 @@ HEADERS += \
             inc/ViewPreference.h \
 
 SOURCES += \
+            src/BallStickView.cpp \
             src/BaseView.cpp \
             src/ClusterView.cpp \
             src/main.cpp \

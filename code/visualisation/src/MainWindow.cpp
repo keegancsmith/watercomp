@@ -21,6 +21,7 @@
 #include <splitter/WaterMolecule.h>
 #include <graph/gridgraphcreator/GridGraphCreator.h>
 
+#include "BallStickView.h"
 #include "ClusterView.h"
 #include "MetaballsView.h"
 #include "PlaybackControl.h"
@@ -160,6 +161,7 @@ void MainWindow::setupMenu()
     addRenderMode(new MetaballsView(), viewMenu);
     addRenderMode(new ClusterView(), viewMenu);
     addRenderMode(new QuantiseErrorView(), viewMenu);
+    addRenderMode(new BallStickView(), viewMenu);
 
     viewMenu->addSeparator();
     QAction* viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
