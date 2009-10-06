@@ -71,7 +71,6 @@ bool decompress(Compressor & c, string cmppath, string dcdpath)
 
     // Output file
     DCDWriter writer;
-    printf("%d\n", reader->natoms());
     writer.save_dcd_file(dcdpath.c_str(), reader->natoms());
 
     // Read in each frame

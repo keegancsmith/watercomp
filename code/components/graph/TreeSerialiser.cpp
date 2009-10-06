@@ -22,7 +22,6 @@ void encode_int(AdaptiveModelEncoder & enc, int i)
 int decode_int(AdaptiveModelDecoder & dec)
 {
     string val = dec.decode();
-    printf("%s\n", val.c_str());
     assert(val.size() < 12);
     return atoi(val.c_str());
 }
