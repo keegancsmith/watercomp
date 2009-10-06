@@ -15,7 +15,7 @@ DCDWriter::~DCDWriter()
         close_file_write(dcd);
 }
 
-int DCDWriter::natoms()
+int DCDWriter::natoms() const
 {
     return atoms;
 }

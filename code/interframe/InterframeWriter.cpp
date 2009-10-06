@@ -44,27 +44,41 @@ void InterframeWriter::start(int atoms, int frames, int ISTART, int NSAVC, doubl
     fwrite(&ISTART, sizeof(int), 1, out_file);
     fwrite(&NSAVC, sizeof(int), 1, out_file);
     fwrite(&DELTA, sizeof(double), 1, out_file);
+    
+    encoder.start_encode(out_file);
 }
 
 /* Writes a frame */
 void InterframeWriter::next_frame(const QuantisedFrame& qframe)
 {
+    char buffer[100];
+    
+    /// Write frame header: Quantisation and bounding box
+    AdaptiveModelEncoder initial(&encoder);
+    sprintf(buffer, "%u", qframe.m_xquant);
+    initial.encode(buffer);
+    
+    sprintf(buffer, "%u", qframe.m_yquant);
+    initial.encode(buffer);
+    
+    sprintf(buffer, "%u", qframe.m_zquant);
+    initial.encode(buffer);
+    
+    for(int i = 0; i < 3; ++i)
+    {
+        sprintf(buffer, "%f", qframe.min_coord[i]);
+        initial.encode(buffer);
+    }
+    
+    for(int i = 0; i < 3; ++i)
+    {
+        sprintf(buffer, "%f", qframe.max_coord[i]);
+        initial.encode(buffer);
+    }
+    
     if(frames.size() == K)
     {
-        char buffer[100];
-        
-        /// Write frame header: Quantisation and bounding box
-        fwrite(&qframe.m_xquant, sizeof(unsigned int), 1, out_file);
-        fwrite(&qframe.m_yquant, sizeof(unsigned int), 1, out_file);
-        fwrite(&qframe.m_zquant, sizeof(unsigned int), 1, out_file);
-
-        fwrite(qframe.min_coord, sizeof(float), 3, out_file);
-        fwrite(qframe.max_coord, sizeof(float), 3, out_file);
-        
-        ArithmeticEncoder encoder;
         AdaptiveModelEncoder model(&encoder);
-        
-        encoder.start_encode(out_file);
         
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
         {
@@ -72,28 +86,20 @@ void InterframeWriter::next_frame(const QuantisedFrame& qframe)
             
             for(int j = 0; j < K; ++j)
             {
-                double summand = double(frames[j].quantised_frame[i])/weights[j];
-                estimated += (factorial/(K-j))*summand;
+                double l_j = (factorial/(K - j))/weights[j];
+                estimated += l_j*frames[j].quantised_frame[i];
             }
             
-            float output = estimated;
-            sprintf(buffer, "%f", output);
-            
+            sprintf(buffer, "%lf", estimated);
             model.encode(buffer);
         }
-        
-        encoder.end_encode();
         
         if(!frames.empty())
             frames.pop_front();
     }
     else
     {
-        char buffer[1000];
-        ArithmeticEncoder encoder;
         AdaptiveModelEncoder model(&encoder);
-        
-        encoder.start_encode(out_file);
         
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
         {
@@ -101,7 +107,6 @@ void InterframeWriter::next_frame(const QuantisedFrame& qframe)
             model.encode(buffer);
         }
         
-        encoder.end_encode();
     }
     
     frames.push_back(qframe);
@@ -110,4 +115,5 @@ void InterframeWriter::next_frame(const QuantisedFrame& qframe)
 /* Ends the reading process. */
 void InterframeWriter::end()
 {
+    encoder.end_encode();
 }

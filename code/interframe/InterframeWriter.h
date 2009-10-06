@@ -4,6 +4,7 @@
 #include <cstdio>
 #include "FrameWriter.h"
 #include "quantiser/QuantisedFrame.h"
+#include "arithmetic/ArithmeticEncoder.h"
 
 class InterframeWriter : public FrameWriter
 {
@@ -35,4 +36,6 @@ class InterframeWriter : public FrameWriter
         
         /* Output file */
         FILE* out_file;
+        
+        ArithmeticEncoder encoder;
 };

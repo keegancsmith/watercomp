@@ -31,7 +31,7 @@ int find_closest_atom(QuantisedFrame * frame, std::vector<int> * edges,
 	    continue;
 	int d = dist_squared(frame, v, e);
 	if (d < closest_dist) {
-	    closest = d;
+	    closest = e;
 	    closest_dist = d;
 	}
     }

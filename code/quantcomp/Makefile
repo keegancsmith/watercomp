@@ -9,9 +9,9 @@ SRC += $(wildcard ../components/*/*.cpp)
 SRC += $(wildcard ../dcd_loader/*.cpp)
 OBJS = $(patsubst %.cpp, %.o, $(filter-out %/main.cpp, $(SRC)))
 
-naivegraph: naivegraph.cpp $(OBJS)
+quantcomp: quantcomp.cpp $(OBJS)
 	cd ../components; $(MAKE) $(MFLAGS)
-	$(CXX) $(CXXFLAGS) $(CXXLIBS) -o naivegraph $(OBJS)
+	$(CXX) $(CXXFLAGS) $(CXXLIBS) -o quantcomp $(OBJS)
 
 clean:
 	rm -f naivegraph $(OBJS)
