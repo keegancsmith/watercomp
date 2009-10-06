@@ -21,6 +21,17 @@ using namespace std;
 #define MINQUANT 4
 
 
+string progress_bar(int count, int size)
+{
+    string bar = "[                                                  ] |";
+    int nhashes = count * 50 / size;
+    for (int i = 1; i <= nhashes; i++)
+        bar[i] = '#';
+    bar[53] = "|/-\\"[count % 4];
+    return bar;
+}
+
+
 bool compress(Compressor & c, string dcdpath, string outpath,
               int quantx, int quanty, int quantz)
 {
@@ -42,12 +53,13 @@ bool compress(Compressor & c, string dcdpath, string outpath,
     Frame frame(reader.natoms());
     unsigned int frame_num = 0;
     while(reader.next_frame(frame)) {
-        cout << frame_num++ << endl;
+        cout << '\r' << progress_bar(frame_num++, reader.nframes()) << flush;
         QuantisedFrame qframe(frame, quantx, quanty, quantz);
 
         // Write out
         writer->next_frame(qframe);
     }
+    cout << '\r' << progress_bar(frame_num, reader.nframes()) << endl;
 
     assert(frame_num == reader.nframes());
 
@@ -76,11 +88,13 @@ bool decompress(Compressor & c, string cmppath, string dcdpath)
     // Read in each frame
     QuantisedFrame qframe(reader->natoms(), 0, 0, 0);
     for (int frame_num = 0; frame_num < reader->nframes(); frame_num++) {
-        cout << frame_num << endl;
+        cout << '\r' << progress_bar(frame_num, reader->nframes()) << flush;
         reader->next_frame(qframe);
         Frame frame = qframe.toFrame();
         writer.save_dcd_frame(frame);
     }
+    cout << '\r' << progress_bar(1, 1) << endl;
+
 
     // Clean up
     reader->end();
