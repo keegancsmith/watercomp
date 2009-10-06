@@ -1,4 +1,4 @@
-#include "view_preference.h"
+#include "ViewPreference.h"
 
 #include <QHBoxLayout>
 #include <QPushButton>

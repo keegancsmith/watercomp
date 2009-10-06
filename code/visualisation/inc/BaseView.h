@@ -12,19 +12,23 @@ class QWidget;
 class Frame;
 class QuantisedFrame;
 
+class Renderer;
+
 class BaseView : public QObject
 {
     Q_OBJECT
 
     public:
+        Renderer* parent;
         QString viewName;
         int viewID;
         int preferenceID;
         QWidget* preferenceParent;
         bool current;
         std::vector<AtomInformation> pdb;
+
         Frame* frame;
-        QuantisedFrame* data;
+        QuantisedFrame* quantised;
 
         BaseView();
         virtual ~BaseView();
@@ -35,7 +39,7 @@ class BaseView : public QObject
         virtual QWidget* preferenceWidget();
 
         virtual void render();
-        virtual void tick(Frame* frame, QuantisedFrame* data);
+        virtual void tick(Frame* frame, QuantisedFrame* quantised);
 
     signals:
         void selectView(int viewID);

@@ -1,4 +1,4 @@
-#include "point_view.h"
+#include "PointView.h"
 
 #include <cstdio>
 
@@ -12,6 +12,8 @@
 
 #include <quantiser/QuantisedFrame.h>
 
+#include "Renderer.h"
+
 #define MAX_ALPHA_SLIDER 100
 #define MAX_ALPHA_VAL 0.1
 
@@ -21,13 +23,13 @@ PointView::PointView()
 {
     settings = new QSettings;
     viewName = "Point data view";
-    _pointColor[0] = settings->value("pointView/colorR", 0.0).toDouble();
-    _pointColor[1] = settings->value("pointView/colorG", 0.0).toDouble();
-    _pointColor[2] = settings->value("pointView/colorB", 1.0).toDouble();
-    _pointColor[3] = settings->value("pointView/colorA", 0.02).toDouble();
-    data = 0;
+    _pointColor[0] = settings->value("PointView/colorR", 0.0).toDouble();
+    _pointColor[1] = settings->value("PointView/colorG", 0.0).toDouble();
+    _pointColor[2] = settings->value("PointView/colorB", 1.0).toDouble();
+    _pointColor[3] = settings->value("PointView/colorA", 0.02).toDouble();
+    quantised = 0;
     _preferenceWidget = NULL;
-    _pointSize = settings->value("pointView/pointSize", 10).toInt();
+    _pointSize = settings->value("PointView/pointSize", 10).toInt();
 }//constructor
 
 PointView::~PointView()
@@ -51,26 +53,28 @@ QWidget* PointView::preferenceWidget()
 }//preferenceWidget
 
 
-void PointView::tick(Frame* frame, QuantisedFrame* data)
+void PointView::tick(Frame* frame, QuantisedFrame* quantised)
 {
     this->frame = frame;
-    this->data = data;
+    this->quantised = quantised;
 }//tick
 
 void PointView::render()
 {
-    if (data == NULL)
+    if (quantised == NULL)
         return;
+    if (parent)
+        glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
     glDepthFunc(GL_ALWAYS);
     //draw points
     glColor4fv(_pointColor);
     glBegin(GL_POINTS);
-    for (int i = 0; i < data->natoms(); i++)
+    for (int i = 0; i < quantised->natoms(); i++)
     {
         if (pdb[i].atom_name == "OH2")
-            glVertex3i(data->quantised_frame[i*3],
-                    data->quantised_frame[i*3+1],
-                    data->quantised_frame[i*3+2]);
+            glVertex3i(quantised->quantised_frame[i*3],
+                       quantised->quantised_frame[i*3+1],
+                       quantised->quantised_frame[i*3+2]);
     }//for
     glEnd();
     glDepthFunc(GL_LEQUAL);
@@ -94,7 +98,7 @@ void PointView::setPointAlpha(int value)
     if (value < 0) value = 0;
     _pointColor[3] = (float)value * MAX_ALPHA_VAL / MAX_ALPHA_SLIDER;
 
-    settings->setValue("pointView/colorA", _pointColor[3]);
+    settings->setValue("PointView/colorA", _pointColor[3]);
 }//setPointAlpha
 
 void PointView::setPointSize(int value)
@@ -104,16 +108,16 @@ void PointView::setPointSize(int value)
     _pointSize = value;
     if (current) glPointSize(_pointSize);
 
-    settings->setValue("pointView/pointSize", _pointSize);
+    settings->setValue("PointView/pointSize", _pointSize);
 }//setPointSize
 
 void PointView::pickPointColor()
 {
     pickColor(_pointColor);
 
-    settings->setValue("pointView/colorR", _pointColor[0]);
-    settings->setValue("pointView/colorG", _pointColor[1]);
-    settings->setValue("pointView/colorB", _pointColor[2]);
+    settings->setValue("PointView/colorR", _pointColor[0]);
+    settings->setValue("PointView/colorG", _pointColor[1]);
+    settings->setValue("PointView/colorB", _pointColor[2]);
 }//pickPointColor
 
 

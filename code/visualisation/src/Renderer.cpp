@@ -1,4 +1,4 @@
-#include "renderer.h"
+#include "Renderer.h"
 
 #include <cstdio>
 
@@ -6,8 +6,8 @@
 #include <QSettings>
 #include <QWheelEvent>
 
-#include "base_view.h"
-#include "quaternion.h"
+#include "BaseView.h"
+#include "Quaternion.h"
 
 #define RAD(x) ((x) * 0.0174532925199433)
 #define DEG(x) ((x) * 57.295779513082323)
@@ -113,7 +113,7 @@ void Renderer::paintGL()
     glTranslatef(0, 0, -zoom);
     glPushMatrix();
     glMultMatrixd(rot->matrix);
-    glTranslatef(-volume_middle[0], -volume_middle[1], -volume_middle[2]);
+    // glTranslatef(-volume_middle[0], -volume_middle[1], -volume_middle[2]);
 
     // renderAxes();
     renderModes[_renderMode]->render();
@@ -207,10 +207,10 @@ void Renderer::setRenderMode(int mode)
     if (_renderMode > -1)
     {
         renderModes[_renderMode]->current = false;
-        renderModes[mode]->tick(renderModes[_renderMode]->frame, renderModes[_renderMode]->data);
+        renderModes[mode]->tick(renderModes[_renderMode]->frame, renderModes[_renderMode]->quantised);
     }//if
     _renderMode = mode;
-    settings->setValue("renderer/renderMode", _renderMode);
+    settings->setValue("Renderer/renderMode", _renderMode);
     if (_renderMode > -1)
         renderModes[_renderMode]->current = true;
 }//setRenderMode

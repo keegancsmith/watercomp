@@ -1,4 +1,4 @@
-#include "cluster_view.h"
+#include "ClusterView.h"
 
 #include <cstdio>
 #include <map>
@@ -23,6 +23,8 @@
 #include <graph/anngraphcreator/ANNGraphCreator.h>
 #include <graph/gridgraphcreator/GridGraphCreator.h>
 
+#include "Renderer.h"
+
 #define MAX_ALPHA_SLIDER 100
 #define MAX_ALPHA_VAL 0.9
 
@@ -31,15 +33,15 @@
 ClusterView::ClusterView()
 {
     settings = new QSettings;
-    viewName = "Point data view";
-    _lineColor[0] = settings->value("clusterView/colorR", 0.0).toDouble();
-    _lineColor[1] = settings->value("clusterView/colorG", 0.0).toDouble();
-    _lineColor[2] = settings->value("clusterView/colorB", 1.0).toDouble();
-    _lineColor[3] = settings->value("clusterView/colorA", 0.02).toDouble();
-    data = 0;
+    viewName = "Water cluster view";
+    _lineColor[0] = settings->value("ClusterView/colorR", 0.0).toDouble();
+    _lineColor[1] = settings->value("ClusterView/colorG", 0.0).toDouble();
+    _lineColor[2] = settings->value("ClusterView/colorB", 1.0).toDouble();
+    _lineColor[3] = settings->value("ClusterView/colorA", 0.02).toDouble();
+    _lineWidth = settings->value("ClusterView/lineWidth", 2).toInt();
     _preferenceWidget = NULL;
-    _lineWidth = settings->value("clusterView/lineWidth", 2).toInt();
 
+    quantised = 0;
     num_clusters = 0;
     current_cluster = -1;
 }//constructor
@@ -81,15 +83,18 @@ void ClusterView::dfs(int current, int component)
             dfs(graph[current][i], component);
 }//dfs
 
-void ClusterView::tick(Frame* frame, QuantisedFrame* data)
+void ClusterView::tick(Frame* frame, QuantisedFrame* quantised)
 {
     this->frame = frame;
-    this->data = data;
+    this->quantised = quantised;
 
+    graph.clear();
     graph = ANNGraphCreator::create_graph(waters, *frame);
     // graph = GridGraphCreator::create_graph(waters, *frame);
 
     num_clusters = 0;
+    components.clear();
+    sizes.clear();
     for(int i = 0; i < waters.size(); ++i)
     {
         if(components.find(waters[i].OH2_index) == components.end())
@@ -97,16 +102,17 @@ void ClusterView::tick(Frame* frame, QuantisedFrame* data)
             dfs(waters[i].OH2_index, num_clusters++);
         }
     }
-    current_cluster = 0;
     clusterSpinBox->setMaximum(num_clusters-1);
-    clusterSpinBox->setValue(0);
     printf("Cluster count: %d\n", num_clusters-1);
 }//tick
 
 void ClusterView::render()
 {
-    if (data == NULL)
+    if (quantised == NULL)
         return;
+
+    if (parent)
+        glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
     glColor4fv(_lineColor);
     glBegin(GL_LINES);
     int start;
@@ -117,28 +123,15 @@ void ClusterView::render()
             continue;
         for (std::vector<unsigned int>::iterator vit = it->second.begin(); vit != it->second.end(); vit++)
         {
-            glVertex3i(data->quantised_frame[start],
-                    data->quantised_frame[start+1],
-                    data->quantised_frame[start+2]);
-            glVertex3i(data->quantised_frame[*vit],
-                    data->quantised_frame[*vit+1],
-                    data->quantised_frame[*vit+2]);
+            glVertex3i(quantised->quantised_frame[3*start],
+                       quantised->quantised_frame[3*start+1],
+                       quantised->quantised_frame[3*start+2]);
+            glVertex3i(quantised->quantised_frame[3*(*vit)],
+                       quantised->quantised_frame[3*(*vit)+1],
+                       quantised->quantised_frame[3*(*vit)+2]);
         }//for
     }//for
     glEnd();
-    // glDepthFunc(GL_ALWAYS);
-    // draw points
-    // glColor4fv(_pointColor);
-    // glBegin(GL_POINTS);
-    // for (int i = 0; i < data->natoms(); i++)
-    // {
-        // if (pdb[i].atom_name == "OH2")
-            // glVertex3i(data->quantised_frame[i*3],
-                    // data->quantised_frame[i*3+1],
-                    // data->quantised_frame[i*3+2]);
-    // }//for
-    // glEnd();
-    // glDepthFunc(GL_LEQUAL);
 }//render
 
 
@@ -159,7 +152,7 @@ void ClusterView::setLineAlpha(int value)
     if (value < 0) value = 0;
     _lineColor[3] = (float)value * MAX_ALPHA_VAL / MAX_ALPHA_SLIDER;
 
-    settings->setValue("clusterView/colorA", _lineColor[3]);
+    settings->setValue("ClusterView/colorA", _lineColor[3]);
 }//setLineAlpha
 
 void ClusterView::setLineWidth(int value)
@@ -169,16 +162,16 @@ void ClusterView::setLineWidth(int value)
     _lineWidth = value;
     if (current) glLineWidth(_lineWidth);
 
-    settings->setValue("clusterView/lineWidth", _lineWidth);
+    settings->setValue("ClusterView/lineWidth", _lineWidth);
 }//setLineWidth
 
 void ClusterView::pickLineColor()
 {
     pickColor(_lineColor);
 
-    settings->setValue("clusterView/colorR", _lineColor[0]);
-    settings->setValue("clusterView/colorG", _lineColor[1]);
-    settings->setValue("clusterView/colorB", _lineColor[2]);
+    settings->setValue("ClusterView/colorR", _lineColor[0]);
+    settings->setValue("ClusterView/colorG", _lineColor[1]);
+    settings->setValue("ClusterView/colorB", _lineColor[2]);
 }//pickLineColor
 
 void ClusterView::setClusterID(int value)
@@ -186,6 +179,7 @@ void ClusterView::setClusterID(int value)
     if (value < 0) value = -1;
     if (value >= num_clusters) value = num_clusters - 1;
     current_cluster = value;
+    if (current_cluster > -1)
     printf("Cluster size: %u\n", sizes[current_cluster]);
 }//setClusterID
 

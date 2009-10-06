@@ -1,13 +1,23 @@
 #ifndef METABALLS_VIEW_H
 #define METABALLS_VIEW_H
 
-#include "base_view.h"
+#include "BaseView.h"
 
 #include <gts.h>
+#include <map>
 #include <QVector>
 
 class QSettings;
 class QSlider;
+
+struct Point3f
+{
+    float x;
+    float y;
+    float z;
+
+    bool operator<(const Point3f& p) const;
+};//Point3f
 
 struct Triangle
 {
@@ -21,6 +31,15 @@ class MetaballsView : public BaseView
     Q_OBJECT
 
     public:
+        // std::map<GtsPoint*, int> vertex_map;
+        std::map<Point3f, int> vertex_map;
+        int vertex_num;
+        int triangle_num;
+        float* vertices;
+        float* normals;
+        float* avg_normals;
+        int* indices;
+
         MetaballsView();
         virtual ~MetaballsView();
 
@@ -30,7 +49,7 @@ class MetaballsView : public BaseView
         virtual QWidget* preferenceWidget();
 
         virtual void render();
-        virtual void tick(Frame* frame, QuantisedFrame* data);
+        virtual void tick(Frame* frame, QuantisedFrame* quantised);
 
     protected:
         virtual void initGL();

@@ -1,15 +1,20 @@
-#include "base_view.h"
+#include "BaseView.h"
 
 #include <QColor>
 #include <QColorDialog>
 
+#include "Renderer.h"
+
 BaseView::BaseView()
 {
+    parent = 0;
     viewName = "";
     viewID = -1;
     preferenceID = -1;
     preferenceParent = 0;
     current = false;
+    frame = 0;
+    quantised = 0;
 }//constructor
 
 BaseView::~BaseView()
@@ -36,10 +41,10 @@ void BaseView::render()
 {
 }//render
 
-void BaseView::tick(Frame* frame, QuantisedFrame* data)
+void BaseView::tick(Frame* frame, QuantisedFrame* quantised)
 {
     this->frame = frame;
-    this->data = data;
+    this->quantised = quantised;
 }//tick
 
 

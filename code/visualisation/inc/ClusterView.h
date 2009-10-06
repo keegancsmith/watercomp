@@ -1,7 +1,7 @@
 #ifndef CLUSTER_VIEW_H
 #define CLUSTER_VIEW_H
 
-#include "base_view.h"
+#include "BaseView.h"
 
 #include <map>
 #include <vector>
@@ -26,7 +26,7 @@ class ClusterView : public BaseView
         virtual void updatePreferences();
         virtual QWidget* preferenceWidget();
 
-        virtual void tick(Frame* frame, QuantisedFrame* data);
+        virtual void tick(Frame* frame, QuantisedFrame* quantised);
         virtual void render();
 
     protected:

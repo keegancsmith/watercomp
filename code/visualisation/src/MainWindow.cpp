@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "MainWindow.h"
 
 #include <QAction>
 #include <QCoreApplication>
@@ -21,12 +21,13 @@
 #include <splitter/WaterMolecule.h>
 #include <graph/gridgraphcreator/GridGraphCreator.h>
 
-#include "cluster_view.h"
-#include "metaballs_view.h"
-#include "playback_control.h"
-#include "point_view.h"
-#include "renderer.h"
-#include "view_preference.h"
+#include "ClusterView.h"
+#include "MetaballsView.h"
+#include "PlaybackControl.h"
+#include "PointView.h"
+#include "QuantiseErrorView.h"
+#include "Renderer.h"
+#include "ViewPreference.h"
 
 MainWindow::MainWindow()
 {
@@ -64,7 +65,7 @@ MainWindow::MainWindow()
 
     frame = 0;
     data = 0;
-    renderer->setRenderMode(settings->value("renderer/renderMode", 0).toInt());
+    renderer->setRenderMode(settings->value("Renderer/renderMode", 0).toInt());
 }//constructor
 
 MainWindow::~MainWindow()
@@ -158,6 +159,7 @@ void MainWindow::setupMenu()
     addRenderMode(new PointView(), viewMenu);
     addRenderMode(new MetaballsView(), viewMenu);
     addRenderMode(new ClusterView(), viewMenu);
+    addRenderMode(new QuantiseErrorView(), viewMenu);
 
     viewMenu->addSeparator();
     QAction* viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
@@ -177,6 +179,7 @@ void MainWindow::addRenderMode(BaseView* view, QMenu* menu)
     connect(view, SIGNAL(selectView(int)), renderer, SLOT(setRenderMode(int)));
     menu->addAction(viewAction);
     views[viewAction] = view;
+    view->parent = renderer;
 
     int tabID = viewPreferenceDialog->addTab(view->preferenceWidget(), view->viewName);
     view->preferenceID = tabID;

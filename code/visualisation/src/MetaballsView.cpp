@@ -1,4 +1,4 @@
-#include "metaballs_view.h"
+#include "MetaballsView.h"
 
 #include <GL/gl.h>
 #include <cmath>
@@ -18,57 +18,27 @@
 #define ALPHA_MAX_VAL 1.0
 
 
-#include "marching_tables.cpp"
+#include "MarchingTables.cpp"
+#include "Renderer.h"
+#include "Util.h"
 
 
-float* pack3f(float* v, float a, float b, float c)
+bool Point3f::operator<(const Point3f& p) const
 {
-    v[0] = a;
-    v[1] = b;
-    v[2] = c;
-    return v;
-}//pack3f
-
-float* sub2v(float* v1, float* v2, float* dst)
-{
-    dst[0] = v1[0] - v2[0];
-    dst[1] = v1[1] - v2[1];
-    dst[2] = v1[2] - v2[2];
-    return dst;
-}//sub
-
-float* cross(float* v1, float* v2, float* dst)
-{
-    float t0 = v1[1]*v2[2] - v1[2]*v2[1];
-    float t1 = v1[2]*v2[0] - v1[0]*v2[2];
-    float t2 = v1[0]*v2[1] - v1[1]*v2[0];
-    return pack3f(dst, t0, t1, t2);
-}//cross
-
-float* multf(float* v, float f)
-{
-    v[0] *= f;
-    v[1] *= f;
-    v[2] *= f;
-    return v;
-}//mult
-
-float len2(float* v)
-{
-    return (float) (v[0] * v[0] +
-                    v[1] * v[1] +
-                    v[2] * v[2]);
-}//len2
-
-float* normalize(float* v)
-{
-    float f = len2(v);
-    if (f == 0)
-        return v;
-    if ((f < 0.99f) || (f > 1.01f))
-        multf(v, 1/sqrt(f));
-    return v;
-}//normalize
+    if (fabs(x - p.x) < 1e-6)
+    {
+        if (fabs(y - p.y) < 1e-6)
+        {
+            if (fabs(z - p.z) < 1e-6)
+            {
+                return false;
+            }//if
+            return z < p.z;
+        }//if
+        return y < p.y;
+    }//if
+    return x < p.x;
+}//operator<
 
 
 void sampleSphere(gdouble** f, GtsCartesianGrid g, guint k, gpointer data)
@@ -168,23 +138,143 @@ void sample_volume_data(gdouble** f, GtsCartesianGrid g, guint k, gpointer data)
 }//sampleVolume
 
 
+int process_vertex(MetaballsView* view, float* vertex, float* normal)
+// int process_vertex(MetaballsView* view, float x, float y, float z, float* n)
+// int process_vertex(MetaballsView* view, GtsPoint* p, float* n)
+{
+    int v;
+    int i;
+    // Point3f p; p.x = x; p.y = y; p.z = z;
+    Point3f p; p.x = vertex[0]; p.y = vertex[1]; p.z = vertex[2];
+    if (view->vertex_map.find(p) == view->vertex_map.end())
+    {
+        v = view->vertex_num++;
+        view->vertex_map[p] = v;
+        i = v*3;
+        view->vertices[i]   = p.x;
+        view->vertices[i+1] = p.y;
+        view->vertices[i+2] = p.z;
+        i = v*4;
+        view->avg_normals[i]   = normal[0];
+        view->avg_normals[i+1] = normal[1];
+        view->avg_normals[i+2] = normal[2];
+        view->avg_normals[i+3] = 1;
+    }//if
+    else
+    {
+        v = view->vertex_map[p];
+        i = v*4;
+        view->avg_normals[i]   += normal[1];
+        view->avg_normals[i+1] += normal[2];
+        view->avg_normals[i+2] += normal[3];
+        view->avg_normals[i+3] += 1;
+    }//else
+    return v;
+}//process_vertex
+
+int process_surface(gpointer item, gpointer data)
+{
+    MetaballsView* view = (MetaballsView*)data;
+
+    GtsFace* face = (GtsFace*)item;
+    GtsPoint *v1, *v2, *v3;
+    GtsPoint *p1, *p2;
+    // printf("0x%x\n", face->triangle.e1);
+    v1 = &(face->triangle.e1->segment.v1->p);
+    v2 = &(face->triangle.e1->segment.v2->p);
+
+    p1 = &(face->triangle.e2->segment.v1->p);
+    p2 = &(face->triangle.e2->segment.v2->p);
+    // stupid winding
+    if ((p1 == v1) || (p2 == v1))
+    {
+        v3 = (p1 == v1) ? p2 : p1;
+    }//if
+    else if ((p1 == v2) || (p2 == v2))
+    {
+        v3 = v1;
+        v1 = v2;
+        v2 = v3;
+        v3 = (p1 == v1) ? p2 : p1;
+    }//else
+    else
+    {
+        printf("um\n");
+        // printf("um: (%f %f %f) (%f %f %f) (%f %f %f) (%f %f %f)\n",
+                // v1->x, v1->y, v1->z,
+                // v2->x, v2->y, v2->z,
+                // p1->x, p1->y, p1->z,
+                // p2->x, p2->y, p2->z
+                // );
+        return 0;
+    }//else
+    if ((v1 == v2) || (v1 == v3) || (v2 == v3))
+    {
+        printf("whoa: (%f %f %f) (%f %f %f) (%f %f %f) (%f %f %f) (%f %f %f)\n",
+                v1->x, v1->y, v1->z,
+                v2->x, v2->y, v2->z,
+                v3->x, v3->y, v3->z,
+                p1->x, p1->y, p1->z,
+                p2->x, p2->y, p2->z
+                );
+        assert(false);
+        // return 0;
+    }//else
+
+    float e1[] = {v1->x - v2->x, v1->y - v2->y, v1->z - v2->z};
+    float e2[] = {v1->x - v3->x, v1->y - v3->y, v1->z - v3->z};
+    float e3[3];
+    normalize(cross(e1, e2, e3));
+
+    int t = view->triangle_num++;
+    t *= 3;
+    // view->indices[t]   = process_vertex(view, v1, e3);
+    // view->indices[t+1] = process_vertex(view, v2, e3);
+    // view->indices[t+2] = process_vertex(view, v3, e3);
+    e1[0] = v1->x; e1[1] = v1->y; e1[2] = v1->z;
+    view->indices[t]   = process_vertex(view, e1, e3);
+
+    e1[0] = v2->x; e1[1] = v2->y; e1[2] = v2->z;
+    view->indices[t+1] = process_vertex(view, e1, e3);
+
+    e1[0] = v3->x; e1[1] = v3->y; e1[2] = v3->z;
+    view->indices[t+2] = process_vertex(view, e1, e3);
+
+    // Triangle t;
+    // pack3f(t.p[0], v1->x, v1->y, v1->z);
+    // pack3f(t.p[1], v2->x, v2->y, v2->z);
+    // pack3f(t.p[2], v3->x, v3->y, v3->z);
+    // pack3f(t.n[0], e3[0], e3[1], e3[2]);
+    // pack3f(t.n[1], e3[0], e3[1], e3[2]);
+    // pack3f(t.n[2], e3[0], e3[1], e3[2]);
+    // surface->push_back(t);
+
+    // glNormal3fv(e3);
+    // glVertex3d(v1->x, v1->y, v1->z);
+    // glVertex3d(v2->x, v2->y, v2->z);
+    // glVertex3d(v3->x, v3->y, v3->z);
+
+    return 0;
+}//process_surface
+
+
 MetaballsView::MetaballsView()
 {
     settings = new QSettings;
     // TODO: define maxStepSize relative to the volume size
     // TODO: define _stepSize relative to the volume size
     maxStepSize = 80;
-    _stepSize = settings->value("metaballsView/stepSize", 5).toInt();
+    _stepSize = settings->value("MetaballsView/stepSize", 5).toInt();
 
     viewName = "Metaballs view";
-    _metaballsColor[0] = settings->value("metaballsView/colorR", 0.5).toDouble();
-    _metaballsColor[1] = settings->value("metaballsView/colorG", 0.5).toDouble();
-    _metaballsColor[2] = settings->value("metaballsView/colorB", 0.5).toDouble();
-    _metaballsColor[3] = settings->value("metaballsView/colorA", 1.0).toDouble();
-    data = 0;
+    _metaballsColor[0] = settings->value("MetaballsView/colorR", 0.5).toDouble();
+    _metaballsColor[1] = settings->value("MetaballsView/colorG", 0.5).toDouble();
+    _metaballsColor[2] = settings->value("MetaballsView/colorB", 0.5).toDouble();
+    _metaballsColor[3] = settings->value("MetaballsView/colorA", 1.0).toDouble();
+    quantised = 0;
 
-    lighting = settings->value("metaballsView/lighting", false).toBool();
-    cullFace = settings->value("metaballsView/cullFace", false).toBool();
+    lighting = settings->value("MetaballsView/lighting", false).toBool();
+    cullFace = settings->value("MetaballsView/cullFace", false).toBool();
 
     _preferenceWidget = NULL;
     setupPreferenceWidget();
@@ -196,6 +286,13 @@ MetaballsView::MetaballsView()
     g_grid.x = 0;
     g_grid.y = 0;
     g_grid.z = 0;
+
+    vertices = 0;
+    normals = 0;
+    avg_normals = 0;
+    indices = 0;
+    triangle_num = 0;
+    vertex_num = 0;
 
     init();
 }//constructor
@@ -274,35 +371,81 @@ QWidget* MetaballsView::preferenceWidget()
 
 void MetaballsView::render()
 {
-    if (data == 0)
+    if (quantised == 0)
         return;
+    if (parent)
+        glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
     float l_pos[] = {200.0f, 200.0f, 200.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, l_pos);
 
-    // glTranslatef(-80, -80, -100);
     glColor4fv(_metaballsColor);
     glBegin(GL_TRIANGLES);
-    // gts_surface_foreach_face(g_surface, draw_face, NULL);
+
     //*
+
+    int v;
+    for (int i = 0; i < triangle_num; i++)
+    {
+        v = i*3;
+        // printf("normal: %f %f %f\n", normals[indices[v]], normals[indices[v+1]], normals[indices[v+2]]);
+        // printf("vertice: %f %f %f\n", vertices[indices[v]], vertices[indices[v+1]], vertices[indices[v+2]]);
+        glNormal3f(normals[indices[v]],
+                normals[indices[v+1]],
+                normals[indices[v+2]]);
+        glVertex3f(vertices[indices[v]],
+                vertices[indices[v+1]],
+                vertices[indices[v+2]]);
+        v += 1;
+        // printf("normal: %f %f %f\n", normals[indices[v]], normals[indices[v+1]], normals[indices[v+2]]);
+        // printf("vertice: %f %f %f\n", vertices[indices[v]], vertices[indices[v+1]], vertices[indices[v+2]]);
+        glNormal3f(normals[indices[v]],
+                normals[indices[v+1]],
+                normals[indices[v+2]]);
+        glVertex3f(vertices[indices[v]],
+                vertices[indices[v+1]],
+                vertices[indices[v+2]]);
+        v += 1;
+        // printf("normal: %f %f %f\n", normals[indices[v]], normals[indices[v+1]], normals[indices[v+2]]);
+        // printf("vertice: %f %f %f\n", vertices[indices[v]], vertices[indices[v+1]], vertices[indices[v+2]]);
+        glNormal3f(normals[indices[v]],
+                normals[indices[v+1]],
+                normals[indices[v+2]]);
+        glVertex3f(vertices[indices[v]],
+                vertices[indices[v+1]],
+                vertices[indices[v+2]]);
+    }//for
+
+    /*/
+
     Triangle t;
     for (int i = 0; i < _surface.size(); i++)
     {
         t = _surface.at(i);
+        // printf("normal: %f %f %f\n", t.n[0][0], t.n[0][1], t.n[0][2]);
+        // printf("vertex: %f %f %f\n", t.p[0][0], t.p[0][1], t.p[0][2]);
         glNormal3fv(t.n[0]);
         glVertex3fv(t.p[0]);
+        // printf("normal: %f %f %f\n", t.n[1][0], t.n[1][1], t.n[1][2]);
+        // printf("vertex: %f %f %f\n", t.p[1][0], t.p[1][1], t.p[1][2]);
         glNormal3fv(t.n[1]);
         glVertex3fv(t.p[1]);
+        // printf("normal: %f %f %f\n", t.n[2][0], t.n[2][1], t.n[2][2]);
+        // printf("vertex: %f %f %f\n", t.p[2][0], t.p[2][1], t.p[2][2]);
         glNormal3fv(t.n[2]);
         glVertex3fv(t.p[2]);
     }//for
     // */
+
     glEnd();
 }//render
 
-void MetaballsView::tick(Frame* frame, QuantisedFrame* data)
+void MetaballsView::tick(Frame* frame, QuantisedFrame* quantised)
 {
     this->frame = frame;
-    this->data = data;
+    this->quantised = quantised;
+
+    if (quantised == 0)
+        return;
 
     int z, y, x;
     for (z = 0; z < 255; z++)
@@ -314,24 +457,24 @@ void MetaballsView::tick(Frame* frame, QuantisedFrame* data)
     int metaballs_size = 15;
     int contrib = 10;
     int v;
-    printf("reset: %i\n", data->natoms());
-    for (int i = 0; i < data->natoms(); i++)
+    printf("reset: %i\n", quantised->natoms());
+    for (int i = 0; i < quantised->natoms(); i++)
     {
         if (pdb[i].atom_name == "OH2")
         {
-            x = data->quantised_frame[i*3];
+            x = quantised->quantised_frame[i*3];
             sx = x - metaballs_size;
             if (sx < 0) sx = 0;
             fx = x + metaballs_size;
             if (fx > 255) fx = 255;
 
-            y = data->quantised_frame[i*3+1];
+            y = quantised->quantised_frame[i*3+1];
             sy = y - metaballs_size;
             if (sy < 0) sy = 0;
             fy = y + metaballs_size;
             if (fy > 255) fy = 255;
 
-            z = data->quantised_frame[i*3+2];
+            z = quantised->quantised_frame[i*3+2];
             sz = z - metaballs_size;
             if (sz < 0) sz = 0;
             fz = z + metaballs_size;
@@ -357,11 +500,65 @@ void MetaballsView::tick(Frame* frame, QuantisedFrame* data)
     gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 128);
     int count = gts_surface_face_number(g_surface);
     printf("face number: %u\n", count);
-    gts_surface_foreach_face(g_surface, draw_face, (void*)&_surface);
+
+
+
+    vertex_map.clear();
+    vertex_num = 0;
+    triangle_num = 0;
+    if (vertices) delete [] vertices;
+    vertices = new float[gts_surface_vertex_number(g_surface) * 3];
+
+    if (normals) delete [] normals;
+    normals = new float[gts_surface_vertex_number(g_surface) * 3];
+
+    if (avg_normals) delete [] avg_normals;
+    avg_normals = new float[gts_surface_vertex_number(g_surface) * 4];
+
+    if (indices) delete [] indices;
+    indices = new int[gts_surface_face_number(g_surface) * 3];
+
+    printf("vertex num: %i\n", gts_surface_vertex_number(g_surface));
+
+    // gts_surface_foreach_face(g_surface, draw_face, (void*)&_surface);
+    // return;
+    // printf("surface count: %i\n", _surface.count());
+    gts_surface_foreach_face(g_surface, process_surface, (void*)this);
+
+
+    /*
+    int t;
+    Triangle tri;
+    for (int i = 0; i < _surface.count(); i++)
+    {
+        triangle_num += 1;
+        t = i*3;
+        tri = _surface.at(i);
+        // view->indices[t]   = process_vertex(view, v1, e3);
+        // view->indices[t+1] = process_vertex(view, v2, e3);
+        // view->indices[t+2] = process_vertex(view, v3, e3);
+        indices[t]   = process_vertex(this, tri.p[0], tri.n[0]);
+        indices[t+1] = process_vertex(this, tri.p[1], tri.n[1]);
+        indices[t+2] = process_vertex(this, tri.p[2], tri.n[2]);
+    }//for
+    // */
+    printf("calculate normals: %i %i\n", vertex_num, triangle_num);
+
+    int n, an;
+    for (int i = 0; i < vertex_num; i++)
+    {
+        n = i*3;
+        an = i*4;
+        normals[n] = avg_normals[an] / avg_normals[an+3];
+        normals[n+1] = avg_normals[an+1] / avg_normals[an+3];
+        normals[n+2] = avg_normals[an+2] / avg_normals[an+3];
+        normalize(&normals[n]);
+    }//for
+
+
     return;
 
     /*
-
 
     _surface.clear();
     printf("woo: 0x%x\n", mridata);
@@ -461,6 +658,7 @@ void MetaballsView::tick(Frame* frame, QuantisedFrame* data)
         }//for
     }//for
     printf("min: %f\nmax: %f (%f, %f, %f)\n", min, max, maxv[0], maxv[1], maxv[2]);
+
     // */
 
 }//tick
@@ -543,7 +741,7 @@ void MetaballsView::setMetaballsAlpha(int value)
     if (value < 0) value = 0;
     _metaballsColor[3] = (float)value * ALPHA_MAX_VAL / ALPHA_MAX_SLIDER;
 
-    settings->setValue("metaballsView/colorA", _metaballsColor[3]);
+    settings->setValue("MetaballsView/colorA", _metaballsColor[3]);
 }//setMetaballsAlpha
 
 void MetaballsView::setStepSize(int value)
@@ -554,23 +752,23 @@ void MetaballsView::setStepSize(int value)
     g_grid.dy = _stepSize;
     g_grid.dz = _stepSize;
 
-    settings->setValue("metaballsView/stepSize", _stepSize);
+    settings->setValue("MetaballsView/stepSize", _stepSize);
 }//setStepSize
 
 void MetaballsView::pickMetaballsColor()
 {
     pickColor(_metaballsColor);
 
-    settings->setValue("metaballsView/colorR", _metaballsColor[0]);
-    settings->setValue("metaballsView/colorG", _metaballsColor[1]);
-    settings->setValue("metaballsView/colorB", _metaballsColor[2]);
+    settings->setValue("MetaballsView/colorR", _metaballsColor[0]);
+    settings->setValue("MetaballsView/colorG", _metaballsColor[1]);
+    settings->setValue("MetaballsView/colorB", _metaballsColor[2]);
 }//pickMetaballsColor
 
 
 void MetaballsView::setCullFace(int state)
 {
     cullFace = state != 0;
-    settings->setValue("metaballsView/cullFace", cullFace);
+    settings->setValue("MetaballsView/cullFace", cullFace);
 
     if (current)
     {
@@ -584,7 +782,7 @@ void MetaballsView::setCullFace(int state)
 void MetaballsView::setLighting(int state)
 {
     lighting = state != 0;
-    settings->setValue("metaballsView/lighting", lighting);
+    settings->setValue("MetaballsView/lighting", lighting);
 
     if (current)
     {
@@ -597,7 +795,7 @@ void MetaballsView::setLighting(int state)
 
 void MetaballsView::updateFaces()
 {
-    tick(this->frame, this->data);
+    tick(this->frame, this->quantised);
 }//updateFaces
 
 
