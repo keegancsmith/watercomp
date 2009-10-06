@@ -88,6 +88,7 @@ void ClusterView::tick(Frame* frame, QuantisedFrame* data)
     this->frame = frame;
     this->data = data;
 
+    graph.clear();
     graph = ANNGraphCreator::create_graph(waters, *frame);
     // graph = GridGraphCreator::create_graph(waters, *frame);
 
@@ -101,9 +102,7 @@ void ClusterView::tick(Frame* frame, QuantisedFrame* data)
             dfs(waters[i].OH2_index, num_clusters++);
         }
     }
-    current_cluster = 0;
     clusterSpinBox->setMaximum(num_clusters-1);
-    clusterSpinBox->setValue(0);
     printf("Cluster count: %d\n", num_clusters-1);
 }//tick
 
@@ -124,28 +123,15 @@ void ClusterView::render()
             continue;
         for (std::vector<unsigned int>::iterator vit = it->second.begin(); vit != it->second.end(); vit++)
         {
-            glVertex3i(data->quantised_frame[start],
-                    data->quantised_frame[start+1],
-                    data->quantised_frame[start+2]);
-            glVertex3i(data->quantised_frame[*vit],
-                    data->quantised_frame[*vit+1],
-                    data->quantised_frame[*vit+2]);
+            glVertex3i(data->quantised_frame[3*start],
+                       data->quantised_frame[3*start+1],
+                       data->quantised_frame[3*start+2]);
+            glVertex3i(data->quantised_frame[3*(*vit)],
+                       data->quantised_frame[3*(*vit)+1],
+                       data->quantised_frame[3*(*vit)+2]);
         }//for
     }//for
     glEnd();
-    // glDepthFunc(GL_ALWAYS);
-    // draw points
-    // glColor4fv(_pointColor);
-    // glBegin(GL_POINTS);
-    // for (int i = 0; i < data->natoms(); i++)
-    // {
-        // if (pdb[i].atom_name == "OH2")
-            // glVertex3i(data->quantised_frame[i*3],
-                    // data->quantised_frame[i*3+1],
-                    // data->quantised_frame[i*3+2]);
-    // }//for
-    // glEnd();
-    // glDepthFunc(GL_LEQUAL);
 }//render
 
 
@@ -193,6 +179,7 @@ void ClusterView::setClusterID(int value)
     if (value < 0) value = -1;
     if (value >= num_clusters) value = num_clusters - 1;
     current_cluster = value;
+    if (current_cluster > -1)
     printf("Cluster size: %u\n", sizes[current_cluster]);
 }//setClusterID
 

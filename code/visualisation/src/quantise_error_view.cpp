@@ -86,7 +86,9 @@ void QuantiseErrorView::render()
             dif[0] = dequantised->atom_data[i*3]   - frame->atom_data[i*3];
             dif[1] = dequantised->atom_data[i*3+1] - frame->atom_data[i*3+1];
             dif[2] = dequantised->atom_data[i*3+2] - frame->atom_data[i*3+2];
-            d = sqrt(len2(dif)) / _errorValue;
+            d = len2(dif);
+            d *= d;
+            d = d / _errorValue;
             if (d > 1) d = 1;
             if (d > 1e-6)
             {

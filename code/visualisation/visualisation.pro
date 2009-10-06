@@ -1,4 +1,5 @@
 TEMPLATE = app
+CONFIG += debug
 QT += opengl
 LIBS += -lgts -L../ann -lANN
 DESTDIR = bin
