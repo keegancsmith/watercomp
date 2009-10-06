@@ -24,10 +24,13 @@ void NaiveReader::start()
     m_nframes  = header_int[1];
     int ISTART = header_int[2];
     int NSAVC  = header_int[3];
+    
+    printf("%d %d %d %d\n", header_int[0], header_int[1],header_int[2],header_int[3]);
 
     double DELTA;
     dec.decode(&DELTA, sizeof(double), 1);
 
+    printf("%lf\n", header_int[0]);
     // TODO atm we are ignoring most of these values!
 }
 
