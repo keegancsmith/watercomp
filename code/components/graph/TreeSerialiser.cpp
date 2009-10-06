@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <queue>
+#include <climits>
 
 using namespace std;
 
@@ -36,53 +37,49 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
     AdaptiveModelEncoder err_encoder(&ae);
     AdaptiveModelEncoder index_encoder(&ae);
 
-    // root is predicted to be at (0,0,0)
-    unsigned int predictions[g->nVerticies][3];
-    fill(predictions[root], predictions[root] + 3, 0);
-
     int atoms = frame->natoms();
     int count = 0;
+
+    // root is predicted to be at (0,0,0)
+    unsigned int predictions[atoms][3];
+    fill(predictions[root], predictions[root] + 3, 0);
 
     queue<int> q;
     q.push(root);
 
     while(!q.empty()) {
-	int v = q.front();
-	q.pop();
+        int v = q.front();
+        q.pop();
         count++;
 
         // Calculate values
         int size = g->adjacent[v].size();
-	int index = v;
-	int error[3];
-	for (int i = 0; i < 3; i++)
-	    error[i] = frame->quantised_frame[3*v + i] - predictions[v][i];
+        int index = v;
+        int error[3];
+        for (int i = 0; i < 3; i++)
+            error[i] = frame->quantised_frame[3*v + i] - predictions[v][i];
 
         // Assert if values are sensible
         assert(0 <= size && size <= 2);
         assert(0 <= index && index < atoms);
 
         // Write values to arithmetic encoder
-	encode_int(tree_encoder, size);
-	encode_int(index_encoder, index);
+        encode_int(tree_encoder, size);
+        encode_int(index_encoder, index);
         for (int i = 0; i < 3; i++)
             encode_int(err_encoder, error[i]);
 
         // Add children verticies to process queue
-	for (int i = 0; i < size; i++) {
-	    int u = g->adjacent[v][i];
-	    for (int j = 0; j < 3; j++)
-		predictions[u][j] = frame->quantised_frame[3*v + i];
-	    q.push(u);
-	}
+        for (int i = 0; i < size; i++) {
+            int u = g->adjacent[v][i];
+            for (int j = 0; j < 3; j++)
+                predictions[u][j] = frame->quantised_frame[3*v + j];
+            q.push(u);
+        }
     }
 
-    assert(count == frame->natoms());
-
-    // Clean up
-//     tree_encoder.end_encode();
-//     err_encoder.end_encode();
-//     index_encoder.end_encode();
+    assert(count == atoms);
+    assert(g->nVerticies == atoms);
 }
 
 
@@ -101,7 +98,7 @@ void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame)
 
     while(!q.empty()) {
         int v = q.front();
-	q.pop();
+        q.pop();
         count++;
 
         // Get position of parent and use it as the prediction
@@ -120,7 +117,7 @@ void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame)
             error[i] = decode_int(err_decoder);
 
         // Check if they are sane
-	assert(0 <= size && size <= 2);
+        assert(0 <= size && size <= 2);
         assert(0 <= index && index < atoms);
 
         // Values is the prediction + the error
