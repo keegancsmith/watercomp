@@ -30,7 +30,7 @@ bool compress(Compressor & c, string dcdpath, string outpath,
         return false;
 
     // Output file
-    FILE *out = fopen(outpath.c_str(), "w");
+    FILE *out = fopen(outpath.c_str(), "wb");
 
     // Use the writer
     FrameWriter * writer = c.frame_writer(out);
@@ -63,7 +63,7 @@ bool compress(Compressor & c, string dcdpath, string outpath,
 bool decompress(Compressor & c, string cmppath, string dcdpath)
 {
     // Start reading compressed file
-    FILE * fin = fopen(cmppath.c_str(), "r");
+    FILE * fin = fopen(cmppath.c_str(), "rb");
     FrameReader * reader = c.frame_reader(fin);
 
     // Read in header
