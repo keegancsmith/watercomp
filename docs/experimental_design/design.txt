@@ -1,0 +1,108 @@
+.. vim: filetype=rst
+
+=====================
+ Experimental design
+=====================
+
+Hypothesis
+----------
+
+To test the perceptually visible effects of quantisation.
+
+
+Test cases
+----------
+
+.. Depends on how many different datasets we can get
+
+*d* different datasets
+
+1. Protein in the middle
+2. Small, water only
+
+
+.. Keegan/Julian: how many different quantisation levels will be tested?
+.. And, what are they? I've gone in 8 bit increments for now
+
+*q* different quantisation levels
+
+1. Unquantised 32 bit floats
+2. 32 bit integers
+3. 24 bit integers
+4. 16 bit integers
+5. 8  bit integers
+
+
+.. Maybe only use 2 techniques? Testing 3 techniques is a bit much?
+
+*v* different visualisation techniques
+
+1. Ball and stick
+2. Metaballs view
+3. Water cluster view
+
+.. 4. Quantisation error view
+.. 5. Water point view
+
+*d* \* *q* \* *v* different tests
+
+
+Variables
+---------
+
+The *q* different quantisation levels, with the *v* different visualisation
+techniques.
+
+
+Subjects
+--------
+
+30 people.
+
+.. Will that be enough?
+
+
+Procedure
+---------
+
+
+1. The subject will be given a piece of paper explaining the experiment to
+   them. This will be to avoid biasing the subject in any manner.
+2. The original unquantised data will be loaded and the subject will be
+   allowed to explore and view it.
+3. Thereafter, the different quantised data will be loaded for the subject.
+4. 33% of subjects will be shown the data in increasing order of quantisation.
+5. 33% of subjects will be shown the data in decreasing order of quantisation.
+6. 33% of subjects will be shown the data in a random order.
+   .. Just show in a random order to everyone?
+7. This procedure will be repeated using 2 visualisation techniques, with 2
+   different datasets.
+   The visualisation technique will be randomly chosen. Only 2 visualisation
+   techniques will be used so as that not too much time of the subject is
+   used.
+8. After showing each quantised data, the subject will be asked to indicate on
+   a scale of 1 to 10 how noticeable the difference is (not noticeable to very
+   obvious).
+
+
+Estimated time required to complete experiment:
+
+5 minutes for the subject to read instructions, fill in details and indicate
+their response.
+
+(2 datasets)
+\* (4+1 quantisation levels)
+\* (2 visualisation techniques)
+\* (1.5 minute per viewing)
+= (30 minutes for experiment)
+
+.. Is 1.5 minutes per viewing too long? 1 minute enough?
+
+Total of ~35 minutes
+
+
+Results / Outcomes
+------------------
+
+What quantisation level is the most noticeable.
+

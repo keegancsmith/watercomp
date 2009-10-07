@@ -1,0 +1,43 @@
+.. vim: filetype=rst
+
+==============
+ Instructions
+==============
+
+This experiment will be testing how noticeable different quantisation levels
+are. In simple terms, how noticeable is the precision of a decimal number.
+
+The data that you will be shown is molecular data. Each atom will be
+represented by a sphere in 3D space. You are free to watch and explore the
+data as you want.
+
+| The controls are:
+|   Left click and drag to rotate the view
+|   Mouse wheel to zoom in and out
+
+The experiment will follow these steps:
+
+1. The original data will be loaded. You will be comparing later data to this.
+2. You can watch and explore the data as you want.
+3. The same data but at a different quantisation level will be loaded for you.
+4. Again, you can watch and explore the data as you want.
+5. Once you are finished, you will be asked to indicate on a scale of 1 to 10
+   how different is what was just shown and the original data. 1 being not
+   different, 10 being very different.
+6. Steps 3 to 5 will be repeated 3 more times with different quantisation
+   levels.
+7. This entire procedure will then be repeated for 2 different visualisations
+   and 2 different datasets.
+
+There is no right or wrong answer. This experiment is purely to observe the
+effects of different quantisation levels.
+
+This experiment is entirely voluntary, you are free to leave at any time
+during the experiment.
+
+No individually identifying information will be collected.
+
+Thank you for your time.
+
+The experiment will start once you have signed this page.
+
