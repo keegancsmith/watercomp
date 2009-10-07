@@ -1,7 +1,7 @@
 CXX=g++
 CXXFLAGS=-O3 -Wall
 
-all: FrameWriter.o FrameReader.o Compressor.o
+all: FrameWriter.o FrameReader.o Compressor.o Permutation.o
 	cd arithmetic; $(MAKE) $(MFLAGS)
 	cd graph; $(MAKE) $(MFLAGS)
 	cd pdbio; $(MAKE) $(MFLAGS)
