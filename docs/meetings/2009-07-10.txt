@@ -1,4 +1,5 @@
 .. -*- mode: rst -*-
+.. vim: filetype=rst
 
 ========================================
  Minutes of Meeting Friday 10 July 2009
