@@ -1,5 +1,6 @@
 #include "AdaptiveModelEncoder.h"
 #include <string>
+#include <cstdio>
 
 using namespace std;
 
@@ -46,6 +47,14 @@ void AdaptiveModelEncoder::encode(string symbol)
 //         printf("DFG\n");
     }
 }
+
+void AdaptiveModelEncoder::encode_int(int i)
+{
+    char buf[12]; // Ints can only be 10 digits + sign + null
+    sprintf(buf, "%d", i);
+    encode(buf);
+}
+
 
 void AdaptiveModelEncoder::end_encode()
 {

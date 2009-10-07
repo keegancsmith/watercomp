@@ -1,5 +1,7 @@
 #include "AdaptiveModelDecoder.h"
 #include <string>
+#include <cstdlib>
+#include <cassert>
 
 using namespace std;
 
@@ -56,4 +58,11 @@ string AdaptiveModelDecoder::decode()
     
     tree.update(symbol);
     return symbol_table[symbol];
+}
+
+int AdaptiveModelDecoder::decode_int()
+{
+    string val = decode();
+    assert(val.size() < 12);
+    return atoi(val.c_str());
 }

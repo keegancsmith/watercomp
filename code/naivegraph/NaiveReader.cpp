@@ -2,6 +2,7 @@
 
 #include "arithmetic/ByteDecoder.h"
 #include "graph/TreeSerialiser.h"
+#include "Permutation.h"
 
 #include <cassert>
 
@@ -48,7 +49,8 @@ bool NaiveReader::next_frame(QuantisedFrame & qframe)
     qframe.m_yquant = header_quant[1];
     qframe.m_zquant = header_quant[2];
 
-    deserialise_tree(m_decoder, qframe);
+    BestPermutationReader perm(&m_decoder, qframe.natoms());
+    deserialise_tree(m_decoder, perm, qframe);
 
     return true;
 }

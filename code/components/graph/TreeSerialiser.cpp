@@ -13,29 +13,14 @@
 using namespace std;
 
 
-void encode_int(AdaptiveModelEncoder & enc, int i)
-{
-    char buf[12]; // Ints can only be 10 digits + sign + null
-    sprintf(buf, "%d", i);
-    enc.encode(buf);
-}
-
-int decode_int(AdaptiveModelDecoder & dec)
-{
-    string val = dec.decode();
-    assert(val.size() < 12);
-    return atoi(val.c_str());
-}
-
-
 // Serialises the tree in a BFS order
-void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
+void serialise_tree(ArithmeticEncoder & ae, PermutationWriter & perm,
+                    Graph * g, int root)
 {
     QuantisedFrame * frame = (QuantisedFrame *)g->data;
 
     AdaptiveModelEncoder tree_encoder(&ae);
     AdaptiveModelEncoder err_encoder(&ae);
-    AdaptiveModelEncoder index_encoder(&ae);
 
     int atoms = frame->natoms();
     int count = 0;
@@ -64,10 +49,10 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
         assert(0 <= index && index < atoms);
 
         // Write values to arithmetic encoder
-        encode_int(tree_encoder, size);
-        encode_int(index_encoder, index);
+        tree_encoder.encode_int(size);
+        perm.next_index(index);
         for (int i = 0; i < 3; i++)
-            encode_int(err_encoder, error[i]);
+            err_encoder.encode_int(error[i]);
 
         // Add children verticies to process queue
         for (int i = 0; i < size; i++) {
@@ -84,11 +69,11 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
 
 
 // Deserialise the tree in a BFS order
-void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame)
+void deserialise_tree(ArithmeticDecoder & ad, PermutationReader & perm,
+                      QuantisedFrame & frame)
 {
     AdaptiveModelDecoder tree_decoder(&ad);
     AdaptiveModelDecoder err_decoder(&ad);
-    AdaptiveModelDecoder index_decoder(&ad);
 
     int atoms = frame.natoms();
     int count = 0;
@@ -110,11 +95,11 @@ void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame)
                 p[i] = frame.quantised_frame[3*v + i];
 
         // Read in values from file
-        int size  = decode_int(tree_decoder);
-        int index = decode_int(index_decoder);
+        int size  = tree_decoder.decode_int();
+        int index = perm.next_index();
         int error[3];
         for (int i = 0; i < 3; i++)
-            error[i] = decode_int(err_decoder);
+            error[i] = err_decoder.decode_int();
 
         // Check if they are sane
         assert(0 <= size && size <= 2);

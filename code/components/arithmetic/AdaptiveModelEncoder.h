@@ -28,6 +28,7 @@ class AdaptiveModelEncoder
         AdaptiveModelEncoder(ArithmeticEncoder* arithmetic_encoder);
         
         void encode(std::string symbol);
+        void encode_int(int symbol);
         void end_encode();
 
 };

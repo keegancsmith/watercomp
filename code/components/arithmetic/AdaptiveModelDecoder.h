@@ -30,4 +30,5 @@ class AdaptiveModelDecoder
         AdaptiveModelDecoder(ArithmeticDecoder* arithmetic_decoder);
         
         std::string decode();
+        int decode_int();
 };
