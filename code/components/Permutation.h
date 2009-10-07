@@ -7,7 +7,7 @@
 #include "arithmetic/AdaptiveModelEncoder.h"
 #include "arithmetic/AdaptiveModelDecoder.h"
 
-#include <set>
+#include <vector>
 
 
 // Experiments with permutation compressors
@@ -64,6 +64,19 @@ private:
     int m_last;
 };
 
+class IndexToSymbol
+{
+public:
+    IndexToSymbol(int size);
+    int pop_index(int index);
+    int pop_symbol(int symbol);
+    int size() const;
+private:
+    int m_size;
+    std::vector<int> m_indicies;
+    std::vector<int> m_symbols;
+};
+
 class BestPermutationWriter : public PermutationWriter
 {
 public:
@@ -71,7 +84,7 @@ public:
     void next_index(int index);
 private:
     ArithmeticEncoder * m_enc;
-    std::set<int> m_indicies;
+    IndexToSymbol m_indicies;
 };
 
 class BestPermutationReader : public PermutationReader
@@ -81,5 +94,5 @@ public:
     int next_index();
 private:
     ArithmeticDecoder * m_dec;
-    std::set<int> m_indicies;
+    IndexToSymbol m_indicies;
 };

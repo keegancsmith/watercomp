@@ -72,37 +72,64 @@ int DeltaPermutationReader::next_index()
 // BestPermutation
 //
 
-// TODO use a better data structure (Fenwick Tree. For decoding you can do a
-// binary search over the cumulative sums to find the corresponding index)
+IndexToSymbol::IndexToSymbol(int size)
+    : m_size(size)
+{
+    m_indicies.resize(size);
+    m_symbols.resize(size);
+    for (int i = 0; i < size; i++)
+        m_indicies[i] = m_symbols[i] = i;
+}
+
+
+int IndexToSymbol::pop_index(int index)
+{
+    assert(m_size != 0);
+    m_size--;
+
+    int s = m_symbols[index];
+    int l = m_indicies[m_size];
+
+    m_symbols[l] = s;
+    m_indicies[s] = l;
+
+    return s;
+}
+
+
+int IndexToSymbol::pop_symbol(int symbol)
+{
+    int i = m_indicies[symbol];
+    pop_index(i);
+    return i;
+}
+
+
+int IndexToSymbol::size() const
+{
+    return m_size;
+}
+
+
 BestPermutationWriter::BestPermutationWriter(ArithmeticEncoder * enc,
                                              int size)
-    : m_enc(enc)
+    : m_enc(enc), m_indicies(size)
 {
-    for (int i = 0; i < size; i++)
-        m_indicies.insert(i);
 }
 
 
 void BestPermutationWriter::next_index(int index)
 {
-    std::set<int>::iterator it = m_indicies.find(index);
-    assert(it != m_indicies.end());
-
     int size = m_indicies.size();
-    int val  = std::distance(m_indicies.begin(), it);
-
+    int val  = m_indicies.pop_index(index);
     m_enc->encode(val, val+1, size);
-
-    m_indicies.erase(it);
 }
 
 
 BestPermutationReader::BestPermutationReader(ArithmeticDecoder * dec,
                                              int size)
-    : m_dec(dec)
+    : m_dec(dec), m_indicies(size)
 {
-    for (int i = 0; i < size; i++)
-        m_indicies.insert(i);
 }
 
 
@@ -110,14 +137,5 @@ int BestPermutationReader::next_index()
 {
     int val = m_dec->decode(m_indicies.size());
     m_dec->decoder_update(val, val+1);
-
-    std::set<int>::iterator it = m_indicies.begin();
-    for (int i = 0; i < val; i++)
-        ++it;
-
-    assert(it != m_indicies.end());
-    int index = *it;
-    m_indicies.erase(it);
-
-    return index;
+    return m_indicies.pop_symbol(val);
 }
