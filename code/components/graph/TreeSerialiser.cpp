@@ -3,6 +3,7 @@
 #include "../arithmetic/AdaptiveModelEncoder.h"
 #include "../arithmetic/AdaptiveModelDecoder.h"
 #include "../quantiser/QuantisedFrame.h"
+#include "../Permutation.h"
 
 #include <cassert>
 #include <cstdio>
@@ -14,13 +15,14 @@ using namespace std;
 
 
 // Serialises the tree in a BFS order
-void serialise_tree(ArithmeticEncoder & ae, PermutationWriter & perm,
-                    Graph * g, int root)
+void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
 {
     QuantisedFrame * frame = (QuantisedFrame *)g->data;
 
     AdaptiveModelEncoder tree_encoder(&ae);
     AdaptiveModelEncoder err_encoder(&ae);
+    PermutationWriter * perm =
+        PermutationWriter::get_writer(&ae, frame->natoms());
 
     int atoms = frame->natoms();
     int count = 0;
@@ -50,7 +52,7 @@ void serialise_tree(ArithmeticEncoder & ae, PermutationWriter & perm,
 
         // Write values to arithmetic encoder
         tree_encoder.encode_int(size);
-        perm.next_index(index);
+        perm->next_index(index);
         for (int i = 0; i < 3; i++)
             err_encoder.encode_int(error[i]);
 
@@ -65,15 +67,19 @@ void serialise_tree(ArithmeticEncoder & ae, PermutationWriter & perm,
 
     assert(count == atoms);
     assert(g->nVerticies == atoms);
+
+    delete perm;
 }
 
 
 // Deserialise the tree in a BFS order
-void deserialise_tree(ArithmeticDecoder & ad, PermutationReader & perm,
-                      QuantisedFrame & frame)
+void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame)
 {
     AdaptiveModelDecoder tree_decoder(&ad);
     AdaptiveModelDecoder err_decoder(&ad);
+
+    PermutationReader * perm =
+        PermutationReader::get_reader(&ad, frame.natoms());
 
     int atoms = frame.natoms();
     int count = 0;
@@ -96,7 +102,7 @@ void deserialise_tree(ArithmeticDecoder & ad, PermutationReader & perm,
 
         // Read in values from file
         int size  = tree_decoder.decode_int();
-        int index = perm.next_index();
+        int index = perm->next_index();
         int error[3];
         for (int i = 0; i < 3; i++)
             error[i] = err_decoder.decode_int();
@@ -115,4 +121,6 @@ void deserialise_tree(ArithmeticDecoder & ad, PermutationReader & perm,
     }
 
     assert(count == atoms);
+
+    delete perm;
 }

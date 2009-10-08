@@ -5,6 +5,45 @@
 #include <cstdlib>
 #include <string>
 
+std::string get_permutation_env()
+{
+    char * perm = getenv("PERMUTATION");
+    if (!perm)
+        return "best";
+    else return perm;
+}
+
+PermutationWriter * PermutationWriter::get_writer(ArithmeticEncoder * enc,
+                                                  int size)
+{
+    std::string perm = get_permutation_env();
+    if (perm == "naive")
+        return new NaivePermutationWriter(enc);
+    if (perm == "delta")
+        return new DeltaPermutationWriter(enc);
+    if (perm == "best")
+        return new BestPermutationWriter(enc, size);
+    fprintf(stderr, "ERROR: PERMUTATION environment variable must be "
+            "\"naive\", \"delta\" or \"best\" (default)\n");
+    exit(1);
+}
+
+
+PermutationReader * PermutationReader::get_reader(ArithmeticDecoder * dec,
+                                                  int size)
+{
+    std::string perm = get_permutation_env();
+    if (perm == "naive")
+        return new NaivePermutationReader(dec);
+    if (perm == "delta")
+        return new DeltaPermutationReader(dec);
+    if (perm == "best")
+        return new BestPermutationReader(dec, size);
+    fprintf(stderr, "ERROR: PERMUTATION environment variable must be "
+            "\"naive\", \"delta\" or \"best\" (default)\n");
+    exit(1);
+}
+
 
 //
 // NaivePermutation

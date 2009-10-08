@@ -3,7 +3,6 @@
 #include "graph/GraphCreator.h"
 #include "graph/SpanningTree.h"
 #include "graph/TreeSerialiser.h"
-#include "Permutation.h"
 
 NaiveWriter::NaiveWriter(FILE * fout)
     : m_fout(fout)
@@ -47,8 +46,7 @@ void NaiveWriter::next_frame(const QuantisedFrame& qframe)
     Graph * tree = spanning_tree(fully_connected_graph, root);
 
     // Output the spanning tree
-    BestPermutationWriter perm(&m_encoder, qframe.natoms());
-    serialise_tree(m_encoder, perm, tree, root);
+    serialise_tree(m_encoder, tree, root);
 
     // Cleanup
     delete tree;

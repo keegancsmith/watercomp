@@ -17,6 +17,7 @@ int main(int argc, char ** argv) {
     int quantx = argc > 3 ? atoi(argv[3]) : 8;
     int quanty = argc > 4 ? atoi(argv[4]) : 8;
     int quantz = argc > 5 ? atoi(argv[5]) : 8;
+    bool all_same = true;
 
     DCDReader reader1, reader2;
     reader1.open_file(original);
@@ -59,10 +60,13 @@ int main(int argc, char ** argv) {
         for (int d = 0; d < 3; d++)
             avg_error[d] /= f1.natoms();
 
+        if (!same)
+            all_same = false;
+
         if (same)
-            cout << "SUCCESS: Files are the same when quantised" << endl;
+            cout << "SUCCESS: Frames are the same when quantised" << endl;
         else
-            cout << "FAIL: Files are different when quantised" << endl;
+            cout << "FAIL: Frames are different when quantised" << endl;
         cout << "average error: " << avg_error[0] << ' ' << avg_error[1]
              << ' ' << avg_error[2] << endl
              << "min error:     " << min_error[0] << ' ' << min_error[1]
@@ -70,6 +74,11 @@ int main(int argc, char ** argv) {
              << "max error:     " << max_error[0] << ' ' << max_error[1]
              << ' ' << max_error[2] << endl << endl;
     }
+
+    if (all_same)
+        cout << "SUCCESS: Files are the same when quantised" << endl;
+    else
+        cout << "FAIL: Files are different when quantised" << endl;
     
     return 0;
 }

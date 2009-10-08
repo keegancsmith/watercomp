@@ -17,6 +17,9 @@ class PermutationWriter
 public:
     virtual ~PermutationWriter() {}
     virtual void next_index(int index) = 0;
+
+    static PermutationWriter * get_writer(ArithmeticEncoder * enc,
+                                          int size);
 };
 
 class PermutationReader
@@ -24,6 +27,9 @@ class PermutationReader
 public:
     virtual ~PermutationReader() {}
     virtual int next_index() = 0;
+
+    static PermutationReader * get_reader(ArithmeticDecoder * dec,
+                                          int size);
 };
 
 class NaivePermutationWriter : public PermutationWriter
