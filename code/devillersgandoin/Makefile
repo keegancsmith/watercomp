@@ -1,29 +1,28 @@
-CC=g++
+CXX=g++
+CXXFLAGS=-O3 -Wall -I../components
+CXXLIBS=-lm
 
-CFLAGS=-Wall -O3
-CLIBS=-lm
+# Just get all .o files in components 0 to 1 level deep.
+SRC  = $(wildcard ../components/*.cpp)
+SRC += $(wildcard ../components/*/*.cpp)
+SRC += $(wildcard ../dcd_loader/*.cpp)
+OBJS = $(patsubst %.cpp, %.o, $(filter-out %/main.cpp, $(SRC)))
 
+default: dgcomp test_transformation test_point_compression
 
-default: test_transformation test_point_compression dcd
-
-
-dcd: dcd.cpp devillersgandoin.cpp devillersgandoin.h
-	$(CC) $(CFLAGS) $(CLIBS) -o dcd dcd.cpp devillersgandoin.cpp ac.c
-
+dgcomp: dgcomp.cpp devillersgandoin.o $(OBJS)
+	$(CXX) $(CXXFLAGS) $(CXXLIBS) -o dgcomp dgcomp.cpp devillersgandoin.o $(OBJS)
 
 test_transformation: test_transformation.cpp devillersgandoin.cpp devillersgandoin.h
-	$(CC) $(CFLAGS) $(CLIBS) -DDIMENSIONS=2 -o test_transformation \
+	$(CXX) $(CXXFLAGS) $(CXXLIBS) -DDIMENSIONS=2 -o test_transformation \
 	test_transformation.cpp devillersgandoin.cpp
 
-
 test_point_compression: test_point_compression.cpp devillersgandoin.cpp devillersgandoin.h
-	$(CC) $(CFLAGS) $(CLIBS) -o test_point_compression \
+	$(CXX) $(CXXFLAGS) $(CXXLIBS) -o test_point_compression \
 	test_point_compression.cpp devillersgandoin.cpp ac.c
 
-
 clean:
-	rm test_point_compression test_transformation dcd
-
+	rm -f test_point_compression test_transformation dgcomp $(OBJS)
 
 check-syntax:
-	$(CC) $(CFLAGS) -Wextra -Wno-sign-compare -fsyntax-only $(CHK_SOURCES)
+	$(CXX) $(CXXFLAGS) -Wextra -Wno-sign-compare -fsyntax-only $(CHK_SOURCES)
