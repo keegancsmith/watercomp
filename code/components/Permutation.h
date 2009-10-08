@@ -32,6 +32,21 @@ public:
                                           int size);
 };
 
+class NullPermutationWriter : public PermutationWriter
+{
+public:
+    void next_index(int index) {}
+};
+
+class NullPermutationReader : public PermutationReader
+{
+public:
+    NullPermutationReader() : m_index(0) {}
+    int next_index() { return m_index++; }
+private:
+    int m_index;
+};
+
 class NaivePermutationWriter : public PermutationWriter
 {
 public:

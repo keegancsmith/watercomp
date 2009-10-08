@@ -13,18 +13,22 @@ std::string get_permutation_env()
     else return perm;
 }
 
+const char * perm_error_msg = "ERROR: PERMUTATION environment variable must "
+    "be \"null\", \"naive\", \"delta\" or \"best\" (default)\n";
+
 PermutationWriter * PermutationWriter::get_writer(ArithmeticEncoder * enc,
                                                   int size)
 {
     std::string perm = get_permutation_env();
+    if (perm == "null")
+        return new NullPermutationWriter();
     if (perm == "naive")
         return new NaivePermutationWriter(enc);
     if (perm == "delta")
         return new DeltaPermutationWriter(enc);
     if (perm == "best")
         return new BestPermutationWriter(enc, size);
-    fprintf(stderr, "ERROR: PERMUTATION environment variable must be "
-            "\"naive\", \"delta\" or \"best\" (default)\n");
+    fprintf(stderr, "%s", perm_error_msg);
     exit(1);
 }
 
@@ -33,14 +37,15 @@ PermutationReader * PermutationReader::get_reader(ArithmeticDecoder * dec,
                                                   int size)
 {
     std::string perm = get_permutation_env();
+    if (perm == "null")
+        return new NullPermutationReader();
     if (perm == "naive")
         return new NaivePermutationReader(dec);
     if (perm == "delta")
         return new DeltaPermutationReader(dec);
     if (perm == "best")
         return new BestPermutationReader(dec, size);
-    fprintf(stderr, "ERROR: PERMUTATION environment variable must be "
-            "\"naive\", \"delta\" or \"best\" (default)\n");
+    fprintf(stderr, "%s", perm_error_msg);
     exit(1);
 }
 
