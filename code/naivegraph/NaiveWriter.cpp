@@ -1,6 +1,5 @@
 #include "NaiveWriter.h"
 #include "arithmetic/ByteEncoder.h"
-#include "graph/GraphCreator.h"
 #include "graph/SpanningTree.h"
 #include "graph/TreeSerialiser.h"
 
@@ -42,15 +41,13 @@ void NaiveWriter::next_frame(const QuantisedFrame& qframe)
 
     // Create spanning tree of atoms
     int root;
-    Graph * fully_connected_graph = create_graph(&qframe);
-    Graph * tree = spanning_tree(fully_connected_graph, root);
+    Graph * tree = spanning_tree(qframe, root);
 
     // Output the spanning tree
     serialise_tree(m_encoder, tree, root);
 
     // Cleanup
     delete tree;
-    delete fully_connected_graph;
 }
 
 
