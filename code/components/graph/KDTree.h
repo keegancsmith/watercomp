@@ -9,6 +9,12 @@ public:
            int d=0, int l=0, int u=-1);
     ~KDTree();
 
+    template<class Predicate>
+    void iterate_closest(int x, int y, int z, Predicate & pred);
+
+    unsigned int m_min_box[3];
+    unsigned int m_max_box[3];
+
 private:
     void find_box();
     void create_children();
@@ -17,8 +23,6 @@ private:
     std::vector<int> * m_index;
     int m_lower, m_upper;
     int m_dimension;
-    unsigned int m_min_box[3];
-    unsigned int m_max_box[3];
     KDTree * m_left;
     KDTree * m_right;
 };
