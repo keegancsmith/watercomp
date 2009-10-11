@@ -7,42 +7,35 @@
 Hypothesis
 ----------
 
-To test the perceptually visible effects of quantisation.
+To measure the perceptually visible effects of quantisation.
 
 
 Test cases
 ----------
 
-.. Depends on how many different datasets we can get
-
 *d* different datasets
 
 1. Protein in the middle
 2. Small, water only
+3. ... (*What else can we get?*)
 
-
-.. Keegan/Julian: how many different quantisation levels will be tested?
-.. And, what are they? I've gone in 8 bit increments for now
 
 *q* different quantisation levels
 
 1. Unquantised 32 bit floats
-2. 32 bit integers
-3. 24 bit integers
-4. 16 bit integers
-5. 8  bit integers
+2. 16 bit integers
+3. 8  bit integers
+4. 6  bit integers
+5. 4  bit integers
 
-
-.. Maybe only use 2 techniques? Testing 3 techniques is a bit much?
 
 *v* different visualisation techniques
 
 1. Ball and stick
 2. Metaballs view
-3. Water cluster view
-
-.. 4. Quantisation error view
-.. 5. Water point view
+3. Water cluster view (*Will testing 3 techniques be a bit much?*)
+4. Quantisation error view (*Not in experiment*)
+5. Water point view (*Not in experiment*)
 
 *d* \* *q* \* *v* different tests
 
@@ -57,9 +50,7 @@ techniques.
 Subjects
 --------
 
-30 people.
-
-.. Will that be enough?
+30 people. (*Will this be enough?*)
 
 
 Procedure
@@ -74,7 +65,7 @@ Procedure
 4. 33% of subjects will be shown the data in increasing order of quantisation.
 5. 33% of subjects will be shown the data in decreasing order of quantisation.
 6. 33% of subjects will be shown the data in a random order.
-   .. Just show in a random order to everyone?
+   (*Just show in a random order to everyone?*)
 7. This procedure will be repeated using 2 visualisation techniques, with 2
    different datasets.
    The visualisation technique will be randomly chosen. Only 2 visualisation
@@ -96,13 +87,14 @@ their response.
 \* (1.5 minute per viewing)
 = (30 minutes for experiment)
 
-.. Is 1.5 minutes per viewing too long? 1 minute enough?
-
 Total of ~35 minutes
+
+(*Is 1.5 minutes per viewing too long? 1 minute enough?*)
 
 
 Results / Outcomes
 ------------------
 
-What quantisation level is the most noticeable.
+Given a specific visualisation technique and quantisation level, how
+noticeable is the quantisation effect?
 
