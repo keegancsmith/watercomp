@@ -26,6 +26,8 @@ class PlaybackControl;
 class Renderer;
 class ViewPreferenceDialog;
 
+class MetaballsView;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -38,6 +40,8 @@ class MainWindow : public QMainWindow
         void doOpenFile();
         void doViewPreferences();
         void setFrame(int value);
+
+        void __do__process__all__frames__();
 
     private:
         QSettings* settings;
@@ -55,6 +59,8 @@ class MainWindow : public QMainWindow
         PlaybackControl* playbackControl;
         Renderer* renderer;
         ViewPreferenceDialog* viewPreferenceDialog;
+
+        MetaballsView* __metaballs__;
 
         void setupMenu();
         void addRenderMode(BaseView* view, QMenu* menu);

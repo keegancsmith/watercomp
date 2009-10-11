@@ -41,7 +41,7 @@ void BaseView::render()
 {
 }//render
 
-void BaseView::tick(Frame* frame, QuantisedFrame* quantised)
+void BaseView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
 {
     this->frame = frame;
     this->quantised = quantised;

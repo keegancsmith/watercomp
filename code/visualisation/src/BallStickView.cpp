@@ -80,7 +80,7 @@ QWidget* BallStickView::preferenceWidget()
 }//preferenceWidget
 
 
-void BallStickView::tick(Frame* frame, QuantisedFrame* quantised)
+void BallStickView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
 {
     this->frame = frame;
     this->quantised = quantised;

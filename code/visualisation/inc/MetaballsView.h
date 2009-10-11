@@ -11,6 +11,8 @@ class QCheckBox;
 class QSettings;
 class QSlider;
 
+class DCDReader;
+
 struct Point3f
 {
     float x;
@@ -50,7 +52,13 @@ class MetaballsView : public BaseView
         virtual QWidget* preferenceWidget();
 
         virtual void render();
-        virtual void tick(Frame* frame, QuantisedFrame* quantised);
+        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised);
+
+        // epic hack of note
+        QVector<QVector<Triangle> > __all__frames__;
+        bool __process__all__frames__(DCDReader* reader);
+        bool __save__all__frames__(QString filename);
+        bool __load__all__frames__(QString filename);
 
     protected:
         virtual void initGL();
@@ -72,6 +80,8 @@ class MetaballsView : public BaseView
         int _stepSize;
         float _metaballsColor[4];
         QVector<Triangle> _surface;
+
+        int framenum;
 
         unsigned char*** volumedata;
 

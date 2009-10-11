@@ -131,7 +131,7 @@ void MainWindow::setFrame(int value)
 
     if (data) delete data;
     data = new QuantisedFrame(*frame, 8, 8, 8);
-    renderer->dataTick(frame, data);
+    renderer->dataTick(value, frame, data);
 }//setFrame
 
 
@@ -159,10 +159,17 @@ void MainWindow::setupMenu()
 
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     addRenderMode(new PointView(), viewMenu);
-    addRenderMode(new MetaballsView(), viewMenu);
+    __metaballs__ = new MetaballsView();
+    addRenderMode(__metaballs__, viewMenu);
     addRenderMode(new ClusterView(), viewMenu);
     addRenderMode(new QuantiseErrorView(), viewMenu);
     addRenderMode(new BallStickView(), viewMenu);
+
+    QAction* __do__process__all__frames__action__ = new QAction(tr("Process all frames for Metaballs view"), fileMenu);
+    connect(__do__process__all__frames__action__, SIGNAL(triggered()), this, SLOT(__do__process__all__frames__));
+    fileMenu->addSeparator();
+    fileMenu->addSeparator();
+    fileMenu->addAction(__do__process__all__frames__action__);
 
     viewMenu->addSeparator();
     QAction* viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
@@ -188,4 +195,12 @@ void MainWindow::addRenderMode(BaseView* view, QMenu* menu)
     view->preferenceID = tabID;
     view->preferenceParent = viewPreferenceDialog;
 }//addRenderMode
+
+
+
+void MainWindow::__do__process__all__frames__()
+{
+    __metaballs__->__process__all__frames__(dcdreader);
+    __metaballs__->__save__all__frames__("metaballs.data");
+}//__do__process__all__frames__
 

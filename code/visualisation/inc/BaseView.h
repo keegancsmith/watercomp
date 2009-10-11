@@ -39,7 +39,7 @@ class BaseView : public QObject
         virtual QWidget* preferenceWidget();
 
         virtual void render();
-        virtual void tick(Frame* frame, QuantisedFrame* quantised);
+        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised);
 
     signals:
         void selectView(int viewID);

@@ -14,6 +14,11 @@
 
 #include <quantiser/QuantisedFrame.h>
 
+#include <pdbio/DCDReader.h>
+#include <pdbio/Frame.h>
+#include <quantiser/QuantisedFrame.h>
+#include <QFile>
+
 #define ALPHA_MAX_SLIDER 100
 #define ALPHA_MAX_VAL 1.0
 
@@ -417,7 +422,7 @@ void MetaballsView::render()
                 vertices[indices[v+2]]);
     }//for
 
-    /*/
+    / * /
 
     Triangle t;
     for (int i = 0; i < _surface.size(); i++)
@@ -438,13 +443,26 @@ void MetaballsView::render()
     }//for
     // */
 
+    Triangle t;
+    for (int i = 0; i < __all__frames__.at(framenum).size(); i++)
+    {
+        t = __all__frames__.at(framenum).at(i);
+        glNormal3fv(t.n[0]);
+        glVertex3fv(t.p[0]);
+        glNormal3fv(t.n[1]);
+        glVertex3fv(t.p[1]);
+        glNormal3fv(t.n[2]);
+        glVertex3fv(t.p[2]);
+    }//for
+
     glEnd();
 }//render
 
-void MetaballsView::tick(Frame* frame, QuantisedFrame* quantised)
+void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
 {
     this->frame = frame;
     this->quantised = quantised;
+    this->framenum = framenum;
 
     if (quantised == 0)
         return;
@@ -797,7 +815,7 @@ void MetaballsView::setLighting(int state)
 
 void MetaballsView::updateFaces()
 {
-    tick(this->frame, this->quantised);
+    tick(0, this->frame, this->quantised);
 }//updateFaces
 
 
@@ -1075,4 +1093,93 @@ void MetaballsView::setupPreferenceWidget()
 
     _preferenceWidget->setLayout(layout);
 }//setupPreferenceWidget
+
+
+
+
+// such an innocent looking bit of code
+bool MetaballsView::__process__all__frames__(DCDReader* reader)
+{
+    float* atoms = new float[3 * reader->natoms()];
+    Frame frame(atoms, reader->natoms());
+    __all__frames__.clear();
+    __all__frames__.resize(reader->nframes());
+    QuantisedFrame* qf = new QuantisedFrame(1, 1, 1, 1);;
+    int v;
+    for (int i = 0; i < reader->nframes(); i++)
+    {
+        reader->set_frame(i);
+        reader->next_frame(frame);
+
+        delete qf;
+        qf = new QuantisedFrame(frame, 8, 8, 8);
+
+        tick(i, &frame, qf);
+        // __all__frames__.at(i).resize(_surface.size());
+        __all__frames__[i].resize(_surface.size());
+        for (v = 0; v < _surface.size(); v++)
+            // __all__frames__.at(i).at(v) = _surface[v];
+            __all__frames__[i][v] = _surface[v];
+        printf("Frame: %i\n", i);
+    }//for
+}//__process__all__frames__
+
+
+bool MetaballsView::__save__all__frames__(QString filename)
+{
+    QFile file(filename);
+    file.open(QIODevice::WriteOnly);
+    QDataStream out(&file);
+    out << (quint32)__all__frames__.size();
+    int j, k, l;
+    Triangle t;
+    for (int i = 0; i < __all__frames__.size(); i++)
+    {
+        out << (quint32)__all__frames__.at(i).size();
+        for (j = 0; j < __all__frames__.at(i).size(); j++)
+        {
+            t = __all__frames__.at(i).at(j);
+            for (k = 0; k < 3; k++)
+                for (l = 0; l < 3; l++)
+                    out << t.p[k][l];
+            for (k = 0; k < 3; k++)
+                for (l = 0; l < 3; l++)
+                    out << t.n[k][l];
+        }//for
+    }//for
+    file.close();
+}//__save__all__frames__
+
+
+bool MetaballsView::__load__all__frames__(QString filename)
+{
+    QFile file(filename);
+    file.open(QIODevice::ReadOnly);
+    QDataStream in(&file);
+    int total_size, size;
+    in >> total_size;
+    __all__frames__.clear();
+    __all__frames__.resize(total_size);
+    int j, k, l;
+    for (int i = 0; i < total_size; i++)
+    {
+        in >> size;
+        // __all__frames__.at(i).resize(size);
+        __all__frames__[i].resize(size);
+
+        for (j = 0; j < size; j++)
+        {
+            Triangle t;
+            for (k = 0; k < 3; k++)
+                for (l = 0; l < 3; l++)
+                    in >> t.p[k][l];
+            for (k = 0; k < 3; k++)
+                for (l = 0; l < 3; l++)
+                    in >> t.n[k][l];
+            // __all__frames__.at(i).at(j) = t;
+            __all__frames__[i][j] = t;
+        }//for
+    }//for
+    file.close();
+}//__load__all__frames__
 

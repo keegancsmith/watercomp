@@ -17,7 +17,7 @@ class PointView : public BaseView
         virtual void updatePreferences();
         virtual QWidget* preferenceWidget();
 
-        virtual void tick(Frame* frame, QuantisedFrame* quantised);
+        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised);
         virtual void render();
 
     protected:

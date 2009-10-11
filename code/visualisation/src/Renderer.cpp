@@ -49,6 +49,8 @@ Renderer::Renderer(QWidget* parent)
     volume_range[0] = 1;
     volume_range[1] = 1;
     volume_range[2] = 1;
+
+    framenum = -1;
 }//constructor
 
 Renderer::~Renderer()
@@ -212,7 +214,7 @@ void Renderer::setRenderMode(int mode)
     if (_renderMode > -1)
     {
         renderModes[_renderMode]->current = false;
-        renderModes[mode]->tick(renderModes[_renderMode]->frame, renderModes[_renderMode]->quantised);
+        renderModes[mode]->tick(framenum, renderModes[_renderMode]->frame, renderModes[_renderMode]->quantised);
     }//if
     _renderMode = mode;
     settings->setValue("Renderer/renderMode", _renderMode);
@@ -228,10 +230,11 @@ int Renderer::addRenderMode(BaseView* view)
     return viewID;
 }//addRenderMode
 
-void Renderer::dataTick(Frame* frame, QuantisedFrame* qframe)
+void Renderer::dataTick(int framenum, Frame* frame, QuantisedFrame* qframe)
 {
+    this->framenum = framenum;
     if (_renderMode >= 0)
-        renderModes[_renderMode]->tick(frame, qframe);
+        renderModes[_renderMode]->tick(framenum, frame, qframe);
 }//dataTick
 
 void Renderer::tick()

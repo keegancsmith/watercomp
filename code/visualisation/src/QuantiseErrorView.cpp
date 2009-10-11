@@ -58,7 +58,7 @@ QWidget* QuantiseErrorView::preferenceWidget()
 }//preferenceWidget
 
 
-void QuantiseErrorView::tick(Frame* frame, QuantisedFrame* quantised)
+void QuantiseErrorView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
 {
     this->frame = frame;
     this->quantised = quantised;

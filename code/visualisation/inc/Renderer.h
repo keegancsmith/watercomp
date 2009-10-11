@@ -55,7 +55,7 @@ class Renderer : public QGLWidget
     public slots:
         void toggleFocusPlane();
         void setRenderMode(int mode);
-        void dataTick(Frame* frame, QuantisedFrame* qframe);
+        void dataTick(int framenum, Frame* frame, QuantisedFrame* qframe);
 
     private slots:
         void tick();
@@ -73,6 +73,7 @@ class Renderer : public QGLWidget
         bool dragging[3];
         int lastpos[2];
         int startdrag[2];
+        int framenum;
 
         bool _focusPlane;
         float focusPlaneDepth;

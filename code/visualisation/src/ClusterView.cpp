@@ -83,7 +83,7 @@ void ClusterView::dfs(int current, int component)
             dfs(graph[current][i], component);
 }//dfs
 
-void ClusterView::tick(Frame* frame, QuantisedFrame* quantised)
+void ClusterView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
 {
     this->frame = frame;
     this->quantised = quantised;

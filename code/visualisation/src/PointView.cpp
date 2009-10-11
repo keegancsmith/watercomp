@@ -53,7 +53,7 @@ QWidget* PointView::preferenceWidget()
 }//preferenceWidget
 
 
-void PointView::tick(Frame* frame, QuantisedFrame* quantised)
+void PointView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
 {
     this->frame = frame;
     this->quantised = quantised;
