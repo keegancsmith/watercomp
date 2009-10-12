@@ -15,9 +15,9 @@ void QuantWriter::start(int atoms, int frames, int ISTART,
                         int NSAVC, double DELTA)
 {
     // File header
-    int header_int[4] = { atoms, frames, ISTART, NSAVC };
-    fwrite(header_int, sizeof(int), 4, m_fout);
-    fwrite(&DELTA, sizeof(double), 1, m_fout);
+    int header_int[2] = { atoms, frames }; //, ISTART, NSAVC };
+    fwrite(header_int, sizeof(int), 2, m_fout);
+    //fwrite(&DELTA, sizeof(double), 1, m_fout);
 }
 
 void QuantWriter::next_frame(const QuantisedFrame& qframe)

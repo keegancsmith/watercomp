@@ -31,17 +31,16 @@ public:
         ByteDecoder dec(&m_decoder);
 
         // Read file header
-        int header_int[4];
-        dec.decode(header_int, sizeof(int), 4);
+        int header_int[2];
+        dec.decode(header_int, sizeof(int), 2);
         m_natoms   = header_int[0];
         m_nframes  = header_int[1];
-        int ISTART = header_int[2];
-        int NSAVC  = header_int[3];
+        // Commented out values which are not used
+        //int ISTART = header_int[2];
+        //int NSAVC  = header_int[3];
 
-        double DELTA;
-        dec.decode(&DELTA, sizeof(double), 1);
-
-        // TODO atm we are ignoring most of these values!
+        //double DELTA;
+        //dec.decode(&DELTA, sizeof(double), 1);
     }
 
     bool next_frame(QuantisedFrame & qframe) {
@@ -113,9 +112,9 @@ public:
         ByteEncoder enc(&m_encoder);
 
         // File header
-        int header_int[4] = { atoms, frames, ISTART, NSAVC };
-        enc.encode(header_int, sizeof(int), 4);
-        enc.encode(&DELTA, sizeof(double), 1);
+        int header_int[2] = { atoms, frames }; //, ISTART, NSAVC };
+        enc.encode(header_int, sizeof(int), 2);
+        //enc.encode(&DELTA, sizeof(double), 1);
     }
 
     void next_frame(const QuantisedFrame & qframe) {

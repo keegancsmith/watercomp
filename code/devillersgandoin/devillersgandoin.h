@@ -7,8 +7,8 @@
 #define DIMENSIONS 3
 #endif
 
-// needs to be unsigned and sizeof(coord_t) > BITS
-typedef unsigned long coord_t;
+// needs to be unsigned and sizeof(coord_t)*8 > BITS
+typedef unsigned int coord_t;
 
 struct point_t {
     coord_t coords[DIMENSIONS];
