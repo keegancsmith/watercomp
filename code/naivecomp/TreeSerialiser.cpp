@@ -1,9 +1,9 @@
 #include "TreeSerialiser.h"
 
-#include "../arithmetic/AdaptiveModelEncoder.h"
-#include "../arithmetic/AdaptiveModelDecoder.h"
-#include "../quantiser/QuantisedFrame.h"
-#include "../Permutation.h"
+#include "arithmetic/AdaptiveModelEncoder.h"
+#include "arithmetic/AdaptiveModelDecoder.h"
+#include "quantiser/QuantisedFrame.h"
+#include "Permutation.h"
 
 #include <cassert>
 #include <cstdio>

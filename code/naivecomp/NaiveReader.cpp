@@ -1,7 +1,7 @@
 #include "NaiveReader.h"
 
 #include "arithmetic/ByteDecoder.h"
-#include "graph/TreeSerialiser.h"
+#include "TreeSerialiser.h"
 
 #include <cassert>
 

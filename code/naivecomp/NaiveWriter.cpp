@@ -1,7 +1,7 @@
 #include "NaiveWriter.h"
 #include "arithmetic/ByteEncoder.h"
-#include "graph/SpanningTree.h"
-#include "graph/TreeSerialiser.h"
+#include "SpanningTree.h"
+#include "TreeSerialiser.h"
 
 NaiveWriter::NaiveWriter(FILE * fout)
     : m_fout(fout)
