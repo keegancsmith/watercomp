@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-g -Wall -I../components
+CXXFLAGS=-O3 -Wall -I../components
 CXXLIBS=-lm
 
 # Just get all .o files in components 0 to 1 level deep.

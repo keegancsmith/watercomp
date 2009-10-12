@@ -9,11 +9,11 @@ SRC += $(wildcard ../components/*/*.cpp)
 SRC += $(wildcard ../dcd_loader/*.cpp)
 OBJS = $(patsubst %.cpp, %.o, $(filter-out %/main.cpp, $(SRC)))
 
-naivegraph: naivegraph.cpp $(OBJS)
-	$(CXX) $(CXXFLAGS) $(CXXLIBS) -o naivegraph $(OBJS)
+naivecomp: naivecomp.cpp $(OBJS)
+	$(CXX) $(CXXFLAGS) $(CXXLIBS) -o naivecomp $(OBJS)
 
 clean:
-	rm -f naivegraph $(OBJS)
+	rm -f naivecomp $(OBJS)
 
 check-syntax:
 	$(CXX) $(CXXFLAGS) -Wextra -Wno-sign-compare -fsyntax-only $(CHK_SOURCES)

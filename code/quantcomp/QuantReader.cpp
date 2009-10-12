@@ -12,17 +12,15 @@ QuantReader::QuantReader(FILE * fin)
 void QuantReader::start()
 {
     // Read file header
-    int header_int[4];
-    fread(header_int, sizeof(int), 4, m_fin);
+    int header_int[2];
+    fread(header_int, sizeof(int), 2, m_fin);
     m_natoms   = header_int[0];
     m_nframes  = header_int[1];
-    int ISTART = header_int[2];
-    int NSAVC  = header_int[3];
+    // int ISTART = header_int[2];
+    // int NSAVC  = header_int[3];
 
-    double DELTA;
-    fread(&DELTA, sizeof(double), 1, m_fin);
-
-    // TODO atm we are ignoring most of these values!
+    // double DELTA;
+    // fread(&DELTA, sizeof(double), 1, m_fin);
 }
 
 

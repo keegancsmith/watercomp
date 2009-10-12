@@ -1,7 +1,7 @@
 #include "NaiveReader.h"
 
 #include "arithmetic/ByteDecoder.h"
-#include "graph/TreeSerialiser.h"
+#include "TreeSerialiser.h"
 
 #include <cassert>
 
@@ -17,15 +17,15 @@ void NaiveReader::start()
     ByteDecoder dec(&m_decoder);
 
     // Read file header
-    int header_int[4];
-    dec.decode(header_int, sizeof(int), 4);
+    int header_int[2];
+    dec.decode(header_int, sizeof(int), 2);
     m_natoms   = header_int[0];
     m_nframes  = header_int[1];
-    int ISTART = header_int[2];
-    int NSAVC  = header_int[3];
+    //int ISTART = header_int[2];
+    //int NSAVC  = header_int[3];
     
-    double DELTA;
-    dec.decode(&DELTA, sizeof(double), 1);
+    //double DELTA;
+    //dec.decode(&DELTA, sizeof(double), 1);
 
     // TODO atm we are ignoring most of these values!
 }
