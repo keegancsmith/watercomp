@@ -166,7 +166,7 @@ void MainWindow::setupMenu()
     addRenderMode(new BallStickView(), viewMenu);
 
     QAction* __do__process__all__frames__action__ = new QAction(tr("Process all frames for Metaballs view"), fileMenu);
-    connect(__do__process__all__frames__action__, SIGNAL(triggered()), this, SLOT(__do__process__all__frames__));
+    connect(__do__process__all__frames__action__, SIGNAL(triggered()), this, SLOT(__do__process__all__frames__()));
     fileMenu->addSeparator();
     fileMenu->addSeparator();
     fileMenu->addAction(__do__process__all__frames__action__);
@@ -200,7 +200,7 @@ void MainWindow::addRenderMode(BaseView* view, QMenu* menu)
 
 void MainWindow::__do__process__all__frames__()
 {
-    __metaballs__->__process__all__frames__(dcdreader);
-    __metaballs__->__save__all__frames__("metaballs.data");
+    __metaballs__->__process__and__save__("metaballs.data", dcdreader);
+    // __metaballs__->__save__all__frames__("metaballs.data");
 }//__do__process__all__frames__
 

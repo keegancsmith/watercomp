@@ -1097,8 +1097,7 @@ void MetaballsView::setupPreferenceWidget()
 
 
 
-// such an innocent looking bit of code
-bool MetaballsView::__process__all__frames__(DCDReader* reader)
+bool MetaballsView::__process__frames__(DCDReader* reader, int start, int end)
 {
     float* atoms = new float[3 * reader->natoms()];
     Frame frame(atoms, reader->natoms());
@@ -1106,7 +1105,7 @@ bool MetaballsView::__process__all__frames__(DCDReader* reader)
     __all__frames__.resize(reader->nframes());
     QuantisedFrame* qf = new QuantisedFrame(1, 1, 1, 1);;
     int v;
-    for (int i = 0; i < reader->nframes(); i++)
+    for (int i = start; i < end; i++)
     {
         reader->set_frame(i);
         reader->next_frame(frame);
@@ -1122,18 +1121,22 @@ bool MetaballsView::__process__all__frames__(DCDReader* reader)
             __all__frames__[i][v] = _surface[v];
         printf("Frame: %i\n", i);
     }//for
-}//__process__all__frames__
+    return true;
+}//__process__frames__
 
 
-bool MetaballsView::__save__all__frames__(QString filename)
+bool MetaballsView::__save__header__(QDataStream& out)
 {
-    QFile file(filename);
-    file.open(QIODevice::WriteOnly);
-    QDataStream out(&file);
     out << (quint32)__all__frames__.size();
+    return true;
+}//__save__header__
+
+
+bool MetaballsView::__save__frames__(QDataStream& out, int start, int end)
+{
     int j, k, l;
     Triangle t;
-    for (int i = 0; i < __all__frames__.size(); i++)
+    for (int i = start; i < end; i++)
     {
         out << (quint32)__all__frames__.at(i).size();
         for (j = 0; j < __all__frames__.at(i).size(); j++)
@@ -1147,7 +1150,66 @@ bool MetaballsView::__save__all__frames__(QString filename)
                     out << t.n[k][l];
         }//for
     }//for
+    return true;
+}//__save__frames__
+
+
+bool MetaballsView::__process__and__save__(QString filename, DCDReader* reader)
+{
+    QFile file(filename);
+    file.open(QIODevice::WriteOnly);
+    QDataStream out(&file);
+    out << (quint32)reader->nframes();
+
+    float* atoms = new float[3 * reader->natoms()];
+    Frame frame(atoms, reader->natoms());
+    QuantisedFrame* qf = new QuantisedFrame(1, 1, 1, 1);;
+
+    int v;
+    int j, k, l;
+    Triangle t;
+    for (int i = 0; i < reader->nframes(); i++)
+    {
+        reader->set_frame(i);
+        reader->next_frame(frame);
+
+        delete qf;
+        qf = new QuantisedFrame(frame, 8, 8, 8);
+        tick(i, &frame, qf);
+
+        out << (quint32)_surface.size();
+        for (j = 0; j < _surface.size(); j++)
+        {
+            t = _surface.at(j);
+            for (k = 0; k < 3; k++)
+                for (l = 0; l < 3; l++)
+                    out << t.p[k][l];
+            for (k = 0; k < 3; k++)
+                for (l = 0; l < 3; l++)
+                    out << t.n[k][l];
+        }//for
+    }//for
+
     file.close();
+    return true;
+}//__process__and__save__
+
+
+bool MetaballsView::__process__all__frames__(DCDReader* reader)
+{
+    return __process__frames__(reader, 0, reader->nframes());
+}//__process__all__frames__
+
+
+bool MetaballsView::__save__all__frames__(QString filename)
+{
+    QFile file(filename);
+    file.open(QIODevice::WriteOnly);
+    QDataStream out(&file);
+    __save__header__(out);
+    __save__frames__(out, 0, __all__frames__.size());
+    file.close();
+    return true;
 }//__save__all__frames__
 
 
@@ -1181,5 +1243,6 @@ bool MetaballsView::__load__all__frames__(QString filename)
         }//for
     }//for
     file.close();
+    return true;
 }//__load__all__frames__
 

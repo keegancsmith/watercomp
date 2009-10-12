@@ -56,6 +56,10 @@ class MetaballsView : public BaseView
 
         // epic hack of note
         QVector<QVector<Triangle> > __all__frames__;
+        bool __process__frames__(DCDReader* reader, int start, int end);
+        bool __save__header__(QDataStream& out);
+        bool __save__frames__(QDataStream& out, int start, int end);
+        bool __process__and__save__(QString filename, DCDReader* reader);
         bool __process__all__frames__(DCDReader* reader);
         bool __save__all__frames__(QString filename);
         bool __load__all__frames__(QString filename);

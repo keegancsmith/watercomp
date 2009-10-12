@@ -48,7 +48,7 @@ SOURCES += \
             src/Util.cpp \
             src/ViewPreference.cpp \
             ../components/graph/Graph.cpp \
-            ../components/graph/GraphCreator.cpp \
+            ../components/graph/KDTree.cpp \
             ../components/graph/SpanningTree.cpp \
             ../components/graph/anngraphcreator/ANNGraphCreator.cpp \
             ../components/graph/gridgraphcreator/GridGraphCreator.cpp \
