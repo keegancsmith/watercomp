@@ -32,6 +32,8 @@ public:
                                           int size);
 };
 
+
+// NullPermutation has the effect of not storing the permutation
 class NullPermutationWriter : public PermutationWriter
 {
 public:
@@ -47,6 +49,8 @@ private:
     int m_index;
 };
 
+
+// NaivePermutation Writes out the index information as 32-bit ints
 class NaivePermutationWriter : public PermutationWriter
 {
 public:
@@ -65,6 +69,8 @@ private:
     ByteDecoder m_dec;
 };
 
+
+// DeltaPermutation encodes each index as the previous index - index
 class DeltaPermutationWriter : public PermutationWriter
 {
 public:
@@ -85,6 +91,10 @@ private:
     int m_last;
 };
 
+
+// BestPermutation encodes values using an arithmetic coder where as each
+// value is encoded, it's symbol is removed from the arithmetic coder
+// frequency table
 class IndexToSymbol
 {
 public:
@@ -116,4 +126,39 @@ public:
 private:
     ArithmeticDecoder * m_dec;
     IndexToSymbol m_indicies;
+};
+
+
+// InterframePermutation encodes each index as the delta of the previous
+// index. Depends on a global variable, so not to safe to use more than once!
+class InterframePermutationWriter : public PermutationWriter
+{
+public:
+    InterframePermutationWriter(ArithmeticEncoder * enc, int size);
+    void next_index(int index);
+    static void reset_last(int size) {
+        m_last.resize(size);
+        for (int i = 0; i < size; i++)
+            m_last[i] = i;
+    }
+private:
+    static std::vector<int> m_last;
+    AdaptiveModelEncoder m_enc;
+    int m_pos;
+};
+
+class InterframePermutationReader : public PermutationReader
+{
+public:
+    InterframePermutationReader(ArithmeticDecoder * dec, int size);
+    int next_index();
+    static void reset_last(int size) {
+        m_last.resize(size);
+        for (int i = 0; i < size; i++)
+            m_last[i] = i;
+    }
+private:
+    static std::vector<int> m_last;
+    AdaptiveModelDecoder m_dec;
+    int m_pos;
 };
