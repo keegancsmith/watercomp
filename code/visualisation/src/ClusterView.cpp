@@ -104,6 +104,7 @@ void ClusterView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
     }
     clusterSpinBox->setMaximum(num_clusters-1);
     printf("Cluster count: %d\n", num_clusters-1);
+    if (current_cluster == -1) countLabel->setNum((int)(num_clusters-1));
 }//tick
 
 void ClusterView::render()
@@ -179,8 +180,7 @@ void ClusterView::setClusterID(int value)
     if (value < 0) value = -1;
     if (value >= num_clusters) value = num_clusters - 1;
     current_cluster = value;
-    if (current_cluster > -1)
-    printf("Cluster size: %u\n", sizes[current_cluster]);
+    countLabel->setNum((int)(current_cluster > -1 ? sizes[current_cluster] : num_clusters-1));
 }//setClusterID
 
 
@@ -219,6 +219,12 @@ void ClusterView::setupPreferenceWidget()
     clusterSpinBox->setRange(-1, -1);
     connect(clusterSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setClusterID(int)));
     layout->addWidget(clusterSpinBox, 3, 1);
+
+    QLabel* countLabelLabel = new QLabel(tr("Cluster count"), _preferenceWidget);
+    layout->addWidget(countLabelLabel, 4, 0);
+
+    countLabel = new QLabel(tr("-1"), _preferenceWidget);
+    layout->addWidget(countLabel, 4, 1);
 
     _preferenceWidget->setLayout(layout);
 }//setupPreferenceWidget

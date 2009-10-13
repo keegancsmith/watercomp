@@ -8,6 +8,7 @@
 
 #include <splitter/WaterMolecule.h>
 
+class QLabel;
 class QSettings;
 class QSlider;
 class QSpinBox;
@@ -47,6 +48,7 @@ class ClusterView : public BaseView
         QSlider* lineWidthSlider;
         QSlider* lineAlphaSlider;
         QSpinBox* clusterSpinBox;
+        QLabel* countLabel;
 
         std::vector<WaterMolecule> waters;
         std::vector<unsigned int> others;
