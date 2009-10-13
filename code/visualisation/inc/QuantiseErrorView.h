@@ -38,6 +38,8 @@ class QuantiseErrorView : public BaseView
     private:
         QSettings* settings;
         Frame* dequantised;
+        int framenum;
+        float* errors;
         int _lineSize;
         float _startColor[4];
         float _finalColor[4];

@@ -25,21 +25,22 @@ QuantiseErrorView::QuantiseErrorView()
 {
     settings = new QSettings;
     viewName = "Quantisation error view";
-    _startColor[0] = settings->value("QuantiseErrorView/startColorR", 1.0).toDouble();
-    _startColor[1] = settings->value("QuantiseErrorView/startColorG", 0.0).toDouble();
-    _startColor[2] = settings->value("QuantiseErrorView/startColorB", 0.0).toDouble();
-    _startColor[3] = settings->value("QuantiseErrorView/startColorA", 0.8).toDouble();
+    _startColor[0] = settings->value("QuantiseErrorView/startColorR", 0.2).toDouble();
+    _startColor[1] = settings->value("QuantiseErrorView/startColorG", 0.2).toDouble();
+    _startColor[2] = settings->value("QuantiseErrorView/startColorB", 0.2).toDouble();
+    _startColor[3] = settings->value("QuantiseErrorView/startColorA", 0.5).toDouble();
 
     _finalColor[0] = settings->value("QuantiseErrorView/finalColorR", 1.0).toDouble();
     _finalColor[1] = settings->value("QuantiseErrorView/finalColorG", 0.0).toDouble();
     _finalColor[2] = settings->value("QuantiseErrorView/finalColorB", 0.0).toDouble();
-    _finalColor[3] = settings->value("QuantiseErrorView/finalColorA", 0.8).toDouble();
+    _finalColor[3] = settings->value("QuantiseErrorView/finalColorA", 1.0).toDouble();
     _preferenceWidget = NULL;
     quantised = 0;
     dequantised = 0;
     _lineSize = settings->value("QuantiseErrorView/lineSize", 2).toInt();
     _startErrorValue = settings->value("QuantiseErrorView/startError", 0.06).toDouble();
     _finalErrorValue = settings->value("QuantiseErrorView/finalError", 0.06).toDouble();
+    errors = 0;
 }//constructor
 
 QuantiseErrorView::~QuantiseErrorView()
@@ -70,6 +71,7 @@ void QuantiseErrorView::tick(int framenum, Frame* frame, QuantisedFrame* quantis
 {
     this->frame = frame;
     this->quantised = quantised;
+    this->framenum = framenum;
     if (quantised == NULL) return;
 
     // printf("frame size: %i\n", frame->atom_data.size());
@@ -77,6 +79,26 @@ void QuantiseErrorView::tick(int framenum, Frame* frame, QuantisedFrame* quantis
     if (dequantised) delete dequantised;
     dequantised = new Frame(quantised->toFrame());
     // printf("deqnt size: %i\n", dequantised->atom_data.size());
+
+    float dif[3];
+    float d;
+    float range = _finalErrorValue - _startErrorValue;
+    if (errors) delete errors;
+    errors = new float[quantised->natoms()];
+    for (int i = 0; i < quantised->natoms(); i++)
+    {
+        if (pdb[i].atom_name == "OH2")
+        {
+            dif[0] = dequantised->atom_data[i*3  ] - frame->atom_data[i*3];
+            dif[1] = dequantised->atom_data[i*3+1] - frame->atom_data[i*3+1];
+            dif[2] = dequantised->atom_data[i*3+2] - frame->atom_data[i*3+2];
+            d = sqrt(len2(dif));
+            errors[i] = (d - _startErrorValue) / range;
+            if (errors[i] < 0) errors[i] = 0;
+            if (errors[i] > 1) errors[i] = 1;
+            if (errors[i] > 0.5) errors[i] = 1;
+        }//if
+    }//for
 }//tick
 
 void QuantiseErrorView::render()
@@ -85,23 +107,21 @@ void QuantiseErrorView::render()
         return;
 
     //draw points
-    float dif[3];
-    float d;
+    float range[] = {_finalColor[0] - _startColor[0],
+                _finalColor[1] - _startColor[1],
+                _finalColor[2] - _startColor[2],
+                _finalColor[3] - _startColor[3]};
     glBegin(GL_LINES);
     for (int i = 0; i < quantised->natoms(); i++)
     {
         if (pdb[i].atom_name == "OH2")
         {
-            dif[0] = dequantised->atom_data[i*3]   - frame->atom_data[i*3];
-            dif[1] = dequantised->atom_data[i*3+1] - frame->atom_data[i*3+1];
-            dif[2] = dequantised->atom_data[i*3+2] - frame->atom_data[i*3+2];
-            d = len2(dif);
-            d *= d;
-            d = d / _startErrorValue;
-            if (d > 1) d = 1;
-            if (d > 1e-6)
+            if (errors[i] > 1e-6)
             {
-                glColor4f(_startColor[0], _startColor[1], _startColor[2], _startColor[3]*d);
+                glColor4f(_startColor[0] + errors[i] * range[0],
+                          _startColor[1] + errors[i] * range[1],
+                          _startColor[2] + errors[i] * range[2],
+                          _startColor[3] + errors[i] * range[3]);
                 glVertex3f(frame->atom_data[i*3],
                            frame->atom_data[i*3+1],
                            frame->atom_data[i*3+2]);
@@ -141,6 +161,7 @@ void QuantiseErrorView::setStartErrorValue(double value)
     _startErrorValue = value;
 
     settings->setValue("QuantiseErrorView/startError", _startErrorValue);
+    tick(framenum, frame, quantised);
 }//setStartErrorValue
 
 void QuantiseErrorView::setFinalErrorValue(double value)
@@ -148,6 +169,7 @@ void QuantiseErrorView::setFinalErrorValue(double value)
     _finalErrorValue = value;
 
     settings->setValue("QuantiseErrorView/finalError", _finalErrorValue);
+    tick(framenum, frame, quantised);
 }//setFinalErrorValue
 
 void QuantiseErrorView::pickStartColor()
@@ -197,7 +219,7 @@ void QuantiseErrorView::setupPreferenceWidget()
     layout->addWidget(startErrorLabel, 0, 0);
 
     startErrorSpinBox = new QDoubleSpinBox(_preferenceWidget);
-    startErrorSpinBox->setRange(0, 1.0);
+    startErrorSpinBox->setRange(0, 10.0);
     startErrorSpinBox->setDecimals(3);
     startErrorSpinBox->setSingleStep(0.01);
     connect(startErrorSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setStartErrorValue(double)));
@@ -220,7 +242,7 @@ void QuantiseErrorView::setupPreferenceWidget()
     layout->addWidget(finalErrorLabel, 3, 0);
 
     finalErrorSpinBox = new QDoubleSpinBox(_preferenceWidget);
-    finalErrorSpinBox->setRange(0, 1.0);
+    finalErrorSpinBox->setRange(0, 10.0);
     finalErrorSpinBox->setDecimals(3);
     finalErrorSpinBox->setSingleStep(0.01);
     connect(finalErrorSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setFinalErrorValue(double)));
