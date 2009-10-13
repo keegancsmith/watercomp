@@ -17,6 +17,7 @@ int main(int argc, char ** argv) {
     int quantx = argc > 3 ? atoi(argv[3]) : 8;
     int quanty = argc > 4 ? atoi(argv[4]) : 8;
     int quantz = argc > 5 ? atoi(argv[5]) : 8;
+    bool quiet = argc > 6;
     bool all_same = true;
 
     DCDReader reader1, reader2;
@@ -63,6 +64,9 @@ int main(int argc, char ** argv) {
         if (!same)
             all_same = false;
 
+        if (quiet)
+            continue;
+
         if (same)
             cout << "SUCCESS: Frames are the same when quantised" << endl;
         else
@@ -74,6 +78,9 @@ int main(int argc, char ** argv) {
              << "max error:     " << max_error[0] << ' ' << max_error[1]
              << ' ' << max_error[2] << endl << endl;
     }
+
+    if (quiet)
+        return all_same ? 0 : 1;
 
     if (all_same)
         cout << "SUCCESS: Files are the same when quantised" << endl;
