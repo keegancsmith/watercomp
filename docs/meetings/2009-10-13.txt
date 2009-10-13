@@ -1,0 +1,55 @@
+.. -*- mode: rst -*-
+.. vim: filetype=rst
+
+===========================================
+ Minutes of Meeting Tuesday 13 October 2009
+===========================================
+
+
+Julian
+======
+
+* Email sent to John Stone about test data, if no reply by tomorrow 14 
+  October then we should email Michelle Kuttel.
+* Start fixing up report.
+
+Keegan
+======
+* Wrote BZip2, works well.
+* Wrote Permutation coders.
+* Wrote KD tree.
+* Wrote DCD utility, take out frames or atoms.
+* Improved Gandoin and Devillier's speed
+  - Mention in report Implementation section.
+* Encode errors in spherical coordinates vs Cartesian coordinates
+* Encode components in:
+  - Delta with endpoints.
+  - Minimum Spanning Tree(Prim's)
+
+Min-Young
+=========
+* Wrote code to dump preprocessed data into a file.
+* Experimental design
+  - 3 IVs: Quantisation, Viewing Technique, Dataset
+    Rather randomly assign datasets.
+  - Viewing Techniques: Ball and Stick and Metaballs.
+  - Quantisation: Random order
+  
+  - Record Demographics
+  - 1 minute per flashy screen thingy.
+  - Explanation of experiment: Use words like match up and quality.
+  - 30 People (20 min) @ R30 each
+  
+  - Show Original, do two. Repeat.
+  - Quantisation 4, 6, 8, 16(set scale by pilot experiment)
+  - Likert scale 1-7
+
+General
+=======
+
+* System Diagram
+  - Show breakdown of parts.
+
+* Public Demo
+  - Slideshow of compression ratios.
+
