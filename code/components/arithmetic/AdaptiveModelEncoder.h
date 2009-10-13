@@ -23,7 +23,6 @@ class AdaptiveModelEncoder
         
         ArithmeticEncoder* encoder;
         
-//         std::map<std::string, unsigned int> symbol_table;
         Trie<unsigned int> symbol_table;
         AdaptiveModelEncoder(ArithmeticEncoder* arithmetic_encoder);
         

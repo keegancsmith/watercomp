@@ -18,13 +18,9 @@ class ArithmeticEncoder
         static const unsigned long long half_range = 0x400000000000000ULL;
         static const unsigned long long third_quarter = 0x600000000000000ULL;
         
-        
         unsigned int bit_pool;
         unsigned int bits_left;
-        
-//         unsigned int* write_buffer;
-//         unsigned int buffer_pos;
-        
+                
         void inline put_bit(bool bit)
         {
             bit_pool =  (bit_pool << 1) | bit;
@@ -33,24 +29,8 @@ class ArithmeticEncoder
             if(bits_left == 0)
             {
                 bits_left = 8;
-//                 fputc((bit_pool&0xFF0000)>>24, output_file);
-//                 fputc((bit_pool&0xFF0000)>>16, output_file);
-//                 fputc((bit_pool&0xFF00)>>8, output_file);
                 fputc(bit_pool, output_file);
-//                 fflush(output_file);
-///             (int filedes, const void *buffer, size_t size)
-//                 fwrite(&bit_pool, 1, 1, output_file);
-//                 
-//                 write_buffer[buffer_pos++] = bit_pool;
-//                 
                 bit_pool = 0;
-//                 
-//                 if(buffer_pos == 1024*1024)
-//                 {
-//                     fwrite(write_buffer, 1, 1024*4096, output_file);
-//                     fflush(output_file);
-//                     buffer_pos = 0;
-//                 }
             }
         }
         
@@ -58,13 +38,7 @@ class ArithmeticEncoder
         
         void inline start_encode(FILE* file)
         {
-            output_file = file;
-            
-//             fflush(output_file);
-//             write_buffer = new unsigned int[1024*1024];
-//             buffer_pos = 0;
-            
-//             setvbuf(output_file, NULL, _IONBF, 4096);
+            output_file = file; 
         }
         
         void inline encode(unsigned long long symbol_range_start, unsigned long long symbol_range_end, unsigned long long total)
@@ -138,10 +112,7 @@ class ArithmeticEncoder
                 }
             }
             
-//             for(int i = bits_left&8; i >= 0; --i)
             while(bits_left != 8)
                 put_bit(0);
-            
-//             delete [] write_buffer;
         }
 };

@@ -22,8 +22,7 @@ class AdaptiveModelDecoder
         FenwickTree tree;
         
         ArithmeticDecoder* decoder;
-        
-//         std::map<unsigned int, std::string> symbol_table;
+
         std::vector<std::string> symbol_table;
         bool is_eof;
         
