@@ -27,7 +27,7 @@ struct point_t {
  * the order of the index's in order of output.
  * @bits The maximum number of bits each coordinate will be
  */
-std::vector<coord_t> encode(const std::vector<point_t> & points,
+std::vector<coord_t> encode(std::vector<point_t> points,
                             std::vector<int> & permutation,
                             unsigned int bits);
 
