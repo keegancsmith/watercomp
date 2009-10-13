@@ -10,6 +10,7 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QSlider>
+#include <QSpinBox>
 #include <QWidget>
 #include <GL/gl.h>
 
@@ -39,12 +40,13 @@ BallStickView::BallStickView()
     _oColor[3] = settings->value("BallStickView/oColorA", 1.0).toDouble();
     quantised = 0;
     _preferenceWidget = NULL;
-    _hSize = settings->value("BallStickView/hSize", 10).toDouble();
-    _oSize = settings->value("BallStickView/oSize", 10).toDouble();
+    _hSize = settings->value("BallStickView/hSize", 1).toDouble();
+    _oSize = settings->value("BallStickView/oSize", 2).toDouble();
     setHSize(_hSize);
     setOSize(_oSize);
     lighting = settings->value("BallStickView/lighting", false).toBool();
     quadric = gluNewQuadric();
+    number = settings->value("BallStickView/number", 50).toInt();
     // gluQuadricDrawStyle(quadric, GLU_SILHOUETTE);
 }//constructor
 
@@ -60,6 +62,7 @@ void BallStickView::init(std::vector<AtomInformation> pdb)
 {
     this->pdb = pdb;
     FrameSplitter::split_frame(pdb, waters, others);
+    numberBox->setRange(0, waters.size());
 }//init
 
 
@@ -70,6 +73,7 @@ void BallStickView::updatePreferences()
     hAlphaSlider->setValue((int)(_hColor[3] * MAX_ALPHA_SLIDER / MAX_ALPHA_VAL));
     oAlphaSlider->setValue((int)(_oColor[3] * MAX_ALPHA_SLIDER / MAX_ALPHA_VAL));
     lightCheckBox->setCheckState(lighting ? Qt::Checked : Qt::Unchecked);
+    numberBox->setValue(number);
 }//updatePreferences
 
 QWidget* BallStickView::preferenceWidget()
@@ -121,7 +125,7 @@ void BallStickView::render()
 
     for (int i = 0; i < waters.size(); i++)
     {
-        if (n++ > 200) break;
+        if (n++ > this->number) break;
         glColor4fv(_oColor);
         glPushMatrix();
         glTranslatef(quantised->quantised_frame[3*waters[i].OH2_index],
@@ -233,6 +237,12 @@ void BallStickView::setLighting(int state)
     }//if
 }//setLighting
 
+void BallStickView::setNumber(int value)
+{
+    number = value;
+    settings->setValue("BallStickView/number", number);
+}//setNumber
+
 
 void BallStickView::setupPreferenceWidget()
 {
@@ -288,6 +298,14 @@ void BallStickView::setupPreferenceWidget()
     lightCheckBox = new QCheckBox(_preferenceWidget);
     connect(lightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setLighting(int)));
     layout->addWidget(lightCheckBox, 6, 1);
+
+    QLabel* numberLabel = new QLabel(tr("Molecule count"), _preferenceWidget);
+    layout->addWidget(numberLabel, 7, 0);
+
+    numberBox = new QSpinBox(_preferenceWidget);
+    numberBox->setRange(0, 0);
+    connect(numberBox, SIGNAL(valueChanged(int)), this, SLOT(setNumber(int)));
+    layout->addWidget(numberBox, 7, 1);
 
     _preferenceWidget->setLayout(layout);
 }//setupPreferenceWidget

@@ -10,6 +10,7 @@ class QCheckBox;
 class QDoubleSpinBox;
 class QSettings;
 class QSlider;
+class QSpinBox;
 
 class BallStickView : public BaseView
 {
@@ -38,6 +39,7 @@ class BallStickView : public BaseView
         void setHAlpha(int value);
         void setOAlpha(int value);
         void setLighting(int state);
+        void setNumber(int value);
 
     private:
         QSettings* settings;
@@ -48,6 +50,7 @@ class BallStickView : public BaseView
         int hSliceCount;
         int oSliceCount;
         bool lighting;
+        int number;
         GLUquadricObj* quadric;
 
         std::vector<WaterMolecule> waters;
@@ -59,6 +62,7 @@ class BallStickView : public BaseView
         QDoubleSpinBox* hSizeSpinBox;
         QDoubleSpinBox* oSizeSpinBox;
         QCheckBox* lightCheckBox;
+        QSpinBox* numberBox;
 
         void setupPreferenceWidget();
 };//BallStickView
