@@ -37,7 +37,7 @@ ClusterView::ClusterView()
     _lineColor[0] = settings->value("ClusterView/colorR", 0.0).toDouble();
     _lineColor[1] = settings->value("ClusterView/colorG", 0.0).toDouble();
     _lineColor[2] = settings->value("ClusterView/colorB", 1.0).toDouble();
-    _lineColor[3] = settings->value("ClusterView/colorA", 0.02).toDouble();
+    _lineColor[3] = settings->value("ClusterView/colorA", 0.8).toDouble();
     _lineWidth = settings->value("ClusterView/lineWidth", 2).toInt();
     _preferenceWidget = NULL;
 
