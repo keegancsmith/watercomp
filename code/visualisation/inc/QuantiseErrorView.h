@@ -27,22 +27,29 @@ class QuantiseErrorView : public BaseView
         virtual void initGL();
 
     private slots:
-        void setLineAlpha(int value);
         void setLineSize(int value);
-        void setErrorValue(double value);
-        void pickLineColor();
+        void setStartErrorValue(double value);
+        void setFinalErrorValue(double value);
+        void pickStartColor();
+        void pickFinalColor();
+        void setStartAlpha(int value);
+        void setFinalAlpha(int value);
 
     private:
         QSettings* settings;
         Frame* dequantised;
-        float _lineColor[4];
         int _lineSize;
-        double _errorValue;
+        float _startColor[4];
+        float _finalColor[4];
+        double _startErrorValue;
+        double _finalErrorValue;
 
         QWidget* _preferenceWidget;
         QSlider* lineSizeSlider;
-        QSlider* lineAlphaSlider;
-        QDoubleSpinBox* errorSpinBox;
+        QSlider* startAlphaSlider;
+        QSlider* finalAlphaSlider;
+        QDoubleSpinBox* startErrorSpinBox;
+        QDoubleSpinBox* finalErrorSpinBox;
 
         void setupPreferenceWidget();
 };//QuantiseErrorView
