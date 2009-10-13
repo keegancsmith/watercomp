@@ -108,6 +108,7 @@ class MetaballsView : public BaseView
 
         GtsSurface* g_surface;
         GtsCartesianGrid g_grid;
+        bool __do__processing__;
 
 };//MetaballsView
 

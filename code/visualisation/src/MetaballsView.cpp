@@ -300,6 +300,8 @@ MetaballsView::MetaballsView()
     vertex_num = 0;
 
     init();
+
+    __do__processing__ = false;
 }//constructor
 
 MetaballsView::~MetaballsView()
@@ -466,6 +468,7 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
 
     if (quantised == 0)
         return;
+    if (!__do__processing__) return;
 
     int z, y, x;
     for (z = 0; z < 255; z++)
@@ -1104,6 +1107,7 @@ bool MetaballsView::__process__frames__(DCDReader* reader, int start, int end)
     __all__frames__.clear();
     __all__frames__.resize(reader->nframes());
     QuantisedFrame* qf = new QuantisedFrame(1, 1, 1, 1);;
+    __do__processing__ = true;
     int v;
     for (int i = start; i < end; i++)
     {
@@ -1121,6 +1125,7 @@ bool MetaballsView::__process__frames__(DCDReader* reader, int start, int end)
             __all__frames__[i][v] = _surface[v];
         printf("Frame: %i\n", i);
     }//for
+    __do__processing__ = false;
     return true;
 }//__process__frames__
 
@@ -1165,6 +1170,7 @@ bool MetaballsView::__process__and__save__(QString filename, DCDReader* reader)
     Frame frame(atoms, reader->natoms());
     QuantisedFrame* qf = new QuantisedFrame(1, 1, 1, 1);;
 
+    __do__processing__ = true;
     int v;
     int j, k, l;
     Triangle t;
@@ -1188,7 +1194,9 @@ bool MetaballsView::__process__and__save__(QString filename, DCDReader* reader)
                 for (l = 0; l < 3; l++)
                     out << t.n[k][l];
         }//for
+        printf("Frame: %i\n", i);
     }//for
+    __do__processing__ = false;
 
     file.close();
     return true;

@@ -165,11 +165,13 @@ void MainWindow::setupMenu()
     addRenderMode(new QuantiseErrorView(), viewMenu);
     addRenderMode(new BallStickView(), viewMenu);
 
-    QAction* __do__process__all__frames__action__ = new QAction(tr("Process all frames for Metaballs view"), fileMenu);
-    connect(__do__process__all__frames__action__, SIGNAL(triggered()), this, SLOT(__do__process__all__frames__()));
+    QAction* __process__all__frames__action__ = new QAction(tr("Process all frames for Metaballs view"), fileMenu);
+    connect(__process__all__frames__action__, SIGNAL(triggered()), this, SLOT(__do__process__all__frames__()));
     fileMenu->addSeparator();
-    fileMenu->addSeparator();
-    fileMenu->addAction(__do__process__all__frames__action__);
+    fileMenu->addAction(__process__all__frames__action__);
+    QAction* __open__file__action__ = new QAction(tr("Open metaballs data"), fileMenu);
+    connect(__open__file__action__, SIGNAL(triggered()), this, SLOT(__do__open__file__()));
+    fileMenu->addAction(__open__file__action__);
 
     viewMenu->addSeparator();
     QAction* viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
@@ -204,3 +206,10 @@ void MainWindow::__do__process__all__frames__()
     // __metaballs__->__save__all__frames__("metaballs.data");
 }//__do__process__all__frames__
 
+void MainWindow::__do__open__file__()
+{
+    QString ss = QFileDialog::getOpenFileName(this, tr("Open data"), lastLocation, tr("All (*.*)"));
+    if (ss.isEmpty())
+        return;
+    __metaballs__->__load__all__frames__(ss);
+}//__do__open__file__

@@ -42,6 +42,7 @@ class MainWindow : public QMainWindow
         void setFrame(int value);
 
         void __do__process__all__frames__();
+        void __do__open__file__();
 
     private:
         QSettings* settings;
