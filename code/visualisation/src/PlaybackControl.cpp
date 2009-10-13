@@ -1,6 +1,7 @@
 #include "PlaybackControl.h"
 
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QPushButton>
 #include <QSlider>
 #include <QTimer>
@@ -9,7 +10,8 @@
 PlaybackControl::PlaybackControl(QWidget* parent)
     : QWidget(parent)
 {
-    mainLayout = new QVBoxLayout(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    mainLayout->setAlignment(Qt::AlignVCenter);
 
     slider = new QSlider(this);
     slider->setMinimum(0);
@@ -19,22 +21,34 @@ PlaybackControl::PlaybackControl(QWidget* parent)
     connect(slider, SIGNAL(valueChanged(int)), this, SLOT(setFrame(int)));
     mainLayout->addWidget(slider);
 
-    lowerLayout = new QHBoxLayout();
-    lowerLayout->setAlignment(Qt::AlignHCenter);
-    mainLayout->addLayout(lowerLayout);
+    QHBoxLayout* buttonLayout = new QHBoxLayout();
+    buttonLayout->setAlignment(Qt::AlignHCenter);
 
-    playing = true;
     playButton = new QPushButton(tr("NULL"), this);
     connect(playButton, SIGNAL(clicked()), this, SLOT(playClicked()));
-    lowerLayout->addWidget(playButton);
+    buttonLayout->addWidget(playButton);
+    mainLayout->addLayout(buttonLayout);
+
+    QHBoxLayout* lowerLayout = new QHBoxLayout();
+
+    speedSlider = new QSlider(this);
+    speedSlider->setRange(1, 20);
+    speedSlider->setOrientation(Qt::Horizontal);
+    connect(speedSlider, SIGNAL(valueChanged(int)), this, SLOT(setTps(int)));
+    lowerLayout->addWidget(speedSlider);
+
+    speedLabel = new QLabel("0", this);
+    lowerLayout->addWidget(speedLabel);
+
+    mainLayout->addLayout(lowerLayout);
 
     timer = new QTimer(this);
     timer->setSingleShot(false);
     connect(timer, SIGNAL(timeout()), this, SLOT(timerTick()));
 
     _frame = 0;
-    setTps(60);
-    playClicked();
+    playing = true;
+    playClicked(); //pause
     setTotalFrames(0);
 }//constructor
 
@@ -53,8 +67,15 @@ void PlaybackControl::setTps(int value)
 {
     if (value < 0) return;
     _tps = value;
-    if (value == 0) timer->stop();
-    else timer->setInterval(1000 / _tps);
+    if (value == 0)
+    {
+        playButton->setText(tr("Play"));
+        timer->stop();
+    }//if
+    else
+        timer->setInterval(1000 / _tps);
+    speedSlider->setValue(_tps);
+    speedLabel->setNum((int)_tps);
 }//setTps
 
 int PlaybackControl::totalFrames()

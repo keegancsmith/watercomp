@@ -3,11 +3,10 @@
 
 #include <QWidget>
 
-class QHBoxLayout;
+class QLabel;
 class QPushButton;
 class QSlider;
 class QTimer;
-class QVBoxLayout;
 
 class PlaybackControl : public QWidget
 {
@@ -17,7 +16,6 @@ class PlaybackControl : public QWidget
         ~PlaybackControl();
 
         int tps();
-        void setTps(int value);
 
         int frame();
 
@@ -31,6 +29,7 @@ class PlaybackControl : public QWidget
         void frameChange(int value);
 
     public slots:
+        void setTps(int value);
         void setFrame(int value);
 
     private slots:
@@ -38,12 +37,11 @@ class PlaybackControl : public QWidget
         void timerTick();
 
     private:
-        QVBoxLayout* mainLayout;
-        QHBoxLayout* lowerLayout;
-
         bool playing;
         QSlider* slider;
+        QSlider* speedSlider;
         QPushButton* playButton;
+        QLabel* speedLabel;
 
         QTimer* timer;
         int _tps;
