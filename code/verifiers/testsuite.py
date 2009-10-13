@@ -84,6 +84,20 @@ if __name__ == '__main__':
     else:
         verify = False
 
+    if 'quiet' in tests:
+        quiet = lambda x : x + ' > /dev/null'
+        tests.remove('quiet')
+    else:
+        quiet = lambda x : x
+
+    # Limit DCDs tested
+    if '--' in tests:
+        i = tests.index('--')
+        dcds = tests[i+1:]
+        tests = tests[:i]
+    else:
+        dcds = DCDS
+
     if not tests or not set(tests).issubset(valid_tests):
         print "Valid tests are:\n * " + '\n * '.join(valid_tests)
         sys.exit(1)
@@ -106,6 +120,8 @@ if __name__ == '__main__':
     if not os.path.exists(OUTPUT_DIR):
         os.mkdir(OUTPUT_DIR)
 
+    verify_failed = []
+
     # Run each test
     for name in tests_run:
         test = TESTS_ALL[name]
@@ -113,12 +129,16 @@ if __name__ == '__main__':
         if test['author'] is 'keegan':
             cflag, dflag = '-c', '-d'
         else:
-            cflag, dflag = 'd', 'x'
+            cflag, dflag = 'c', 'x'
 
-        print '\n'
+        print '='*len(name)
         print name
+        print '='*len(name)
 
         for dcd in test['dcds']:
+            if dcd not in dcds:
+                continue
+
             print '\n', dcd
 
             dcd_path = '../dcd/%s.dcd' % dcd
@@ -126,13 +146,25 @@ if __name__ == '__main__':
             dec_path = os.path.join(OUTPUT_DIR, '%s_%s.dcd' % (dcd, name))
 
             cmp_cmd = '%s %s %s %s' % (test['bin'], cflag, dcd_path, cmp_path)
-            os.system(cmp_cmd)
+            os.system(quiet(cmp_cmd))
 
             if not verify:
                 continue
 
             dec_cmd = '%s %s %s %s' % (test['bin'], dflag, cmp_path, dec_path)
-            os.system(dec_cmd)
+            os.system(quiet(dec_cmd))
 
             check_cmd = './verifiers/checkdcd %s %s' % (dcd_path, dec_path)
-            os.system('%s | tail -n1' % check_cmd)
+            verified = os.system(check_cmd)
+
+            if verified != 0:
+                verify_failed.append('%s_%s' % (dcd, name))
+        print
+
+    if verify:
+        if verify_failed:
+            print "The following tests failed:"
+            for test in verify_failed:
+                print ' * ' + test
+        else:
+            print "Every test successfully verified."
