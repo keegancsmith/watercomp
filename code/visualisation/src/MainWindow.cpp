@@ -96,7 +96,8 @@ void MainWindow::doOpenFile()
     // settings->setValue("recentFiles", recentFiles);
     settings->setValue("lastFile", lastLocation);
 
-    pdb = PDBReader::load_pdbfile(lastLocation.toStdString().c_str());
+    // pdb = PDBReader::load_pdbfile(lastLocation.toStdString().c_str());
+    pdb = load_pdbfile(lastLocation.toStdString().c_str());
     dcdreader->open_file(lastLocation.replace(QRegExp(".pdb$"), ".dcd").toStdString().c_str());
     playbackControl->setTotalFrames(dcdreader->nframes());
 
