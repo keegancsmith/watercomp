@@ -281,9 +281,6 @@ MetaballsView::MetaballsView()
     lighting = settings->value("MetaballsView/lighting", false).toBool();
     cullFace = settings->value("MetaballsView/cullFace", false).toBool();
 
-    _preferenceWidget = NULL;
-    setupPreferenceWidget();
-
     g_surface = gts_surface_new(gts_surface_class(),
                                 gts_face_class(),
                                 gts_edge_class(),
@@ -371,103 +368,128 @@ void MetaballsView::updatePreferences()
     cullCheckBox->setCheckState(cullFace ? Qt::Checked : Qt::Unchecked);
 }//updatePreferences
 
-QWidget* MetaballsView::preferenceWidget()
+void MetaballsView::setupPreferenceWidget(QWidget* preferenceWidget)
 {
-    if (_preferenceWidget == NULL)
-        setupPreferenceWidget();
-    return _preferenceWidget;
-}//preferenceWidget
+    QGridLayout* layout = new QGridLayout(preferenceWidget);
 
-void MetaballsView::render()
+    QPushButton* metaballsColorButton = new QPushButton(tr("Select metaballs colour"), preferenceWidget);
+    connect(metaballsColorButton, SIGNAL(clicked()), this, SLOT(pickMetaballsColor()));
+    layout->addWidget(metaballsColorButton, 0, 0, 1, 2);
+
+    QLabel* metaballsAlphaLabel = new QLabel(tr("Metaballs alpha"), preferenceWidget);
+    layout->addWidget(metaballsAlphaLabel, 1, 0);
+
+    metaballsAlphaSlider = new QSlider(preferenceWidget);
+    metaballsAlphaSlider->setOrientation(Qt::Horizontal);
+    metaballsAlphaSlider->setRange(0, ALPHA_MAX_SLIDER);
+    connect(metaballsAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setMetaballsAlpha(int)));
+    layout->addWidget(metaballsAlphaSlider, 1, 1);
+
+    QLabel* stepSizeLabel = new QLabel(tr("Grid size"), preferenceWidget);
+    layout->addWidget(stepSizeLabel, 2, 0);
+
+    stepSizeSlider = new QSlider(preferenceWidget);
+    stepSizeSlider->setOrientation(Qt::Horizontal);
+    stepSizeSlider->setRange(0, maxStepSize);
+    connect(stepSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(setStepSize(int)));
+    layout->addWidget(stepSizeSlider, 2, 1);
+
+    QLabel* cullLabel = new QLabel(tr("Cull faces"), preferenceWidget);
+    layout->addWidget(cullLabel, 3, 0);
+
+    cullCheckBox = new QCheckBox(preferenceWidget);
+    connect(cullCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setCullFace(int)));
+    layout->addWidget(cullCheckBox, 3, 1);
+
+    QLabel* lightLabel = new QLabel(tr("Enable lighting"), preferenceWidget);
+    layout->addWidget(lightLabel, 4, 0);
+
+    lightCheckBox = new QCheckBox(preferenceWidget);
+    connect(lightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setLighting(int)));
+    layout->addWidget(lightCheckBox, 4, 1);
+
+    QPushButton* updateButton = new QPushButton(tr("Update faces"), preferenceWidget);
+    connect(updateButton, SIGNAL(clicked()), this, SLOT(updateFaces()));
+    layout->addWidget(updateButton, 5, 0);
+
+    preferenceWidget->setLayout(layout);
+}//setupPreferenceWidget
+
+
+void MetaballsView::initGL()
 {
-    if (quantised == 0)
-        return;
-    if (parent)
-        glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
+    printf("initGL\n");
+    // float m_amb[] = {0.3f, 0.3f, 0.3f, 1.0f};
+    // float m_spe[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    // float m_shin[] = {50.0f};
+    // float l_pos[] = {1.0f, 1.0f, 1.0f, 1.0f};
     float l_pos[] = {200.0f, 200.0f, 200.0f, 0.0f};
+    // float l_amb[] = {0.4f, 0.4f, 0.4f, 1.0f};
+    // float l_dif[] = {0.7f, 0.7f, 0.7f, 1.0f};
+    // float l_spe[] = {0.9f, 0.9f, 0.9f, 1.0f};
+
+    // glEnable(GL_LIGHT0);
+    // glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, m_amb);
+    // glMaterialfv(GL_FRONT, GL_SPECULAR, m_spe);
+    // glMaterialfv(GL_FRONT, GL_SHININESS, m_shin);
+
     glLightfv(GL_LIGHT0, GL_POSITION, l_pos);
+    // glLightfv(GL_LIGHT0, GL_AMBIENT, l_amb);
+    // glLightfv(GL_LIGHT0, GL_DIFFUSE, l_dif);
+    // glLightfv(GL_LIGHT0, GL_SPECULAR, l_spe);
 
-    glColor4fv(_metaballsColor);
-    glBegin(GL_TRIANGLES);
 
-    /*
+    // float g_amb[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    //glLightModelfv(GL_LIGHT_MODEL_AMBIENT, g_amb);
 
-    int v;
-    for (int i = 0; i < triangle_num; i++)
-    {
-        v = i*3;
-        // printf("normal: %f %f %f\n", normals[indices[v]], normals[indices[v+1]], normals[indices[v+2]]);
-        // printf("vertice: %f %f %f\n", vertices[indices[v]], vertices[indices[v+1]], vertices[indices[v+2]]);
-        glNormal3f(normals[indices[v]],
-                normals[indices[v+1]],
-                normals[indices[v+2]]);
-        glVertex3f(vertices[indices[v]],
-                vertices[indices[v+1]],
-                vertices[indices[v+2]]);
-        v += 1;
-        // printf("normal: %f %f %f\n", normals[indices[v]], normals[indices[v+1]], normals[indices[v+2]]);
-        // printf("vertice: %f %f %f\n", vertices[indices[v]], vertices[indices[v+1]], vertices[indices[v+2]]);
-        glNormal3f(normals[indices[v]],
-                normals[indices[v+1]],
-                normals[indices[v+2]]);
-        glVertex3f(vertices[indices[v]],
-                vertices[indices[v+1]],
-                vertices[indices[v+2]]);
-        v += 1;
-        // printf("normal: %f %f %f\n", normals[indices[v]], normals[indices[v+1]], normals[indices[v+2]]);
-        // printf("vertice: %f %f %f\n", vertices[indices[v]], vertices[indices[v+1]], vertices[indices[v+2]]);
-        glNormal3f(normals[indices[v]],
-                normals[indices[v+1]],
-                normals[indices[v+2]]);
-        glVertex3f(vertices[indices[v]],
-                vertices[indices[v+1]],
-                vertices[indices[v+2]]);
-    }//for
+    float afPropertiesAmbient [] = {0.50, 0.50, 0.50, 1.00};
+    float afPropertiesDiffuse [] = {0.75, 0.75, 0.75, 1.00};
+    float afPropertiesSpecular[] = {1.00, 1.00, 1.00, 1.00};
+    float afAmbientWhite [] = {0.25, 0.25, 0.25, 1.00};
+    float afAmbientRed   [] = {0.25, 0.00, 0.00, 1.00};
+    float afAmbientGreen [] = {0.00, 0.25, 0.00, 1.00};
+    float afAmbientBlue  [] = {0.00, 0.00, 0.25, 1.00};
+    float afDiffuseWhite [] = {0.75, 0.75, 0.75, 1.00};
+    float afDiffuseRed   [] = {0.75, 0.00, 0.00, 1.00};
+    float afDiffuseGreen [] = {0.00, 0.75, 0.00, 1.00};
+    float afDiffuseBlue  [] = {0.00, 0.00, 0.75, 1.00};
+    float afSpecularWhite[] = {1.00, 1.00, 1.00, 1.00};
+    float afSpecularRed  [] = {1.00, 0.25, 0.25, 1.00};
+    float afSpecularGreen[] = {0.25, 1.00, 0.25, 1.00};
+    float afSpecularBlue [] = {0.25, 0.25, 1.00, 1.00};
+    glLightfv( GL_LIGHT0, GL_AMBIENT,  afPropertiesAmbient);
+    glLightfv( GL_LIGHT0, GL_DIFFUSE,  afPropertiesDiffuse);
+    glLightfv( GL_LIGHT0, GL_SPECULAR, afPropertiesSpecular);
+    glMaterialfv(GL_BACK,  GL_AMBIENT,   afAmbientGreen);
+    glMaterialfv(GL_BACK,  GL_DIFFUSE,   afDiffuseGreen);
+    // glMaterialfv(GL_BACK, GL_AMBIENT,   afAmbientBlue);
+    // glMaterialfv(GL_BACK, GL_DIFFUSE,   afDiffuseBlue);
+    // glMaterialfv(GL_BACK, GL_SPECULAR,  afSpecularWhite);
+    // glMaterialf( GL_BACK, GL_SHININESS, 15.0);
+    glMaterialfv(GL_FRONT, GL_AMBIENT,   afAmbientBlue);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE,   afDiffuseBlue);
+    glMaterialfv(GL_FRONT, GL_SPECULAR,  afSpecularWhite);
+    glMaterialf( GL_FRONT, GL_SHININESS, 15.0);
+    glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 1.0);
+    glEnable(GL_LIGHT0);
 
-    / * /
+    glColorMaterial(GL_FRONT, GL_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
 
-    Triangle t;
-    for (int i = 0; i < _surface.size(); i++)
-    {
-        t = _surface.at(i);
-        // printf("normal: %f %f %f\n", t.n[0][0], t.n[0][1], t.n[0][2]);
-        // printf("vertex: %f %f %f\n", t.p[0][0], t.p[0][1], t.p[0][2]);
-        glNormal3fv(t.n[0]);
-        glVertex3fv(t.p[0]);
-        // printf("normal: %f %f %f\n", t.n[1][0], t.n[1][1], t.n[1][2]);
-        // printf("vertex: %f %f %f\n", t.p[1][0], t.p[1][1], t.p[1][2]);
-        glNormal3fv(t.n[1]);
-        glVertex3fv(t.p[1]);
-        // printf("normal: %f %f %f\n", t.n[2][0], t.n[2][1], t.n[2][2]);
-        // printf("vertex: %f %f %f\n", t.p[2][0], t.p[2][1], t.p[2][2]);
-        glNormal3fv(t.n[2]);
-        glVertex3fv(t.p[2]);
-    }//for
-    // */
+    if (lighting) glEnable(GL_LIGHTING);
+    else glDisable(GL_LIGHTING);
 
-    Triangle t;
-    for (int i = 0; i < __all__frames__.at(framenum).size(); i++)
-    {
-        t = __all__frames__.at(framenum).at(i);
-        glNormal3fv(t.n[0]);
-        glVertex3fv(t.p[0]);
-        glNormal3fv(t.n[1]);
-        glVertex3fv(t.p[1]);
-        glNormal3fv(t.n[2]);
-        glVertex3fv(t.p[2]);
-    }//for
+    if (cullFace) glEnable(GL_CULL_FACE);
+    else glDisable(GL_CULL_FACE);
 
-    glEnd();
-}//render
+    glDepthFunc(GL_LEQUAL);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}//initGL
 
-void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
+void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised)
 {
-    this->frame = frame;
-    this->quantised = quantised;
-    this->framenum = framenum;
-
-    if (quantised == 0)
-        return;
+    BaseView::tick(framenum, frame, quantised, dequantised);
+    if (dequantised == 0) return;
     if (!__do__processing__) return;
 
     int z, y, x;
@@ -686,76 +708,87 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
 
 }//tick
 
-
-void MetaballsView::initGL()
+void MetaballsView::render()
 {
-    printf("initGL\n");
-    // float m_amb[] = {0.3f, 0.3f, 0.3f, 1.0f};
-    // float m_spe[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    // float m_shin[] = {50.0f};
-    // float l_pos[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    if (dequantised == 0) return;
+    // if (parent) glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
+
     float l_pos[] = {200.0f, 200.0f, 200.0f, 0.0f};
-    // float l_amb[] = {0.4f, 0.4f, 0.4f, 1.0f};
-    // float l_dif[] = {0.7f, 0.7f, 0.7f, 1.0f};
-    // float l_spe[] = {0.9f, 0.9f, 0.9f, 1.0f};
-
-    // glEnable(GL_LIGHT0);
-    // glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, m_amb);
-    // glMaterialfv(GL_FRONT, GL_SPECULAR, m_spe);
-    // glMaterialfv(GL_FRONT, GL_SHININESS, m_shin);
-
     glLightfv(GL_LIGHT0, GL_POSITION, l_pos);
-    // glLightfv(GL_LIGHT0, GL_AMBIENT, l_amb);
-    // glLightfv(GL_LIGHT0, GL_DIFFUSE, l_dif);
-    // glLightfv(GL_LIGHT0, GL_SPECULAR, l_spe);
 
+    glColor4fv(_metaballsColor);
+    glBegin(GL_TRIANGLES);
 
-    // float g_amb[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    //glLightModelfv(GL_LIGHT_MODEL_AMBIENT, g_amb);
+    /*
 
-    float afPropertiesAmbient [] = {0.50, 0.50, 0.50, 1.00};
-    float afPropertiesDiffuse [] = {0.75, 0.75, 0.75, 1.00};
-    float afPropertiesSpecular[] = {1.00, 1.00, 1.00, 1.00};
-    float afAmbientWhite [] = {0.25, 0.25, 0.25, 1.00};
-    float afAmbientRed   [] = {0.25, 0.00, 0.00, 1.00};
-    float afAmbientGreen [] = {0.00, 0.25, 0.00, 1.00};
-    float afAmbientBlue  [] = {0.00, 0.00, 0.25, 1.00};
-    float afDiffuseWhite [] = {0.75, 0.75, 0.75, 1.00};
-    float afDiffuseRed   [] = {0.75, 0.00, 0.00, 1.00};
-    float afDiffuseGreen [] = {0.00, 0.75, 0.00, 1.00};
-    float afDiffuseBlue  [] = {0.00, 0.00, 0.75, 1.00};
-    float afSpecularWhite[] = {1.00, 1.00, 1.00, 1.00};
-    float afSpecularRed  [] = {1.00, 0.25, 0.25, 1.00};
-    float afSpecularGreen[] = {0.25, 1.00, 0.25, 1.00};
-    float afSpecularBlue [] = {0.25, 0.25, 1.00, 1.00};
-    glLightfv( GL_LIGHT0, GL_AMBIENT,  afPropertiesAmbient);
-    glLightfv( GL_LIGHT0, GL_DIFFUSE,  afPropertiesDiffuse);
-    glLightfv( GL_LIGHT0, GL_SPECULAR, afPropertiesSpecular);
-    glMaterialfv(GL_BACK,  GL_AMBIENT,   afAmbientGreen);
-    glMaterialfv(GL_BACK,  GL_DIFFUSE,   afDiffuseGreen);
-    // glMaterialfv(GL_BACK, GL_AMBIENT,   afAmbientBlue);
-    // glMaterialfv(GL_BACK, GL_DIFFUSE,   afDiffuseBlue);
-    // glMaterialfv(GL_BACK, GL_SPECULAR,  afSpecularWhite);
-    // glMaterialf( GL_BACK, GL_SHININESS, 15.0);
-    glMaterialfv(GL_FRONT, GL_AMBIENT,   afAmbientBlue);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE,   afDiffuseBlue);
-    glMaterialfv(GL_FRONT, GL_SPECULAR,  afSpecularWhite);
-    glMaterialf( GL_FRONT, GL_SHININESS, 15.0);
-    glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 1.0);
-    glEnable(GL_LIGHT0);
+    int v;
+    for (int i = 0; i < triangle_num; i++)
+    {
+        v = i*3;
+        // printf("normal: %f %f %f\n", normals[indices[v]], normals[indices[v+1]], normals[indices[v+2]]);
+        // printf("vertice: %f %f %f\n", vertices[indices[v]], vertices[indices[v+1]], vertices[indices[v+2]]);
+        glNormal3f(normals[indices[v]],
+                normals[indices[v+1]],
+                normals[indices[v+2]]);
+        glVertex3f(vertices[indices[v]],
+                vertices[indices[v+1]],
+                vertices[indices[v+2]]);
+        v += 1;
+        // printf("normal: %f %f %f\n", normals[indices[v]], normals[indices[v+1]], normals[indices[v+2]]);
+        // printf("vertice: %f %f %f\n", vertices[indices[v]], vertices[indices[v+1]], vertices[indices[v+2]]);
+        glNormal3f(normals[indices[v]],
+                normals[indices[v+1]],
+                normals[indices[v+2]]);
+        glVertex3f(vertices[indices[v]],
+                vertices[indices[v+1]],
+                vertices[indices[v+2]]);
+        v += 1;
+        // printf("normal: %f %f %f\n", normals[indices[v]], normals[indices[v+1]], normals[indices[v+2]]);
+        // printf("vertice: %f %f %f\n", vertices[indices[v]], vertices[indices[v+1]], vertices[indices[v+2]]);
+        glNormal3f(normals[indices[v]],
+                normals[indices[v+1]],
+                normals[indices[v+2]]);
+        glVertex3f(vertices[indices[v]],
+                vertices[indices[v+1]],
+                vertices[indices[v+2]]);
+    }//for
 
-    glColorMaterial(GL_FRONT, GL_DIFFUSE);
-    glEnable(GL_COLOR_MATERIAL);
+    / * /
 
-    if (lighting) glEnable(GL_LIGHTING);
-    else glDisable(GL_LIGHTING);
+    Triangle t;
+    for (int i = 0; i < _surface.size(); i++)
+    {
+        t = _surface.at(i);
+        // printf("normal: %f %f %f\n", t.n[0][0], t.n[0][1], t.n[0][2]);
+        // printf("vertex: %f %f %f\n", t.p[0][0], t.p[0][1], t.p[0][2]);
+        glNormal3fv(t.n[0]);
+        glVertex3fv(t.p[0]);
+        // printf("normal: %f %f %f\n", t.n[1][0], t.n[1][1], t.n[1][2]);
+        // printf("vertex: %f %f %f\n", t.p[1][0], t.p[1][1], t.p[1][2]);
+        glNormal3fv(t.n[1]);
+        glVertex3fv(t.p[1]);
+        // printf("normal: %f %f %f\n", t.n[2][0], t.n[2][1], t.n[2][2]);
+        // printf("vertex: %f %f %f\n", t.p[2][0], t.p[2][1], t.p[2][2]);
+        glNormal3fv(t.n[2]);
+        glVertex3fv(t.p[2]);
+    }//for
+    // */
 
-    if (cullFace) glEnable(GL_CULL_FACE);
-    else glDisable(GL_CULL_FACE);
+    Triangle t;
+    for (int i = 0; i < __all__frames__.at(framenum).size(); i++)
+    {
+        t = __all__frames__.at(framenum).at(i);
+        glNormal3fv(t.n[0]);
+        glVertex3fv(t.p[0]);
+        glNormal3fv(t.n[1]);
+        glVertex3fv(t.p[1]);
+        glNormal3fv(t.n[2]);
+        glVertex3fv(t.p[2]);
+    }//for
 
-    glDepthFunc(GL_LEQUAL);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-}//initGL
+    glEnd();
+}//render
+
 
 
 void MetaballsView::setMetaballsAlpha(int value)
@@ -818,7 +851,7 @@ void MetaballsView::setLighting(int state)
 
 void MetaballsView::updateFaces()
 {
-    tick(0, this->frame, this->quantised);
+    tick(this->framenum, this->frame, this->quantised, this->dequantised);
 }//updateFaces
 
 
@@ -1048,55 +1081,6 @@ void MetaballsView::callMarchingCubes(float x, float y, float z, float scale)
 }//callMarchingCubes
 
 
-void MetaballsView::setupPreferenceWidget()
-{
-    _preferenceWidget = new QWidget;
-
-    QGridLayout* layout = new QGridLayout(_preferenceWidget);
-
-    QPushButton* metaballsColorButton = new QPushButton(tr("Select metaballs colour"), _preferenceWidget);
-    connect(metaballsColorButton, SIGNAL(clicked()), this, SLOT(pickMetaballsColor()));
-    layout->addWidget(metaballsColorButton, 0, 0, 1, 2);
-
-    QLabel* metaballsAlphaLabel = new QLabel(tr("Metaballs alpha"), _preferenceWidget);
-    layout->addWidget(metaballsAlphaLabel, 1, 0);
-
-    metaballsAlphaSlider = new QSlider(_preferenceWidget);
-    metaballsAlphaSlider->setOrientation(Qt::Horizontal);
-    metaballsAlphaSlider->setRange(0, ALPHA_MAX_SLIDER);
-    connect(metaballsAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setMetaballsAlpha(int)));
-    layout->addWidget(metaballsAlphaSlider, 1, 1);
-
-    QLabel* stepSizeLabel = new QLabel(tr("Grid size"), _preferenceWidget);
-    layout->addWidget(stepSizeLabel, 2, 0);
-
-    stepSizeSlider = new QSlider(_preferenceWidget);
-    stepSizeSlider->setOrientation(Qt::Horizontal);
-    stepSizeSlider->setRange(0, maxStepSize);
-    connect(stepSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(setStepSize(int)));
-    layout->addWidget(stepSizeSlider, 2, 1);
-
-    QLabel* cullLabel = new QLabel(tr("Cull faces"), _preferenceWidget);
-    layout->addWidget(cullLabel, 3, 0);
-
-    cullCheckBox = new QCheckBox(_preferenceWidget);
-    connect(cullCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setCullFace(int)));
-    layout->addWidget(cullCheckBox, 3, 1);
-
-    QLabel* lightLabel = new QLabel(tr("Enable lighting"), _preferenceWidget);
-    layout->addWidget(lightLabel, 4, 0);
-
-    lightCheckBox = new QCheckBox(_preferenceWidget);
-    connect(lightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setLighting(int)));
-    layout->addWidget(lightCheckBox, 4, 1);
-
-    QPushButton* updateButton = new QPushButton(tr("Update faces"), _preferenceWidget);
-    connect(updateButton, SIGNAL(clicked()), this, SLOT(updateFaces()));
-    layout->addWidget(updateButton, 5, 0);
-
-    _preferenceWidget->setLayout(layout);
-}//setupPreferenceWidget
-
 
 
 
@@ -1107,6 +1091,7 @@ bool MetaballsView::__process__frames__(DCDReader* reader, int start, int end)
     __all__frames__.clear();
     __all__frames__.resize(reader->nframes());
     QuantisedFrame* qf = new QuantisedFrame(1, 1, 1, 1);;
+    Frame* dq = new Frame(qf->toFrame());
     __do__processing__ = true;
     int v;
     for (int i = start; i < end; i++)
@@ -1114,10 +1099,10 @@ bool MetaballsView::__process__frames__(DCDReader* reader, int start, int end)
         reader->set_frame(i);
         reader->next_frame(frame);
 
-        delete qf;
-        qf = new QuantisedFrame(frame, 8, 8, 8);
+        delete qf; qf = new QuantisedFrame(frame, 8, 8, 8);
+        delete dq; dq = new Frame(qf->toFrame());
 
-        tick(i, &frame, qf);
+        tick(i, &frame, qf, dq);
         // __all__frames__.at(i).resize(_surface.size());
         __all__frames__[i].resize(_surface.size());
         for (v = 0; v < _surface.size(); v++)
@@ -1169,6 +1154,7 @@ bool MetaballsView::__process__and__save__(QString filename, DCDReader* reader)
     float* atoms = new float[3 * reader->natoms()];
     Frame frame(atoms, reader->natoms());
     QuantisedFrame* qf = new QuantisedFrame(1, 1, 1, 1);;
+    Frame* dq = new Frame(qf->toFrame());
 
     __do__processing__ = true;
     int v;
@@ -1179,9 +1165,9 @@ bool MetaballsView::__process__and__save__(QString filename, DCDReader* reader)
         reader->set_frame(i);
         reader->next_frame(frame);
 
-        delete qf;
-        qf = new QuantisedFrame(frame, 8, 8, 8);
-        tick(i, &frame, qf);
+        delete qf; qf = new QuantisedFrame(frame, 8, 8, 8);
+        delete dq; dq = new Frame(qf->toFrame());
+        tick(i, &frame, qf, dq);
 
         out << (quint32)_surface.size();
         for (j = 0; j < _surface.size(); j++)

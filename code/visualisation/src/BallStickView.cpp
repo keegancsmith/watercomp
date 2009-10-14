@@ -76,26 +76,89 @@ void BallStickView::updatePreferences()
     numberBox->setValue(number);
 }//updatePreferences
 
-QWidget* BallStickView::preferenceWidget()
+void BallStickView::setupPreferenceWidget(QWidget* preferenceWidget)
 {
-    if (_preferenceWidget == NULL)
-        setupPreferenceWidget();
-    return _preferenceWidget;
-}//preferenceWidget
+    QGridLayout* layout = new QGridLayout(preferenceWidget);
+
+    QPushButton* hColorButton = new QPushButton(tr("Select hydrogen colour"), preferenceWidget);
+    connect(hColorButton, SIGNAL(clicked()), this, SLOT(pickHColor()));
+    layout->addWidget(hColorButton, 0, 0, 1, 2);
+
+    QLabel* hAlphaLabel = new QLabel(tr("Hydrogen alpha"), preferenceWidget);
+    layout->addWidget(hAlphaLabel, 1, 0);
+
+    hAlphaSlider = new QSlider(preferenceWidget);
+    hAlphaSlider->setOrientation(Qt::Horizontal);
+    hAlphaSlider->setRange(0, MAX_ALPHA_SLIDER);
+    connect(hAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setHAlpha(int)));
+    layout->addWidget(hAlphaSlider, 1, 1);
+
+    QLabel* hSizeLabel = new QLabel(tr("Hydrogen size"), preferenceWidget);
+    layout->addWidget(hSizeLabel, 2, 0);
+
+    hSizeSpinBox = new QDoubleSpinBox(preferenceWidget);
+    hSizeSpinBox->setRange(0, MAX_SPHERE_SIZE);
+    connect(hSizeSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setHSize(double)));
+    layout->addWidget(hSizeSpinBox, 2, 1);
+
+    QPushButton* oColorButton = new QPushButton(tr("Select oxygen colour"), preferenceWidget);
+    connect(oColorButton, SIGNAL(clicked()), this, SLOT(pickOColor()));
+    layout->addWidget(oColorButton, 3, 0, 1, 2);
+
+    QLabel* oAlphaLabel = new QLabel(tr("Oxygen alpha"), preferenceWidget);
+    layout->addWidget(oAlphaLabel, 4, 0);
+
+    oAlphaSlider = new QSlider(preferenceWidget);
+    oAlphaSlider->setOrientation(Qt::Horizontal);
+    oAlphaSlider->setRange(0, MAX_ALPHA_SLIDER);
+    connect(oAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setOAlpha(int)));
+    layout->addWidget(oAlphaSlider, 4, 1);
+
+    QLabel* oSizeLabel = new QLabel(tr("Oxygen size"), preferenceWidget);
+    layout->addWidget(oSizeLabel, 5, 0);
+
+    oSizeSpinBox = new QDoubleSpinBox(preferenceWidget);
+    oSizeSpinBox->setRange(0, MAX_SPHERE_SIZE);
+    connect(oSizeSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setOSize(double)));
+    layout->addWidget(oSizeSpinBox, 5, 1);
+
+    QLabel* lightLabel = new QLabel(tr("Enable lighting"), preferenceWidget);
+    layout->addWidget(lightLabel, 6, 0);
+
+    lightCheckBox = new QCheckBox(preferenceWidget);
+    connect(lightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setLighting(int)));
+    layout->addWidget(lightCheckBox, 6, 1);
+
+    QLabel* numberLabel = new QLabel(tr("Molecule count"), preferenceWidget);
+    layout->addWidget(numberLabel, 7, 0);
+
+    numberBox = new QSpinBox(preferenceWidget);
+    numberBox->setRange(0, 0);
+    connect(numberBox, SIGNAL(valueChanged(int)), this, SLOT(setNumber(int)));
+    layout->addWidget(numberBox, 7, 1);
+
+    preferenceWidget->setLayout(layout);
+}//setupPreferenceWidget
 
 
-void BallStickView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
+void BallStickView::initGL()
 {
-    this->frame = frame;
-    this->quantised = quantised;
-}//tick
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glColorMaterial(GL_FRONT, GL_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+
+    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT1);
+    if (lighting) glEnable(GL_LIGHTING);
+    else glDisable(GL_LIGHTING);
+}//initGL
 
 void BallStickView::render()
 {
-    if (quantised == NULL)
-        return;
-    if (parent)
-        glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
+    if (dequantised == NULL) return;
+    // if (parent) glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
 
     float l_pos[] = {1.0f, 1.0f, 1.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, l_pos);
@@ -128,43 +191,28 @@ void BallStickView::render()
         if (n++ > this->number) break;
         glColor4fv(_oColor);
         glPushMatrix();
-        glTranslatef(quantised->quantised_frame[3*waters[i].OH2_index],
-                     quantised->quantised_frame[3*waters[i].OH2_index+1],
-                     quantised->quantised_frame[3*waters[i].OH2_index+2]);
+        glTranslatef(dequantised->atom_data[3*waters[i].OH2_index],
+                     dequantised->atom_data[3*waters[i].OH2_index+1],
+                     dequantised->atom_data[3*waters[i].OH2_index+2]);
         gluSphere(quadric, _oSize, oslice, oslice);
         glPopMatrix();
 
         glColor4fv(_hColor);
         glPushMatrix();
-        glTranslatef(quantised->quantised_frame[3*waters[i].H1_index],
-                     quantised->quantised_frame[3*waters[i].H1_index+1],
-                     quantised->quantised_frame[3*waters[i].H1_index+2]);
+        glTranslatef(dequantised->atom_data[3*waters[i].H1_index],
+                     dequantised->atom_data[3*waters[i].H1_index+1],
+                     dequantised->atom_data[3*waters[i].H1_index+2]);
         gluSphere(quadric, _hSize, hslice, hslice);
         glPopMatrix();
 
         glPushMatrix();
-        glTranslatef(quantised->quantised_frame[3*waters[i].H2_index],
-                     quantised->quantised_frame[3*waters[i].H2_index+1],
-                     quantised->quantised_frame[3*waters[i].H2_index+2]);
+        glTranslatef(dequantised->atom_data[3*waters[i].H2_index],
+                     dequantised->atom_data[3*waters[i].H2_index+1],
+                     dequantised->atom_data[3*waters[i].H2_index+2]);
         gluSphere(quadric, _hSize, hslice, hslice);
         glPopMatrix();
     }//for
 }//render
-
-
-void BallStickView::initGL()
-{
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glColorMaterial(GL_FRONT, GL_DIFFUSE);
-    glEnable(GL_COLOR_MATERIAL);
-
-    glEnable(GL_LIGHT0);
-    glEnable(GL_LIGHT1);
-    if (lighting) glEnable(GL_LIGHTING);
-    else glDisable(GL_LIGHTING);
-}//initGL
 
 
 void BallStickView::setHAlpha(int value)
@@ -242,71 +290,4 @@ void BallStickView::setNumber(int value)
     number = value;
     settings->setValue("BallStickView/number", number);
 }//setNumber
-
-
-void BallStickView::setupPreferenceWidget()
-{
-    _preferenceWidget = new QWidget;
-
-    QGridLayout* layout = new QGridLayout(_preferenceWidget);
-
-    QPushButton* hColorButton = new QPushButton(tr("Select hydrogen colour"), _preferenceWidget);
-    connect(hColorButton, SIGNAL(clicked()), this, SLOT(pickHColor()));
-    layout->addWidget(hColorButton, 0, 0, 1, 2);
-
-    QLabel* hAlphaLabel = new QLabel(tr("Hydrogen alpha"), _preferenceWidget);
-    layout->addWidget(hAlphaLabel, 1, 0);
-
-    hAlphaSlider = new QSlider(_preferenceWidget);
-    hAlphaSlider->setOrientation(Qt::Horizontal);
-    hAlphaSlider->setRange(0, MAX_ALPHA_SLIDER);
-    connect(hAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setHAlpha(int)));
-    layout->addWidget(hAlphaSlider, 1, 1);
-
-    QLabel* hSizeLabel = new QLabel(tr("Hydrogen size"), _preferenceWidget);
-    layout->addWidget(hSizeLabel, 2, 0);
-
-    hSizeSpinBox = new QDoubleSpinBox(_preferenceWidget);
-    hSizeSpinBox->setRange(0, MAX_SPHERE_SIZE);
-    connect(hSizeSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setHSize(double)));
-    layout->addWidget(hSizeSpinBox, 2, 1);
-
-    QPushButton* oColorButton = new QPushButton(tr("Select oxygen colour"), _preferenceWidget);
-    connect(oColorButton, SIGNAL(clicked()), this, SLOT(pickOColor()));
-    layout->addWidget(oColorButton, 3, 0, 1, 2);
-
-    QLabel* oAlphaLabel = new QLabel(tr("Oxygen alpha"), _preferenceWidget);
-    layout->addWidget(oAlphaLabel, 4, 0);
-
-    oAlphaSlider = new QSlider(_preferenceWidget);
-    oAlphaSlider->setOrientation(Qt::Horizontal);
-    oAlphaSlider->setRange(0, MAX_ALPHA_SLIDER);
-    connect(oAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setOAlpha(int)));
-    layout->addWidget(oAlphaSlider, 4, 1);
-
-    QLabel* oSizeLabel = new QLabel(tr("Oxygen size"), _preferenceWidget);
-    layout->addWidget(oSizeLabel, 5, 0);
-
-    oSizeSpinBox = new QDoubleSpinBox(_preferenceWidget);
-    oSizeSpinBox->setRange(0, MAX_SPHERE_SIZE);
-    connect(oSizeSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setOSize(double)));
-    layout->addWidget(oSizeSpinBox, 5, 1);
-
-    QLabel* lightLabel = new QLabel(tr("Enable lighting"), _preferenceWidget);
-    layout->addWidget(lightLabel, 6, 0);
-
-    lightCheckBox = new QCheckBox(_preferenceWidget);
-    connect(lightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setLighting(int)));
-    layout->addWidget(lightCheckBox, 6, 1);
-
-    QLabel* numberLabel = new QLabel(tr("Molecule count"), _preferenceWidget);
-    layout->addWidget(numberLabel, 7, 0);
-
-    numberBox = new QSpinBox(_preferenceWidget);
-    numberBox->setRange(0, 0);
-    connect(numberBox, SIGNAL(valueChanged(int)), this, SLOT(setNumber(int)));
-    layout->addWidget(numberBox, 7, 1);
-
-    _preferenceWidget->setLayout(layout);
-}//setupPreferenceWidget
 

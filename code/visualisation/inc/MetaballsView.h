@@ -49,10 +49,9 @@ class MetaballsView : public BaseView
         int stepSize();
 
         virtual void updatePreferences();
-        virtual QWidget* preferenceWidget();
 
+        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised);
         virtual void render();
-        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised);
 
         // epic hack of note
         QVector<QVector<Triangle> > __all__frames__;
@@ -66,6 +65,7 @@ class MetaballsView : public BaseView
 
     protected:
         virtual void initGL();
+        virtual void setupPreferenceWidget(QWidget* preferenceWidget);
 
     private slots:
         void setMetaballsAlpha(int value);
@@ -89,7 +89,6 @@ class MetaballsView : public BaseView
 
         unsigned char*** volumedata;
 
-        QWidget* _preferenceWidget;
         QSlider* metaballsAlphaSlider;
         QSlider* stepSizeSlider;
         QCheckBox* lightCheckBox;
@@ -97,7 +96,6 @@ class MetaballsView : public BaseView
 
         void init();
 
-        void setupPreferenceWidget();
 
         float sampleVolume(float x, float y, float z);
         void getNormal(float* normal, float x, float y, float z);

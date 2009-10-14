@@ -45,40 +45,34 @@ void PointView::updatePreferences()
     pointAlphaSlider->setValue((int)(_pointColor[3] * MAX_ALPHA_SLIDER / MAX_ALPHA_VAL));
 }//updatePreferences
 
-QWidget* PointView::preferenceWidget()
+void PointView::setupPreferenceWidget(QWidget* preferenceWidget)
 {
-    if (_preferenceWidget == NULL)
-        setupPreferenceWidget();
-    return _preferenceWidget;
-}//preferenceWidget
+    QGridLayout* layout = new QGridLayout(preferenceWidget);
 
+    QPushButton* pointColorButton = new QPushButton(tr("Select point colour"), preferenceWidget);
+    connect(pointColorButton, SIGNAL(clicked()), this, SLOT(pickPointColor()));
+    layout->addWidget(pointColorButton, 0, 0, 1, 2);
 
-void PointView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
-{
-    this->frame = frame;
-    this->quantised = quantised;
-}//tick
+    QLabel* pointSizeLabel = new QLabel(tr("Point size"), preferenceWidget);
+    layout->addWidget(pointSizeLabel, 1, 0);
 
-void PointView::render()
-{
-    if (quantised == NULL)
-        return;
-    if (parent)
-        glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
-    glDepthFunc(GL_ALWAYS);
-    //draw points
-    glColor4fv(_pointColor);
-    glBegin(GL_POINTS);
-    for (int i = 0; i < quantised->natoms(); i++)
-    {
-        if (pdb[i].atom_name == "OH2")
-            glVertex3i(quantised->quantised_frame[i*3],
-                       quantised->quantised_frame[i*3+1],
-                       quantised->quantised_frame[i*3+2]);
-    }//for
-    glEnd();
-    glDepthFunc(GL_LEQUAL);
-}//render
+    pointSizeSlider = new QSlider(preferenceWidget);
+    pointSizeSlider->setOrientation(Qt::Horizontal);
+    pointSizeSlider->setRange(0, MAX_POINT_SIZE);
+    connect(pointSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(setPointSize(int)));
+    layout->addWidget(pointSizeSlider, 1, 1);
+
+    QLabel* pointAlphaLabel = new QLabel(tr("Point alpha"), preferenceWidget);
+    layout->addWidget(pointAlphaLabel, 2, 0);
+
+    pointAlphaSlider = new QSlider(preferenceWidget);
+    pointAlphaSlider->setOrientation(Qt::Horizontal);
+    pointAlphaSlider->setRange(0, MAX_ALPHA_SLIDER);
+    connect(pointAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setPointAlpha(int)));
+    layout->addWidget(pointAlphaSlider, 2, 1);
+
+    preferenceWidget->setLayout(layout);
+}//setupPreferenceWidget
 
 
 void PointView::initGL()
@@ -90,6 +84,27 @@ void PointView::initGL()
 
     glDisable(GL_LIGHTING);
 }//initGL
+
+void PointView::render()
+{
+    if (dequantised == NULL) return;
+
+    // if (parent) glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
+
+    glDepthFunc(GL_ALWAYS);
+    //draw points
+    glColor4fv(_pointColor);
+    glBegin(GL_POINTS);
+    for (int i = 0; i < dequantised->natoms(); i++)
+    {
+        if (pdb[i].atom_name == "OH2")
+            glVertex3i(dequantised->atom_data[i*3],
+                       dequantised->atom_data[i*3+1],
+                       dequantised->atom_data[i*3+2]);
+    }//for
+    glEnd();
+    glDepthFunc(GL_LEQUAL);
+}//render
 
 
 void PointView::setPointAlpha(int value)
@@ -119,36 +134,4 @@ void PointView::pickPointColor()
     settings->setValue("PointView/colorG", _pointColor[1]);
     settings->setValue("PointView/colorB", _pointColor[2]);
 }//pickPointColor
-
-
-void PointView::setupPreferenceWidget()
-{
-    _preferenceWidget = new QWidget;
-
-    QGridLayout* layout = new QGridLayout(_preferenceWidget);
-
-    QPushButton* pointColorButton = new QPushButton(tr("Select point colour"), _preferenceWidget);
-    connect(pointColorButton, SIGNAL(clicked()), this, SLOT(pickPointColor()));
-    layout->addWidget(pointColorButton, 0, 0, 1, 2);
-
-    QLabel* pointSizeLabel = new QLabel(tr("Point size"), _preferenceWidget);
-    layout->addWidget(pointSizeLabel, 1, 0);
-
-    pointSizeSlider = new QSlider(_preferenceWidget);
-    pointSizeSlider->setOrientation(Qt::Horizontal);
-    pointSizeSlider->setRange(0, MAX_POINT_SIZE);
-    connect(pointSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(setPointSize(int)));
-    layout->addWidget(pointSizeSlider, 1, 1);
-
-    QLabel* pointAlphaLabel = new QLabel(tr("Point alpha"), _preferenceWidget);
-    layout->addWidget(pointAlphaLabel, 2, 0);
-
-    pointAlphaSlider = new QSlider(_preferenceWidget);
-    pointAlphaSlider->setOrientation(Qt::Horizontal);
-    pointAlphaSlider->setRange(0, MAX_ALPHA_SLIDER);
-    connect(pointAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setPointAlpha(int)));
-    layout->addWidget(pointAlphaSlider, 2, 1);
-
-    _preferenceWidget->setLayout(layout);
-}//setupPreferenceWidget
 

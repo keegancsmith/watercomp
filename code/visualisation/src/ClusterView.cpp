@@ -114,12 +114,48 @@ void ClusterView::updatePreferences()
     lineAlphaSlider->setValue((int)(_lineColor[3] * MAX_ALPHA_SLIDER / MAX_ALPHA_VAL));
 }//updatePreferences
 
-QWidget* ClusterView::preferenceWidget()
+void ClusterView::setupPreferenceWidget(QWidget* preferenceWidget)
 {
-    if (_preferenceWidget == NULL)
-        setupPreferenceWidget();
-    return _preferenceWidget;
-}//preferenceWidget
+    QGridLayout* layout = new QGridLayout(preferenceWidget);
+
+    QPushButton* lineColorButton = new QPushButton(tr("Select line colour"), preferenceWidget);
+    connect(lineColorButton, SIGNAL(clicked()), this, SLOT(pickLineColor()));
+    layout->addWidget(lineColorButton, 0, 0, 1, 2);
+
+    QLabel* lineAlphaLabel = new QLabel(tr("Line alpha"), preferenceWidget);
+    layout->addWidget(lineAlphaLabel, 1, 0);
+
+    lineAlphaSlider = new QSlider(preferenceWidget);
+    lineAlphaSlider->setOrientation(Qt::Horizontal);
+    lineAlphaSlider->setRange(0, MAX_ALPHA_SLIDER);
+    connect(lineAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setLineAlpha(int)));
+    layout->addWidget(lineAlphaSlider, 1, 1);
+
+    QLabel* lineWidthLabel = new QLabel(tr("Line width"), preferenceWidget);
+    layout->addWidget(lineWidthLabel, 2, 0);
+
+    lineWidthSlider = new QSlider(preferenceWidget);
+    lineWidthSlider->setOrientation(Qt::Horizontal);
+    lineWidthSlider->setRange(0, MAX_LINE_WIDTH);
+    connect(lineWidthSlider, SIGNAL(valueChanged(int)), this, SLOT(setLineWidth(int)));
+    layout->addWidget(lineWidthSlider, 2, 1);
+
+    QLabel* clusterLabel = new QLabel(tr("Cluster ID"), preferenceWidget);
+    layout->addWidget(clusterLabel, 3, 0);
+
+    clusterSpinBox = new QSpinBox(preferenceWidget);
+    clusterSpinBox->setRange(-1, -1);
+    connect(clusterSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setClusterID(int)));
+    layout->addWidget(clusterSpinBox, 3, 1);
+
+    QLabel* countLabelLabel = new QLabel(tr("Cluster count"), preferenceWidget);
+    layout->addWidget(countLabelLabel, 4, 0);
+
+    countLabel = new QLabel(tr("-1"), preferenceWidget);
+    layout->addWidget(countLabel, 4, 1);
+
+    preferenceWidget->setLayout(layout);
+}//setupPreferenceWidget
 
 
 void ClusterView::dfs(int current, int component)
@@ -131,10 +167,9 @@ void ClusterView::dfs(int current, int component)
             dfs(graph[current][i], component);
 }//dfs
 
-void ClusterView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
+void ClusterView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised)
 {
-    this->frame = frame;
-    this->quantised = quantised;
+    BaseView::tick(framenum, frame, quantised, dequantised);
 
     graph.clear();
     graph = ANNGraphCreator::create_graph(waters, *frame);
@@ -156,12 +191,21 @@ void ClusterView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
     if (current_cluster == -1) countLabel->setNum((int)(num_clusters-1));
 }//tick
 
+void ClusterView::initGL()
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glDisable(GL_LIGHTING);
+
+    glLineWidth(_lineWidth);
+}//initGL
+
 // #define DRAW_LINES
 
 void ClusterView::render()
 {
-    if (quantised == NULL)
-        return;
+    if (dequantised == NULL) return;
 
     double radius = 2;
     float dif[3];
@@ -169,8 +213,7 @@ void ClusterView::render()
     int hslice = 16;
     int vslice = 4;
 
-    if (parent)
-        glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
+    // if (parent) glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
 
     float vec[3];
     int count = 0;
@@ -193,31 +236,31 @@ void ClusterView::render()
 
 // #ifdef DRAW_LINES
             glBegin(GL_LINES);
-            glVertex3i(quantised->quantised_frame[3*start],
-                       quantised->quantised_frame[3*start+1],
-                       quantised->quantised_frame[3*start+2]);
-            glVertex3i(quantised->quantised_frame[3*(*vit)],
-                       quantised->quantised_frame[3*(*vit)+1],
-                       quantised->quantised_frame[3*(*vit)+2]);
+            glVertex3i(dequantised->atom_data[3*start],
+                       dequantised->atom_data[3*start+1],
+                       dequantised->atom_data[3*start+2]);
+            glVertex3i(dequantised->atom_data[3*(*vit)],
+                       dequantised->atom_data[3*(*vit)+1],
+                       dequantised->atom_data[3*(*vit)+2]);
             glEnd();
             if (first)
             {
-                printf("%u %u %u ~ %u %u %u\n",
-                        quantised->quantised_frame[3*start],
-                        quantised->quantised_frame[3*start+1],
-                        quantised->quantised_frame[3*start+2],
-                        quantised->quantised_frame[3*(*vit)],
-                        quantised->quantised_frame[3*(*vit)+1],
-                        quantised->quantised_frame[3*(*vit)+2]);
+                printf("%f %f %f ~ %f %f %f\n",
+                        dequantised->atom_data[3*start],
+                        dequantised->atom_data[3*start+1],
+                        dequantised->atom_data[3*start+2],
+                        dequantised->atom_data[3*(*vit)],
+                        dequantised->atom_data[3*(*vit)+1],
+                        dequantised->atom_data[3*(*vit)+2]);
             }//if
 // #else
 
-            renderCylinder(quantised->quantised_frame[3*start],
-                           quantised->quantised_frame[3*start+1],
-                           quantised->quantised_frame[3*start+2],
-                           quantised->quantised_frame[3*(*vit)],
-                           quantised->quantised_frame[3*(*vit)+1],
-                           quantised->quantised_frame[3*(*vit)+2],
+            renderCylinder(dequantised->atom_data[3*start],
+                           dequantised->atom_data[3*start+1],
+                           dequantised->atom_data[3*start+2],
+                           dequantised->atom_data[3*(*vit)],
+                           dequantised->atom_data[3*(*vit)+1],
+                           dequantised->atom_data[3*(*vit)+2],
                            radius, 8, quadric);
 
             /*
@@ -270,17 +313,6 @@ void ClusterView::render()
 }//render
 
 
-void ClusterView::initGL()
-{
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glDisable(GL_LIGHTING);
-
-    glLineWidth(_lineWidth);
-}//initGL
-
-
 void ClusterView::setLineAlpha(int value)
 {
     if (value > MAX_ALPHA_SLIDER) value = MAX_ALPHA_SLIDER;
@@ -318,50 +350,4 @@ void ClusterView::setClusterID(int value)
     countLabel->setNum((int)(current_cluster > -1 ? sizes[current_cluster] : num_clusters-1));
     first = true;
 }//setClusterID
-
-
-void ClusterView::setupPreferenceWidget()
-{
-    _preferenceWidget = new QWidget;
-
-    QGridLayout* layout = new QGridLayout(_preferenceWidget);
-
-    QPushButton* lineColorButton = new QPushButton(tr("Select line colour"), _preferenceWidget);
-    connect(lineColorButton, SIGNAL(clicked()), this, SLOT(pickLineColor()));
-    layout->addWidget(lineColorButton, 0, 0, 1, 2);
-
-    QLabel* lineAlphaLabel = new QLabel(tr("Line alpha"), _preferenceWidget);
-    layout->addWidget(lineAlphaLabel, 1, 0);
-
-    lineAlphaSlider = new QSlider(_preferenceWidget);
-    lineAlphaSlider->setOrientation(Qt::Horizontal);
-    lineAlphaSlider->setRange(0, MAX_ALPHA_SLIDER);
-    connect(lineAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setLineAlpha(int)));
-    layout->addWidget(lineAlphaSlider, 1, 1);
-
-    QLabel* lineWidthLabel = new QLabel(tr("Line width"), _preferenceWidget);
-    layout->addWidget(lineWidthLabel, 2, 0);
-
-    lineWidthSlider = new QSlider(_preferenceWidget);
-    lineWidthSlider->setOrientation(Qt::Horizontal);
-    lineWidthSlider->setRange(0, MAX_LINE_WIDTH);
-    connect(lineWidthSlider, SIGNAL(valueChanged(int)), this, SLOT(setLineWidth(int)));
-    layout->addWidget(lineWidthSlider, 2, 1);
-
-    QLabel* clusterLabel = new QLabel(tr("Cluster ID"), _preferenceWidget);
-    layout->addWidget(clusterLabel, 3, 0);
-
-    clusterSpinBox = new QSpinBox(_preferenceWidget);
-    clusterSpinBox->setRange(-1, -1);
-    connect(clusterSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setClusterID(int)));
-    layout->addWidget(clusterSpinBox, 3, 1);
-
-    QLabel* countLabelLabel = new QLabel(tr("Cluster count"), _preferenceWidget);
-    layout->addWidget(countLabelLabel, 4, 0);
-
-    countLabel = new QLabel(tr("-1"), _preferenceWidget);
-    layout->addWidget(countLabel, 4, 1);
-
-    _preferenceWidget->setLayout(layout);
-}//setupPreferenceWidget
 

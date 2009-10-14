@@ -25,13 +25,13 @@ class ClusterView : public BaseView
         virtual void init(std::vector<AtomInformation> pdb);
 
         virtual void updatePreferences();
-        virtual QWidget* preferenceWidget();
 
-        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised);
+        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised);
         virtual void render();
 
     protected:
         virtual void initGL();
+        virtual void setupPreferenceWidget(QWidget* preferenceWidget);
 
     private slots:
         void setLineAlpha(int value);
@@ -60,9 +60,6 @@ class ClusterView : public BaseView
         std::map<int, int> components;
         std::map<unsigned int, unsigned int> sizes;
 
-        QWidget* _preferenceWidget;
-
-        void setupPreferenceWidget();
 
         void dfs(int current, int component);
 };//ClusterView

@@ -65,8 +65,11 @@ MainWindow::MainWindow()
     setupMenu();
 
     frame = 0;
-    data = 0;
+    quantised = 0;
+    dequantised = 0;
     renderer->setRenderMode(settings->value("Renderer/renderMode", 0).toInt());
+
+    quantisationLevel = 8;
 }//constructor
 
 MainWindow::~MainWindow()
@@ -107,7 +110,7 @@ void MainWindow::doOpenFile()
     if (frame) delete frame;
     frame = new Frame(atoms, dcdreader->natoms());
     setFrame(0);
-    float volumeSize[] = {1<<8, 1<<8, 1<<8};
+    float volumeSize[] = {1<<quantisationLevel, 1<<quantisationLevel, 1<<quantisationLevel};
     renderer->resetView(volumeSize);
     renderer->currentView()->select();
 }//doOpenFile
@@ -129,9 +132,11 @@ void MainWindow::setFrame(int value)
     if (!dcdreader->next_frame(*frame))
         return;
 
-    if (data) delete data;
-    data = new QuantisedFrame(*frame, 8, 8, 8);
-    renderer->dataTick(value, frame, data);
+    if (quantised != NULL) delete quantised;
+    quantised = new QuantisedFrame(*frame, quantisationLevel, quantisationLevel, quantisationLevel);
+    if (dequantised != NULL) delete dequantised;
+    dequantised = new Frame(quantised->toFrame());
+    renderer->dataTick(value, frame, quantised, dequantised);
 }//setFrame
 
 

@@ -11,10 +11,14 @@ BaseView::BaseView()
     viewName = "";
     viewID = -1;
     preferenceID = -1;
-    preferenceParent = 0;
+    _preferenceWidget = 0;
+
     current = false;
+
+    framenum = -1;
     frame = 0;
     quantised = 0;
+    dequantised = 0;
 }//constructor
 
 BaseView::~BaseView()
@@ -33,20 +37,17 @@ void BaseView::updatePreferences()
 
 QWidget* BaseView::preferenceWidget()
 {
-    return 0;
+    if (_preferenceWidget == NULL)
+    {
+        _preferenceWidget = new QWidget;
+        setupPreferenceWidget(_preferenceWidget);
+    }//if
+    return _preferenceWidget;
 }//preferenceWidget
 
-
-void BaseView::render()
+void BaseView::setupPreferenceWidget(QWidget* preferenceWidget)
 {
-}//render
-
-void BaseView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
-{
-    this->frame = frame;
-    this->quantised = quantised;
-}//tick
-
+}//setupPreferenceWidget
 
 void BaseView::select()
 {
@@ -59,6 +60,19 @@ void BaseView::select()
 void BaseView::initGL()
 {
 }//initGL
+
+void BaseView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised)
+{
+    this->framenum = framenum;
+    this->frame = frame;
+    this->quantised = quantised;
+    this->dequantised = dequantised;
+}//tick
+
+void BaseView::render()
+{
+}//render
+
 
 bool BaseView::pickColor(float* color)
 {

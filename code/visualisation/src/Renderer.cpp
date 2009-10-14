@@ -155,7 +155,7 @@ void Renderer::resetView(float volumeSize[3])
     }//for
 
     //set a default zoom which should cover the entire volume
-    _zoom = max_side * 1.7;
+    _zoom = max_side * 0.7;
     focusPlaneDepth = 0;
     scrollSensitivity = max_side * 0.1;
     if (scrollSensitivity < 1) scrollSensitivity = 1;
@@ -214,7 +214,8 @@ void Renderer::setRenderMode(int mode)
     if (_renderMode > -1)
     {
         renderModes[_renderMode]->current = false;
-        renderModes[mode]->tick(framenum, renderModes[_renderMode]->frame, renderModes[_renderMode]->quantised);
+        BaseView* old_view = renderModes[_renderMode];
+        renderModes[mode]->tick(framenum, old_view->frame, old_view->quantised, old_view->dequantised);
     }//if
     _renderMode = mode;
     settings->setValue("Renderer/renderMode", _renderMode);
@@ -230,11 +231,11 @@ int Renderer::addRenderMode(BaseView* view)
     return viewID;
 }//addRenderMode
 
-void Renderer::dataTick(int framenum, Frame* frame, QuantisedFrame* qframe)
+void Renderer::dataTick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised)
 {
     this->framenum = framenum;
     if (_renderMode >= 0)
-        renderModes[_renderMode]->tick(framenum, frame, qframe);
+        renderModes[_renderMode]->tick(framenum, frame, quantised, dequantised);
 }//dataTick
 
 void Renderer::tick()

@@ -23,13 +23,12 @@ class BallStickView : public BaseView
         virtual void init(std::vector<AtomInformation> pdb);
 
         virtual void updatePreferences();
-        virtual QWidget* preferenceWidget();
 
-        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised);
         virtual void render();
 
     protected:
         virtual void initGL();
+        virtual void setupPreferenceWidget(QWidget* preferenceWidget);
 
     private slots:
         void setHSize(double value);
@@ -64,7 +63,6 @@ class BallStickView : public BaseView
         QCheckBox* lightCheckBox;
         QSpinBox* numberBox;
 
-        void setupPreferenceWidget();
 };//BallStickView
 
 #endif

@@ -20,15 +20,17 @@ class BaseView : public QObject
 
     public:
         Renderer* parent;
+        QWidget* preferenceParent;
         QString viewName;
         int viewID;
         int preferenceID;
-        QWidget* preferenceParent;
-        bool current;
         std::vector<AtomInformation> pdb;
 
+        bool current;
+        int framenum;
         Frame* frame;
         QuantisedFrame* quantised;
+        Frame* dequantised;
 
         BaseView();
         virtual ~BaseView();
@@ -38,8 +40,8 @@ class BaseView : public QObject
         virtual void updatePreferences();
         virtual QWidget* preferenceWidget();
 
+        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised);
         virtual void render();
-        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised);
 
     signals:
         void selectView(int viewID);
@@ -48,8 +50,12 @@ class BaseView : public QObject
         void select();
 
     protected:
-        virtual void initGL();
+        QWidget* _preferenceWidget;
+
         bool pickColor(float* color);
+
+        virtual void initGL();
+        virtual void setupPreferenceWidget(QWidget* preferenceWidget);
 
 };//BaseView
 

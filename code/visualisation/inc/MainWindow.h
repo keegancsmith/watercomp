@@ -48,6 +48,8 @@ class MainWindow : public QMainWindow
         QSettings* settings;
         QMap<QAction*, BaseView*> views;
 
+        int quantisationLevel;
+
         QString lastLocation;
         // QStringList recentFiles;
 
@@ -55,13 +57,15 @@ class MainWindow : public QMainWindow
         DCDReader* dcdreader;
         float* atoms;
         Frame* frame;
-        QuantisedFrame* data;
+        QuantisedFrame* quantised;
+        Frame* dequantised;
 
         PlaybackControl* playbackControl;
         Renderer* renderer;
         ViewPreferenceDialog* viewPreferenceDialog;
 
         MetaballsView* __metaballs__;
+
 
         void setupMenu();
         void addRenderMode(BaseView* view, QMenu* menu);

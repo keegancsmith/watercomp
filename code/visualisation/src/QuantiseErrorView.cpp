@@ -21,6 +21,7 @@
 
 #define MAX_LINE_WIDTH 10
 
+
 QuantiseErrorView::QuantiseErrorView()
 {
     settings = new QSettings;
@@ -35,8 +36,6 @@ QuantiseErrorView::QuantiseErrorView()
     _finalColor[2] = settings->value("QuantiseErrorView/finalColorB", 0.0).toDouble();
     _finalColor[3] = settings->value("QuantiseErrorView/finalColorA", 1.0).toDouble();
     _preferenceWidget = NULL;
-    quantised = 0;
-    dequantised = 0;
     _lineSize = settings->value("QuantiseErrorView/lineSize", 2).toInt();
     _startErrorValue = settings->value("QuantiseErrorView/startError", 0.06).toDouble();
     _finalErrorValue = settings->value("QuantiseErrorView/finalError", 0.06).toDouble();
@@ -59,33 +58,90 @@ void QuantiseErrorView::updatePreferences()
     finalErrorSpinBox->setValue(_finalErrorValue);
 }//updatePreferences
 
-QWidget* QuantiseErrorView::preferenceWidget()
+void QuantiseErrorView::setupPreferenceWidget(QWidget* preferenceWidget)
 {
-    if (_preferenceWidget == NULL)
-        setupPreferenceWidget();
-    return _preferenceWidget;
-}//preferenceWidget
+    QGridLayout* layout = new QGridLayout(preferenceWidget);
+
+    QLabel* startErrorLabel = new QLabel(tr("Start error level"), preferenceWidget);
+    layout->addWidget(startErrorLabel, 0, 0);
+
+    startErrorSpinBox = new QDoubleSpinBox(preferenceWidget);
+    startErrorSpinBox->setRange(0, 10.0);
+    startErrorSpinBox->setDecimals(3);
+    startErrorSpinBox->setSingleStep(0.01);
+    connect(startErrorSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setStartErrorValue(double)));
+    layout->addWidget(startErrorSpinBox, 0, 1);
+
+    QPushButton* startColorButton = new QPushButton(tr("Select start error colour"), preferenceWidget);
+    connect(startColorButton, SIGNAL(clicked()), this, SLOT(pickStartColor()));
+    layout->addWidget(startColorButton, 1, 0, 1, 2);
+
+    QLabel* startAlphaLabel = new QLabel(tr("Start error alpha"), preferenceWidget);
+    layout->addWidget(startAlphaLabel, 2, 0);
+
+    startAlphaSlider = new QSlider(preferenceWidget);
+    startAlphaSlider->setOrientation(Qt::Horizontal);
+    startAlphaSlider->setRange(0, MAX_ALPHA_SLIDER);
+    connect(startAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setStartAlpha(int)));
+    layout->addWidget(startAlphaSlider, 2, 1);
+
+    QLabel* finalErrorLabel = new QLabel(tr("Final error level"), preferenceWidget);
+    layout->addWidget(finalErrorLabel, 3, 0);
+
+    finalErrorSpinBox = new QDoubleSpinBox(preferenceWidget);
+    finalErrorSpinBox->setRange(0, 10.0);
+    finalErrorSpinBox->setDecimals(3);
+    finalErrorSpinBox->setSingleStep(0.01);
+    connect(finalErrorSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setFinalErrorValue(double)));
+    layout->addWidget(finalErrorSpinBox, 3, 1);
+
+    QPushButton* finalColorButton = new QPushButton(tr("Select end error colour"), preferenceWidget);
+    connect(finalColorButton, SIGNAL(clicked()), this, SLOT(pickFinalColor()));
+    layout->addWidget(finalColorButton, 4, 0, 1, 2);
+
+    QLabel* finalAlphaLabel = new QLabel(tr("End error alpha"), preferenceWidget);
+    layout->addWidget(finalAlphaLabel, 5, 0);
+
+    finalAlphaSlider = new QSlider(preferenceWidget);
+    finalAlphaSlider->setOrientation(Qt::Horizontal);
+    finalAlphaSlider->setRange(0, MAX_ALPHA_SLIDER);
+    connect(finalAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setFinalAlpha(int)));
+    layout->addWidget(finalAlphaSlider, 5, 1);
+
+    QLabel* lineSizeLabel = new QLabel(tr("Line width"), preferenceWidget);
+    layout->addWidget(lineSizeLabel, 6, 0);
+
+    lineSizeSlider = new QSlider(preferenceWidget);
+    lineSizeSlider->setOrientation(Qt::Horizontal);
+    lineSizeSlider->setRange(0, MAX_LINE_WIDTH);
+    connect(lineSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(setLineSize(int)));
+    layout->addWidget(lineSizeSlider, 6, 1);
+
+    preferenceWidget->setLayout(layout);
+}//setupPreferenceWidget
 
 
-void QuantiseErrorView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
+void QuantiseErrorView::initGL()
 {
-    this->frame = frame;
-    this->quantised = quantised;
-    this->framenum = framenum;
-    if (quantised == NULL) return;
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // printf("frame size: %i\n", frame->atom_data.size());
-    // printf("quant size: %i\n", data->toFrame().atom_data.size());
-    if (dequantised) delete dequantised;
-    dequantised = new Frame(quantised->toFrame());
-    // printf("deqnt size: %i\n", dequantised->atom_data.size());
+    glLineWidth(_lineSize);
+
+    glDisable(GL_LIGHTING);
+}//initGL
+
+void QuantiseErrorView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised)
+{
+    BaseView::tick(framenum, frame, quantised, dequantised);
+    if (dequantised == NULL) return;
 
     float dif[3];
     float d;
     float range = _finalErrorValue - _startErrorValue;
     if (errors) delete errors;
-    errors = new float[quantised->natoms()];
-    for (int i = 0; i < quantised->natoms(); i++)
+    errors = new float[dequantised->natoms()];
+    for (int i = 0; i < dequantised->natoms(); i++)
     {
         if (pdb[i].atom_name == "OH2")
         {
@@ -103,8 +159,7 @@ void QuantiseErrorView::tick(int framenum, Frame* frame, QuantisedFrame* quantis
 
 void QuantiseErrorView::render()
 {
-    if (quantised == NULL)
-        return;
+    if (dequantised == NULL) return;
 
     //draw points
     float range[] = {_finalColor[0] - _startColor[0],
@@ -112,7 +167,7 @@ void QuantiseErrorView::render()
                 _finalColor[2] - _startColor[2],
                 _finalColor[3] - _startColor[3]};
     glBegin(GL_LINES);
-    for (int i = 0; i < quantised->natoms(); i++)
+    for (int i = 0; i < dequantised->natoms(); i++)
     {
         if (pdb[i].atom_name == "OH2")
         {
@@ -135,17 +190,6 @@ void QuantiseErrorView::render()
 }//render
 
 
-void QuantiseErrorView::initGL()
-{
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glLineWidth(_lineSize);
-
-    glDisable(GL_LIGHTING);
-}//initGL
-
-
 void QuantiseErrorView::setLineSize(int value)
 {
     if (value > MAX_LINE_WIDTH) value = MAX_LINE_WIDTH;
@@ -161,7 +205,7 @@ void QuantiseErrorView::setStartErrorValue(double value)
     _startErrorValue = value;
 
     settings->setValue("QuantiseErrorView/startError", _startErrorValue);
-    tick(framenum, frame, quantised);
+    tick(framenum, frame, quantised, dequantised);
 }//setStartErrorValue
 
 void QuantiseErrorView::setFinalErrorValue(double value)
@@ -169,7 +213,7 @@ void QuantiseErrorView::setFinalErrorValue(double value)
     _finalErrorValue = value;
 
     settings->setValue("QuantiseErrorView/finalError", _finalErrorValue);
-    tick(framenum, frame, quantised);
+    tick(framenum, frame, quantised, dequantised);
 }//setFinalErrorValue
 
 void QuantiseErrorView::pickStartColor()
@@ -207,69 +251,4 @@ void QuantiseErrorView::setFinalAlpha(int value)
 
     settings->setValue("QuantiseErrorView/finalColorA", _finalColor[3]);
 }//setFinalAlpha
-
-
-void QuantiseErrorView::setupPreferenceWidget()
-{
-    _preferenceWidget = new QWidget;
-
-    QGridLayout* layout = new QGridLayout(_preferenceWidget);
-
-    QLabel* startErrorLabel = new QLabel(tr("Start error level"), _preferenceWidget);
-    layout->addWidget(startErrorLabel, 0, 0);
-
-    startErrorSpinBox = new QDoubleSpinBox(_preferenceWidget);
-    startErrorSpinBox->setRange(0, 10.0);
-    startErrorSpinBox->setDecimals(3);
-    startErrorSpinBox->setSingleStep(0.01);
-    connect(startErrorSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setStartErrorValue(double)));
-    layout->addWidget(startErrorSpinBox, 0, 1);
-
-    QPushButton* startColorButton = new QPushButton(tr("Select start error colour"), _preferenceWidget);
-    connect(startColorButton, SIGNAL(clicked()), this, SLOT(pickStartColor()));
-    layout->addWidget(startColorButton, 1, 0, 1, 2);
-
-    QLabel* startAlphaLabel = new QLabel(tr("Start error alpha"), _preferenceWidget);
-    layout->addWidget(startAlphaLabel, 2, 0);
-
-    startAlphaSlider = new QSlider(_preferenceWidget);
-    startAlphaSlider->setOrientation(Qt::Horizontal);
-    startAlphaSlider->setRange(0, MAX_ALPHA_SLIDER);
-    connect(startAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setStartAlpha(int)));
-    layout->addWidget(startAlphaSlider, 2, 1);
-
-    QLabel* finalErrorLabel = new QLabel(tr("Final error level"), _preferenceWidget);
-    layout->addWidget(finalErrorLabel, 3, 0);
-
-    finalErrorSpinBox = new QDoubleSpinBox(_preferenceWidget);
-    finalErrorSpinBox->setRange(0, 10.0);
-    finalErrorSpinBox->setDecimals(3);
-    finalErrorSpinBox->setSingleStep(0.01);
-    connect(finalErrorSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setFinalErrorValue(double)));
-    layout->addWidget(finalErrorSpinBox, 3, 1);
-
-    QPushButton* finalColorButton = new QPushButton(tr("Select end error colour"), _preferenceWidget);
-    connect(finalColorButton, SIGNAL(clicked()), this, SLOT(pickFinalColor()));
-    layout->addWidget(finalColorButton, 4, 0, 1, 2);
-
-    QLabel* finalAlphaLabel = new QLabel(tr("End error alpha"), _preferenceWidget);
-    layout->addWidget(finalAlphaLabel, 5, 0);
-
-    finalAlphaSlider = new QSlider(_preferenceWidget);
-    finalAlphaSlider->setOrientation(Qt::Horizontal);
-    finalAlphaSlider->setRange(0, MAX_ALPHA_SLIDER);
-    connect(finalAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setFinalAlpha(int)));
-    layout->addWidget(finalAlphaSlider, 5, 1);
-
-    QLabel* lineSizeLabel = new QLabel(tr("Line width"), _preferenceWidget);
-    layout->addWidget(lineSizeLabel, 6, 0);
-
-    lineSizeSlider = new QSlider(_preferenceWidget);
-    lineSizeSlider->setOrientation(Qt::Horizontal);
-    lineSizeSlider->setRange(0, MAX_LINE_WIDTH);
-    connect(lineSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(setLineSize(int)));
-    layout->addWidget(lineSizeSlider, 6, 1);
-
-    _preferenceWidget->setLayout(layout);
-}//setupPreferenceWidget
 

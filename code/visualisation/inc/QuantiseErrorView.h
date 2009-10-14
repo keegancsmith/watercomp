@@ -18,13 +18,13 @@ class QuantiseErrorView : public BaseView
         virtual ~QuantiseErrorView();
 
         virtual void updatePreferences();
-        virtual QWidget* preferenceWidget();
 
-        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised);
+        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised);
         virtual void render();
 
     protected:
         virtual void initGL();
+        virtual void setupPreferenceWidget(QWidget* preferenceWidget);
 
     private slots:
         void setLineSize(int value);
@@ -37,8 +37,6 @@ class QuantiseErrorView : public BaseView
 
     private:
         QSettings* settings;
-        Frame* dequantised;
-        int framenum;
         float* errors;
         int _lineSize;
         float _startColor[4];
@@ -46,14 +44,12 @@ class QuantiseErrorView : public BaseView
         double _startErrorValue;
         double _finalErrorValue;
 
-        QWidget* _preferenceWidget;
         QSlider* lineSizeSlider;
         QSlider* startAlphaSlider;
         QSlider* finalAlphaSlider;
         QDoubleSpinBox* startErrorSpinBox;
         QDoubleSpinBox* finalErrorSpinBox;
 
-        void setupPreferenceWidget();
 };//QuantiseErrorView
 
 #endif

@@ -15,13 +15,12 @@ class PointView : public BaseView
         virtual ~PointView();
 
         virtual void updatePreferences();
-        virtual QWidget* preferenceWidget();
 
-        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised);
         virtual void render();
 
     protected:
         virtual void initGL();
+        virtual void setupPreferenceWidget(QWidget* preferenceWidget);
 
     private slots:
         void setPointAlpha(int value);
@@ -33,11 +32,9 @@ class PointView : public BaseView
         float _pointColor[4];
         int _pointSize;
 
-        QWidget* _preferenceWidget;
         QSlider* pointSizeSlider;
         QSlider* pointAlphaSlider;
 
-        void setupPreferenceWidget();
 };//PointView
 
 #endif

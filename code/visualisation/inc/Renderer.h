@@ -55,7 +55,7 @@ class Renderer : public QGLWidget
     public slots:
         void toggleFocusPlane();
         void setRenderMode(int mode);
-        void dataTick(int framenum, Frame* frame, QuantisedFrame* qframe);
+        void dataTick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised);
 
     private slots:
         void tick();
