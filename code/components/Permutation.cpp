@@ -14,7 +14,7 @@ std::string get_permutation_env()
 }
 
 const char * perm_error_msg = "ERROR: PERMUTATION environment variable must "
-    "be \"null\", \"naive\", \"delta\" or \"best\" (default)\n";
+    "be 'null', 'naive', 'delta', 'interframe' or 'best' (default)\n";
 
 PermutationWriter * PermutationWriter::get_writer(ArithmeticEncoder * enc,
                                                   int size)
@@ -26,6 +26,8 @@ PermutationWriter * PermutationWriter::get_writer(ArithmeticEncoder * enc,
         return new NaivePermutationWriter(enc);
     if (perm == "delta")
         return new DeltaPermutationWriter(enc);
+    if (perm == "interframe")
+        return new InterframePermutationWriter(enc, size);
     if (perm == "best")
         return new BestPermutationWriter(enc, size);
     fprintf(stderr, "%s", perm_error_msg);
@@ -43,6 +45,8 @@ PermutationReader * PermutationReader::get_reader(ArithmeticDecoder * dec,
         return new NaivePermutationReader(dec);
     if (perm == "delta")
         return new DeltaPermutationReader(dec);
+    if (perm == "interframe")
+        return new InterframePermutationReader(dec, size);
     if (perm == "best")
         return new BestPermutationReader(dec, size);
     fprintf(stderr, "%s", perm_error_msg);
@@ -182,4 +186,45 @@ int BestPermutationReader::next_index()
     int val = m_dec->decode(m_indicies.size());
     m_dec->decoder_update(val, val+1);
     return m_indicies.pop_symbol(val);
+}
+
+
+//
+// InterframePermutation
+//
+
+std::vector<int> InterframePermutationWriter::m_last;
+std::vector<int> InterframePermutationReader::m_last;
+
+InterframePermutationWriter::InterframePermutationWriter(ArithmeticEncoder * enc, int size)
+    : m_enc(enc), m_pos(0)
+{
+    if (m_last.size() == 0)
+        reset_last(size);
+}
+
+void InterframePermutationWriter::next_index(int index)
+{
+    int delta     = index - m_last[m_pos];
+    m_last[m_pos] = index;
+    m_enc.encode_int(delta);
+    m_pos++;
+}
+
+
+InterframePermutationReader::InterframePermutationReader(ArithmeticDecoder * dec, int size)
+    : m_dec(dec), m_pos(0)
+{
+    if (m_last.size() == 0)
+        reset_last(size);
+}
+
+
+int InterframePermutationReader::next_index()
+{
+    int delta     = m_dec.decode_int();
+    int index     = delta + m_last[m_pos];
+    m_last[m_pos] = index;
+    m_pos++;
+    return index;
 }

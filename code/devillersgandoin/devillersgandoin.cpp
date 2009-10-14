@@ -1,8 +1,9 @@
 #include "devillersgandoin.h"
 
-#include <utility>
-#include <queue>
+#include <algorithm>
 #include <cassert>
+#include <queue>
+#include <utility>
 
 using std::vector;
 using std::pair;
@@ -17,7 +18,7 @@ struct segment_t {
 
 struct encode_queue_item_t {
     segment_t       S;
-    vector<point_t> points;     // all points lie in S
+    int lower, upper; // Points in range [lower,upper) line in S
     int             dim;        // The dimension we are currently splitting by
 };
 
@@ -36,7 +37,7 @@ bool is_unit(const segment_t & S) {
 }
 
 
-vector<coord_t> encode(const vector<point_t> & points,
+vector<coord_t> encode(vector<point_t> points,
                        std::vector<int> & permutation,
                        unsigned int bits)
 {
@@ -45,9 +46,10 @@ vector<coord_t> encode(const vector<point_t> & points,
 
     assert(sizeof(coord_t)*8 > bits);
 
-    // Initially we look at all points are in [0,2^bits)^DIMENSIONS
+    // Initially we look at all points that are in [0,2^bits)^DIMENSIONS
     encode_queue_item_t initial;
-    initial.points = points;
+    initial.lower = 0;
+    initial.upper = points.size();
     initial.dim = 0;
     for (int i = 0; i < DIMENSIONS; i++) {
         initial.S.from[i] = 0;
@@ -56,7 +58,7 @@ vector<coord_t> encode(const vector<point_t> & points,
 
     L.push(initial);
 
-    data.push_back(initial.points.size());
+    data.push_back(points.size());
 
     while (!L.empty()) {
         encode_queue_item_t x = L.front();
@@ -73,27 +75,36 @@ vector<coord_t> encode(const vector<point_t> & points,
         right.S = x.S;
         right.S.from[x.dim] = mid;
 
-        for(size_t i = 0; i < x.points.size(); i++) {
-            if (x.points[i].coords[x.dim] < mid)
-                left.points.push_back(x.points[i]);
-            else
-                right.points.push_back(x.points[i]);
+        int pivot = x.lower;
+        for(size_t i = x.lower; i < x.upper; i++) {
+            if (points[i].coords[x.dim] < mid) {
+                std::swap(points[pivot], points[i]);
+                pivot++;
+            }
         }
 
-        data.push_back(left.points.size());
+        left.lower  = x.lower;
+        left.upper  = pivot;
+        right.lower = pivot;
+        right.upper = x.upper;
 
-        if (left.points.size() > 0) {
+        int left_size  = left.upper - left.lower;
+        int right_size = right.upper - right.lower;
+
+        data.push_back(left_size);
+
+        if (left_size > 0) {
             if (is_unit(left.S)) {
-                for (size_t i = 0; i < left.points.size(); i++)
-                    permutation.push_back(left.points[i].index);
+                for (int i = left.lower; i < left.upper; i++)
+                    permutation.push_back(points[i].index);
             } else {
                 L.push(left);
             }
         }
-        if (right.points.size() > 0) {
+        if (right_size > 0) {
             if (is_unit(right.S)) {
-                for (size_t i = 0; i < right.points.size(); i++)
-                    permutation.push_back(right.points[i].index);
+                for (int i = right.lower; i < right.upper; i++)
+                    permutation.push_back(points[i].index);
             } else {
                 L.push(right);
             }

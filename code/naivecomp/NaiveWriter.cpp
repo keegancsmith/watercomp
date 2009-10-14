@@ -1,7 +1,7 @@
 #include "NaiveWriter.h"
 #include "arithmetic/ByteEncoder.h"
-#include "graph/SpanningTree.h"
-#include "graph/TreeSerialiser.h"
+#include "SpanningTree.h"
+#include "TreeSerialiser.h"
 
 NaiveWriter::NaiveWriter(FILE * fout)
     : m_fout(fout)
@@ -21,9 +21,9 @@ void NaiveWriter::start(int atoms, int frames, int ISTART,
     ByteEncoder enc(&m_encoder);
 
     // File header
-    int header_int[4] = { atoms, frames, ISTART, NSAVC };
-    enc.encode(header_int, sizeof(int), 4);
-    enc.encode(&DELTA, sizeof(double), 1);
+    int header_int[2] = { atoms, frames }; //, ISTART, NSAVC };
+    enc.encode(header_int, sizeof(int), 2);
+    //enc.encode(&DELTA, sizeof(double), 1);
 }
 
 

@@ -9,9 +9,11 @@ extern "C" {
 #include <getopt.h>
 }
 
-#include <iostream>
+#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
 #include <string>
 
 using namespace std;
@@ -19,6 +21,22 @@ using namespace std;
 #define QUANTISATION 8
 #define MAXQUANT 64
 #define MINQUANT 4
+
+
+void print_error(const char *error, ...)
+{
+    va_list ap;
+
+    fprintf(stderr, "ERROR: ");
+
+    va_start(ap, error);
+    vfprintf(stderr, error, ap);
+    va_end(ap);
+
+    fprintf(stderr, "\nRun with --help for usage.\n");
+
+    exit(1);
+}
 
 
 string progress_bar(int count, int size)
@@ -123,7 +141,10 @@ void usage(char * prog) {
     fprintf(stderr, "\n"
             "You must specify one of --compress (-c) or --decompress (-d).\n"
             "Quantisation defaults to %d bits.\n\n"
-            
+
+            "\t-p path\n\t--pdb path "
+            "Set the path of the pdb file.\n\n"
+
             "\t-q b\n\t--quantisation b "
             "Set the quantisation in all dimensions to b bits.\n\n"
 
@@ -139,6 +160,15 @@ void usage(char * prog) {
 }
 
 
+bool file_is_readable(const string & path)
+{
+    ifstream fin(path.c_str());
+    bool readable = fin.good();
+    fin.close();
+    return readable;
+}
+
+
 int do_main(Compressor & c, int argc, char ** argv)
 {
     // Arguments
@@ -147,8 +177,9 @@ int do_main(Compressor & c, int argc, char ** argv)
     int quantx = QUANTISATION;
     int quanty = QUANTISATION;
     int quantz = QUANTISATION;
-    char *input_path;
-    char *output_path;
+    string pdb_path;
+    string input_path;
+    string output_path;
 
 
     // Parse arguments
@@ -159,6 +190,7 @@ int do_main(Compressor & c, int argc, char ** argv)
             {"decompress",   no_argument, 0, 'd'},
             {"help",         no_argument, 0, 'h'},
             // Options
+            {"pdb",          required_argument, 0, 'p'},
             {"quantisation", required_argument, 0, 'q'},
             {"quantx",       required_argument, 0, 'x'},
             {"quanty",       required_argument, 0, 'y'},
@@ -166,7 +198,7 @@ int do_main(Compressor & c, int argc, char ** argv)
             {0, 0, 0, 0}
         };
         int option_index = 0;
-        int c = getopt_long(argc, argv, "cdq:x:y:z:",
+        int c = getopt_long(argc, argv, "cdp:q:x:y:z:",
                             long_options, &option_index);
 
         if (c == -1)
@@ -179,6 +211,10 @@ int do_main(Compressor & c, int argc, char ** argv)
 
         case 'd':
             dodecompress = true;
+            break;
+
+        case'p':
+            pdb_path = optarg;
             break;
 
         case 'q':
@@ -212,19 +248,37 @@ int do_main(Compressor & c, int argc, char ** argv)
 
 
     // Error reporting
-    if (optind + 2 != argc) {
-        fprintf(stderr, "ERROR: Please specify an input and output path.\n\n");
-        usage(argv[0]);
-        return 1;
-    } else if (docompress == dodecompress) {
-        fprintf(stderr, "ERROR: Please specify --compress or --decompress.\n\n");
-        usage(argv[0]);
-        return 1;
-    }
+    if (optind + 2 != argc)
+        print_error("Please specify an input and output path.");
+    if (docompress == dodecompress)
+        print_error("Please specify --compress or --decompress.");
 
 
+    // Input and output are the remaining arguments
     input_path  = argv[optind];
     output_path = argv[optind+1];
+
+    if (!file_is_readable(input_path))
+        print_error("Could not read '%s'.", input_path.c_str());
+
+
+    // Check if we need to read in PDB info
+    if (c.needs_atom_information()) {
+        // Guess pdb_path if it is not set
+        if (pdb_path.size() == 0) {
+            size_t dot_pos = input_path.rfind('.');
+            if (dot_pos == string::npos)
+                dot_pos = input_path.size();
+
+            pdb_path = input_path.substr(0, dot_pos) + ".pdb";
+        }
+
+        if (!file_is_readable(pdb_path))
+            print_error("Could not read '%s'. Please specify "
+                        "the pdb file with --pdb\n\n", pdb_path.c_str());
+
+        c.m_atom_information = PDBReader::load_pdbfile(pdb_path);
+    }
 
 
     // Run compressor or decompressor

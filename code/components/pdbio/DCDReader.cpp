@@ -77,13 +77,13 @@ bool DCDReader::open_file(const char* filename)
     _nframes = dcd->nsets;
     // _dcd_frame_data.coords = new float[3 * _natoms];
     header_size = fio_ftell(dcd->fd);
-    TRACE(stdout, "header: %i\n", header_size);
+    //TRACE(stdout, "header: %i\n", header_size);
 
     extrablocksize = dcd->charmm & DCD_HAS_EXTRA_BLOCK ? 48 + 8 : 0;
     ndims = dcd->charmm & DCD_HAS_4DIMS ? 4 : 3;
     firstframesize = (dcd->natoms+2) * ndims * sizeof(float) + extrablocksize;
     framesize = (dcd->natoms-dcd->nfixed+2) * ndims * sizeof(float) + extrablocksize;
-    TRACE(stdout, "framesize: %lli\n", framesize);
+    //TRACE(stdout, "framesize: %lli\n", framesize);
     return true;
 }//open_file
 

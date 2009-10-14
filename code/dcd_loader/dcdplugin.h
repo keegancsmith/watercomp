@@ -41,7 +41,8 @@
  *    -o ~/bin/readdcd -lm
  *
  ***************************************************************************/
-#include "dcd.h"
+
+#include "largefiles.h"   /* platform dependent 64-bit file I/O defines */
 
 #include <stdio.h>
 #include <sys/stat.h>
@@ -50,37 +51,74 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
-// #include "endianswap.h"
-// #include "fastio.h"
-// #include "molfile_plugin.h"
+#include "endianswap.h"
+#include "fastio.h"
+#include "molfile_plugin.h"
 
 #ifndef M_PI_2
 #define M_PI_2 1.57079632679489661922
 #endif
 
+#define RECSCALE32BIT 1
+#define RECSCALE64BIT 2
+#define RECSCALEMAX   2
+
 // #define TEST_DCDPLUGIN
 
-// typedef struct {
-//   fio_fd fd;
-//   int natoms;
-//   int nsets;
-//   int setsread;
-//   int istart;
-//   int nsavc;
-//   double delta;
-//   int nfixed;
-//   float *x, *y, *z;
-//   int *freeind;
-//   float *fixedcoords;
-//   int reverse;
-//   int charmm;  
-//   int first;
-//   int with_unitcell;
-// } dcdhandle;
+typedef struct {
+  fio_fd fd;
+  int natoms;
+  int nsets;
+  int setsread;
+  int istart;
+  int nsavc;
+  double delta;
+  int nfixed;
+  float *x, *y, *z;
+  int *freeind;
+  float *fixedcoords;
+  int reverse;
+  int charmm;  
+  int first;
+  int with_unitcell;
+} dcdhandle;
+
+/* Define error codes that may be returned by the DCD routines */
+#define DCD_SUCCESS      0  /* No problems                     */
+#define DCD_EOF         -1  /* Normal EOF                      */
+#define DCD_DNE         -2  /* DCD file does not exist         */
+#define DCD_OPENFAILED  -3  /* Open of DCD file failed         */
+#define DCD_BADREAD     -4  /* read call on DCD file failed    */
+#define DCD_BADEOF      -5  /* premature EOF found in DCD file */
+#define DCD_BADFORMAT   -6  /* format of DCD file is wrong     */
+#define DCD_FILEEXISTS  -7  /* output file already exists      */
+#define DCD_BADMALLOC   -8  /* malloc failed                   */
+#define DCD_BADWRITE    -9  /* write call on DCD file failed   */
+
+/* Define feature flags for this DCD file */
+#define DCD_IS_XPLOR        0x00
+#define DCD_IS_CHARMM       0x01
+#define DCD_HAS_4DIMS       0x02
+#define DCD_HAS_EXTRA_BLOCK 0x04
+#define DCD_HAS_64BIT_REC   0x08
+
+/* defines used by write_dcdstep */
+#define NFILE_POS 8L
+#define NSTEP_POS 20L
+
+/* READ Macro to make porting easier */
+#define READ(fd, buf, size)  fio_fread(((void *) buf), (size), 1, (fd))
+
+/* WRITE Macro to make porting easier */
+#define WRITE(fd, buf, size) fio_fwrite(((void *) buf), (size), 1, (fd))
+
+/* XXX This is broken - fread never returns -1 */
+#define CHECK_FREAD(X, msg) if (X==-1) { return(DCD_BADREAD); }
+#define CHECK_FEOF(X, msg)  if (X==0)  { return(DCD_BADEOF); }
 
 
 /* print DCD error in a human readable way */
-void print_dcderror(const char *func, int errcode) {
+static void print_dcderror(const char *func, int errcode) {
   const char *errstr;
 
   switch (errcode) {
@@ -98,7 +136,7 @@ void print_dcderror(const char *func, int errcode) {
       errstr = "no error";
       break;
   } 
-  //printf("dcdplugin) %s: %s\n", func, errstr); 
+  printf("dcdplugin) %s: %s\n", func, errstr); 
 }
 
 
@@ -116,7 +154,7 @@ void print_dcderror(const char *func, int errcode) {
  *               *reverse set to one if reverse-endian, zero if not.
  *               *charmm set to internal code for handling charmm data.
  */
-int read_dcdheader(fio_fd fd, int *N, int *NSET, int *ISTART, 
+static int read_dcdheader(fio_fd fd, int *N, int *NSET, int *ISTART, 
                    int *NSAVC, double *DELTA, int *NAMNF, 
                    int **FREEINDEXES, float **fixedcoords, int *reverseEndian, 
                    int *charmm)
@@ -146,29 +184,29 @@ int read_dcdheader(fio_fd fd, int *N, int *NSET, int *ISTART,
   if ((input_integer[0]+input_integer[1]) == 84) {
     *reverseEndian=0;
     rec_scale=RECSCALE64BIT;
-    //printf("dcdplugin) detected CHARMM -i8 64-bit DCD file of native endianness\n");
+    printf("dcdplugin) detected CHARMM -i8 64-bit DCD file of native endianness\n");
   } else if (input_integer[0] == 84 && input_integer[1] == dcdcordmagic) {
     *reverseEndian=0;
     rec_scale=RECSCALE32BIT;
-    //printf("dcdplugin) detected standard 32-bit DCD file of native endianness\n");
+    printf("dcdplugin) detected standard 32-bit DCD file of native endianness\n");
   } else {
     /* now try reverse endian */
     swap4_aligned(input_integer, 2); /* will have to unswap magic if 32-bit */
     if ((input_integer[0]+input_integer[1]) == 84) {
       *reverseEndian=1;
       rec_scale=RECSCALE64BIT;
-      //printf("dcdplugin) detected CHARMM -i8 64-bit DCD file of opposite endianness\n");
+      printf("dcdplugin) detected CHARMM -i8 64-bit DCD file of opposite endianness\n");
     } else {
       swap4_aligned(&input_integer[1], 1); /* unswap magic (see above) */
       if (input_integer[0] == 84 && input_integer[1] == dcdcordmagic) {
         *reverseEndian=1;
         rec_scale=RECSCALE32BIT;
-        //printf("dcdplugin) detected standard 32-bit DCD file of opposite endianness\n");
+        printf("dcdplugin) detected standard 32-bit DCD file of opposite endianness\n");
       } else {
         /* not simply reversed endianism or -i8, something rather more evil */
-        //printf("dcdplugin) unrecognized DCD header:\n");
-        //printf("dcdplugin)   [0]: %10d  [1]: %10d\n", input_integer[0], input_integer[1]);
-        //printf("dcdplugin)   [0]: 0x%08x  [1]: 0x%08x\n", input_integer[0], input_integer[1]);
+        printf("dcdplugin) unrecognized DCD header:\n");
+        printf("dcdplugin)   [0]: %10d  [1]: %10d\n", input_integer[0], input_integer[1]);
+        printf("dcdplugin)   [0]: 0x%08x  [1]: 0x%08x\n", input_integer[0], input_integer[1]);
         return DCD_BADFORMAT;
 
       }
@@ -210,7 +248,7 @@ int read_dcdheader(fio_fd fd, int *N, int *NSET, int *ISTART,
 
   if (*charmm & DCD_IS_CHARMM) {
     /* CHARMM and NAMD versions 2.1b1 and later */
-    //printf("dcdplugin) CHARMM format DCD file (also NAMD 2.1 and later)\n");
+    printf("dcdplugin) CHARMM format DCD file (also NAMD 2.1 and later)\n");
   } else {
     /* CHARMM and NAMD versions prior to 2.1b1  */
     printf("dcdplugin) X-PLOR format DCD file (also NAMD 2.0 and earlier)\n");
@@ -361,7 +399,7 @@ int read_dcdheader(fio_fd fd, int *N, int *NSET, int *ISTART,
   return DCD_SUCCESS;
 }
 
-int read_charmm_extrablock(fio_fd fd, int charmm, int reverseEndian,
+static int read_charmm_extrablock(fio_fd fd, int charmm, int reverseEndian,
                                   float *unitcell) {
   int i, input_integer[2], rec_scale;
 
@@ -393,7 +431,7 @@ int read_charmm_extrablock(fio_fd fd, int charmm, int reverseEndian,
   return DCD_SUCCESS;
 }
 
-int read_fixed_atoms(fio_fd fd, int N, int num_free, const int *indexes,
+static int read_fixed_atoms(fio_fd fd, int N, int num_free, const int *indexes,
                             int reverseEndian, const float *fixedcoords, 
                             float *freeatoms, float *pos, int charmm) {
   int i, input_integer[2], rec_scale;
@@ -429,7 +467,7 @@ int read_fixed_atoms(fio_fd fd, int N, int num_free, const int *indexes,
   return DCD_SUCCESS;
 }
   
-int read_charmm_4dim(fio_fd fd, int charmm, int reverseEndian) {
+static int read_charmm_4dim(fio_fd fd, int charmm, int reverseEndian) {
   int input_integer[2],rec_scale;
 
   if (charmm & DCD_HAS_64BIT_REC) {
@@ -465,7 +503,7 @@ int read_charmm_4dim(fio_fd fd, int charmm, int reverseEndian) {
  * Side effects: x, y, z contain the coordinates for the timestep read.
  *               unitcell holds unit cell data if present.
  */
-int read_dcdstep(fio_fd fd, int N, float *X, float *Y, float *Z, 
+static int read_dcdstep(fio_fd fd, int N, float *X, float *Y, float *Z, 
                         float *unitcell, int num_fixed,
                         int first, int *indexes, float *fixedcoords, 
                         int reverseEndian, int charmm) {
@@ -589,7 +627,7 @@ int read_dcdstep(fio_fd fd, int N, float *X, float *Y, float *Z,
  * Side effects: One timestep will be skipped; fd will be positioned at the
  *               next timestep.
  */
-int skip_dcdstep(fio_fd fd, int natoms, int nfixed, int charmm) {
+static int skip_dcdstep(fio_fd fd, int natoms, int nfixed, int charmm) {
   
   int seekoffset = 0;
   int rec_scale;
@@ -629,7 +667,7 @@ int skip_dcdstep(fio_fd fd, int natoms, int nfixed, int charmm) {
  * Output: 0 on success, negative error code on failure.
  * Side effects: coordinates are written to the dcd file.
  */
-int write_dcdstep(fio_fd fd, int curframe, int curstep, int N, 
+static int write_dcdstep(fio_fd fd, int curframe, int curstep, int N, 
                   const float *X, const float *Y, const float *Z, 
                   const double *unitcell, int charmm) {
   int out_integer;
@@ -675,7 +713,7 @@ int write_dcdstep(fio_fd fd, int curframe, int curstep, int N,
  * Output: 0 on success, negative error code on failure.
  * Side effects: Header information is written to the dcd file.
  */
-int write_dcdheader(fio_fd fd, const char *remarks, int N, 
+static int write_dcdheader(fio_fd fd, const char *remarks, int N, 
                     int ISTART, int NSAVC, double DELTA, int with_unitcell,
                     int charmm) {
   int out_integer;
@@ -750,7 +788,7 @@ int write_dcdheader(fio_fd fd, const char *remarks, int N,
  * Output: None
  * Side effects: Space pointed to by freeind is freed if necessary.
  */
-void close_dcd_read(int *indexes, float *fixedcoords) {
+static void close_dcd_read(int *indexes, float *fixedcoords) {
   free(indexes);
   free(fixedcoords);
 }
@@ -759,7 +797,7 @@ void close_dcd_read(int *indexes, float *fixedcoords) {
 
 
 
-void *open_dcd_read(const char *path, const char *filetype, 
+static void *open_dcd_read(const char *path, const char *filetype, 
     int *natoms) {
   dcdhandle *dcd;
   fio_fd fd;
@@ -865,7 +903,7 @@ void *open_dcd_read(const char *path, const char *filetype,
 }
 
 
-int read_next_timestep(void *v, int natoms, molfile_timestep_t *ts) {
+static int read_next_timestep(void *v, int natoms, molfile_timestep_t *ts) {
   dcdhandle *dcd;
   int i, j, rc;
   float unitcell[6];
@@ -946,7 +984,7 @@ int read_next_timestep(void *v, int natoms, molfile_timestep_t *ts) {
 }
  
 
-void close_file_read(void *v) {
+static void close_file_read(void *v) {
   dcdhandle *dcd = (dcdhandle *)v;
   close_dcd_read(dcd->freeind, dcd->fixedcoords);
   fio_fclose(dcd->fd);
@@ -957,7 +995,7 @@ void close_file_read(void *v) {
 }
 
 
-void *open_dcd_write(const char *path, const char *filetype, 
+static void *open_dcd_write(const char *path, const char *filetype, 
     int natoms) {
   dcdhandle *dcd;
   fio_fd fd;
@@ -1015,7 +1053,7 @@ void *open_dcd_write(const char *path, const char *filetype,
 }
 
 
-int write_timestep(void *v, const molfile_timestep_t *ts) { 
+static int write_timestep(void *v, const molfile_timestep_t *ts) { 
   dcdhandle *dcd = (dcdhandle *)v;
   int i, rc, curstep;
   float *pos = ts->coords;
@@ -1051,7 +1089,7 @@ int write_timestep(void *v, const molfile_timestep_t *ts) {
   return MOLFILE_SUCCESS;
 }
 
-void close_file_write(void *v) {
+static void close_file_write(void *v) {
   dcdhandle *dcd = (dcdhandle *)v;
   fio_fclose(dcd->fd);
   free(dcd->x);
@@ -1066,34 +1104,34 @@ void close_file_write(void *v) {
  */
 static molfile_plugin_t plugin;
 
-// VMDPLUGIN_API int VMDPLUGIN_init() {
-//   memset(&plugin, 0, sizeof(molfile_plugin_t));
-//   plugin.abiversion = vmdplugin_ABIVERSION;
-//   plugin.type = MOLFILE_PLUGIN_TYPE;
-//   plugin.name = "dcd";
-//   plugin.prettyname = "CHARMM,NAMD,XPLOR DCD Trajectory";
-//   plugin.author = "Justin Gullingsrud, John Stone";
-//   plugin.majorv = 1;
-//   plugin.minorv = 10;
-//   plugin.is_reentrant = VMDPLUGIN_THREADSAFE;
-//   plugin.filename_extension = "dcd";
-//   plugin.open_file_read = open_dcd_read;
-//   plugin.read_next_timestep = read_next_timestep;
-//   plugin.close_file_read = close_file_read;
-//   plugin.open_file_write = open_dcd_write;
-//   plugin.write_timestep = write_timestep;
-//   plugin.close_file_write = close_file_write;
-//   return VMDPLUGIN_SUCCESS;
-// }
-// 
-// VMDPLUGIN_API int VMDPLUGIN_register(void *v, vmdplugin_register_cb cb) {
-//   (*cb)(v, (vmdplugin_t *)&plugin);
-//   return VMDPLUGIN_SUCCESS;
-// }
-// 
-// VMDPLUGIN_API int VMDPLUGIN_fini() {
-//   return VMDPLUGIN_SUCCESS;
-// }
+VMDPLUGIN_API int VMDPLUGIN_init() {
+  memset(&plugin, 0, sizeof(molfile_plugin_t));
+  plugin.abiversion = vmdplugin_ABIVERSION;
+  plugin.type = MOLFILE_PLUGIN_TYPE;
+  plugin.name = "dcd";
+  plugin.prettyname = "CHARMM,NAMD,XPLOR DCD Trajectory";
+  plugin.author = "Justin Gullingsrud, John Stone";
+  plugin.majorv = 1;
+  plugin.minorv = 10;
+  plugin.is_reentrant = VMDPLUGIN_THREADSAFE;
+  plugin.filename_extension = "dcd";
+  plugin.open_file_read = open_dcd_read;
+  plugin.read_next_timestep = read_next_timestep;
+  plugin.close_file_read = close_file_read;
+  plugin.open_file_write = open_dcd_write;
+  plugin.write_timestep = write_timestep;
+  plugin.close_file_write = close_file_write;
+  return VMDPLUGIN_SUCCESS;
+}
+
+VMDPLUGIN_API int VMDPLUGIN_register(void *v, vmdplugin_register_cb cb) {
+  (*cb)(v, (vmdplugin_t *)&plugin);
+  return VMDPLUGIN_SUCCESS;
+}
+
+VMDPLUGIN_API int VMDPLUGIN_fini() {
+  return VMDPLUGIN_SUCCESS;
+}
 
 
 #ifdef TEST_DCDPLUGIN

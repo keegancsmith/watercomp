@@ -17,6 +17,7 @@ int main(int argc, char ** argv) {
     int quantx = argc > 3 ? atoi(argv[3]) : 8;
     int quanty = argc > 4 ? atoi(argv[4]) : 8;
     int quantz = argc > 5 ? atoi(argv[5]) : 8;
+    bool verbose = argc > 6;
     bool all_same = true;
 
     DCDReader reader1, reader2;
@@ -27,8 +28,6 @@ int main(int argc, char ** argv) {
     assert(reader1.natoms() == reader2.natoms());
 
     for (size_t frame = 1; frame <= reader1.nframes(); frame++) {
-        cout << "Frame " << frame << endl;
-
         Frame f1(reader1.natoms());
         Frame f2(reader1.natoms());
         reader1.next_frame(f1);
@@ -63,6 +62,13 @@ int main(int argc, char ** argv) {
         if (!same)
             all_same = false;
 
+        if (!verbose) {
+            cout << (same ? '#' : '!');
+            cout.flush();
+            continue;
+        }
+
+        cout << "Frame " << frame << endl;
         if (same)
             cout << "SUCCESS: Frames are the same when quantised" << endl;
         else
@@ -75,10 +81,13 @@ int main(int argc, char ** argv) {
              << ' ' << max_error[2] << endl << endl;
     }
 
+    if (!verbose)
+        cout << endl;
+
     if (all_same)
         cout << "SUCCESS: Files are the same when quantised" << endl;
     else
         cout << "FAIL: Files are different when quantised" << endl;
     
-    return 0;
+    return all_same ? 0 : 1;
 }

@@ -17,23 +17,3 @@ ArithmeticDecoder::ArithmeticDecoder()
     bit_pool = 0;
     bits_left = 0;
 }
-
-// void ArithmeticDecoder::start_decode(FILE* file)
-// {
-//     
-// }
-
-// unsigned long long ArithmeticDecoder::decode(unsigned long long total)
-// {
-// 
-// }
-
-// void ArithmeticDecoder::decoder_update(unsigned long long symbol_range_start, unsigned long long symbol_range_end)
-// {
-//     
-// }
-
-// bool ArithmeticDecoder::get_bit()
-// {
-//     
-// }

@@ -7,8 +7,8 @@
 #define DIMENSIONS 3
 #endif
 
-// needs to be unsigned and sizeof(coord_t) > BITS
-typedef unsigned long coord_t;
+// needs to be unsigned and sizeof(coord_t)*8 > BITS
+typedef unsigned int coord_t;
 
 struct point_t {
     coord_t coords[DIMENSIONS];
@@ -27,7 +27,7 @@ struct point_t {
  * the order of the index's in order of output.
  * @bits The maximum number of bits each coordinate will be
  */
-std::vector<coord_t> encode(const std::vector<point_t> & points,
+std::vector<coord_t> encode(std::vector<point_t> points,
                             std::vector<int> & permutation,
                             unsigned int bits);
 

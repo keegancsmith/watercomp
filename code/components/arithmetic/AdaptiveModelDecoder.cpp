@@ -45,7 +45,6 @@ string AdaptiveModelDecoder::decode()
         
         tree.add_symbol();
         symbol_table.push_back(string(new_symbol.begin(), new_symbol.end()));
-//         symbol_table[tree.add_symbol()] = string(new_symbol.begin(), new_symbol.end());
         tree.update(symbol);
         
         return string(new_symbol.begin(), new_symbol.end());
