@@ -98,7 +98,8 @@ void MainWindow::doOpenFile()
 
     // pdb = PDBReader::load_pdbfile(lastLocation.toStdString().c_str());
     pdb = load_pdbfile(lastLocation.toStdString().c_str());
-    dcdreader->open_file(lastLocation.replace(QRegExp(".pdb$"), ".dcd").toStdString().c_str());
+    QString dcdFilename(lastLocation);
+    dcdreader->open_file(dcdFilename.replace(QRegExp(".pdb$"), ".dcd").toStdString().c_str());
     playbackControl->setTotalFrames(dcdreader->nframes());
 
     foreach (BaseView* view, views)

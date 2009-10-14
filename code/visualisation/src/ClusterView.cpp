@@ -243,16 +243,16 @@ void ClusterView::render()
                        dequantised->atom_data[3*(*vit)+1],
                        dequantised->atom_data[3*(*vit)+2]);
             glEnd();
-            if (first)
-            {
-                printf("%f %f %f ~ %f %f %f\n",
-                        dequantised->atom_data[3*start],
-                        dequantised->atom_data[3*start+1],
-                        dequantised->atom_data[3*start+2],
-                        dequantised->atom_data[3*(*vit)],
-                        dequantised->atom_data[3*(*vit)+1],
-                        dequantised->atom_data[3*(*vit)+2]);
-            }//if
+            // if (first)
+            // {
+                // printf("%f %f %f ~ %f %f %f\n",
+                        // dequantised->atom_data[3*start],
+                        // dequantised->atom_data[3*start+1],
+                        // dequantised->atom_data[3*start+2],
+                        // dequantised->atom_data[3*(*vit)],
+                        // dequantised->atom_data[3*(*vit)+1],
+                        // dequantised->atom_data[3*(*vit)+2]);
+            // }//if
 // #else
 
             renderCylinder(dequantised->atom_data[3*start],
