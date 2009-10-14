@@ -24,11 +24,54 @@
 #include <graph/gridgraphcreator/GridGraphCreator.h>
 
 #include "Renderer.h"
+#include "Util.h"
 
 #define MAX_ALPHA_SLIDER 100
 #define MAX_ALPHA_VAL 0.9
 
 #define MAX_LINE_WIDTH 10
+
+
+
+
+void renderCylinder(float x1, float y1, float z1, float x2,float y2, float z2, float radius,int subdivisions,GLUquadricObj *quadric)
+{
+    float vx = x2-x1;
+    float vy = y2-y1;
+    float vz = z2-z1;
+
+    //handle the degenerate case of z1 == z2 with an approximation
+    if(vz == 0)
+        vz = 1;
+        // vz = .00000001;
+
+    float v = sqrt( vx*vx + vy*vy + vz*vz );
+    // float ax = 57.2957795*acos( vz/v );
+    float ax = DEG(acos( vz/v ));
+    if ( vz < 0.0 )
+        ax = -ax;
+    float rx = -vy*vz;
+    float ry = vx*vz;
+    glPushMatrix();
+
+    //draw the cylinder body
+    glTranslatef( x1,y1,z1 );
+    glRotatef(ax, rx, ry, 0.0);
+    gluQuadricOrientation(quadric,GLU_OUTSIDE);
+    gluCylinder(quadric, radius, radius, v, subdivisions, 1);
+
+    //draw the first cap
+    gluQuadricOrientation(quadric,GLU_INSIDE);
+    gluDisk( quadric, 0.0, radius, subdivisions, 1);
+    glTranslatef( 0,0,v );
+
+    //draw the second cap
+    gluQuadricOrientation(quadric,GLU_OUTSIDE);
+    gluDisk( quadric, 0.0, radius, subdivisions, 1);
+    glPopMatrix();
+}
+
+
 
 ClusterView::ClusterView()
 {
@@ -44,12 +87,17 @@ ClusterView::ClusterView()
     quantised = 0;
     num_clusters = 0;
     current_cluster = -1;
+
+    quadric = gluNewQuadric();
+
+    first = true;
 }//constructor
 
 ClusterView::~ClusterView()
 {
     settings->sync();
     delete settings;
+    gluDeleteQuadric(quadric);
 }//destructor
 
 
@@ -99,6 +147,7 @@ void ClusterView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
     {
         if(components.find(waters[i].OH2_index) == components.end())
         {
+            sizes[num_clusters] = 0;
             dfs(waters[i].OH2_index, num_clusters++);
         }
     }
@@ -107,32 +156,117 @@ void ClusterView::tick(int framenum, Frame* frame, QuantisedFrame* quantised)
     if (current_cluster == -1) countLabel->setNum((int)(num_clusters-1));
 }//tick
 
+// #define DRAW_LINES
+
 void ClusterView::render()
 {
     if (quantised == NULL)
         return;
 
+    double radius = 2;
+    float dif[3];
+    double height = 2;
+    int hslice = 16;
+    int vslice = 4;
+
     if (parent)
         glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
+
+    float vec[3];
+    int count = 0;
+    int a, v, ax, rx, ry;
+
     glColor4fv(_lineColor);
+#ifdef DRAW_LINES
     glBegin(GL_LINES);
+#endif
     int start;
     for (std::map<unsigned int, std::vector<unsigned int> >::iterator it = graph.begin(); it != graph.end(); it++)
     {
         start = it->first;
         if ((current_cluster >= 0) && (components[start] != current_cluster))
             continue;
+        if (count++ > 20)
+            break;
         for (std::vector<unsigned int>::iterator vit = it->second.begin(); vit != it->second.end(); vit++)
         {
+
+// #ifdef DRAW_LINES
+            glBegin(GL_LINES);
             glVertex3i(quantised->quantised_frame[3*start],
                        quantised->quantised_frame[3*start+1],
                        quantised->quantised_frame[3*start+2]);
             glVertex3i(quantised->quantised_frame[3*(*vit)],
                        quantised->quantised_frame[3*(*vit)+1],
                        quantised->quantised_frame[3*(*vit)+2]);
+            glEnd();
+            if (first)
+            {
+                printf("%u %u %u ~ %u %u %u\n",
+                        quantised->quantised_frame[3*start],
+                        quantised->quantised_frame[3*start+1],
+                        quantised->quantised_frame[3*start+2],
+                        quantised->quantised_frame[3*(*vit)],
+                        quantised->quantised_frame[3*(*vit)+1],
+                        quantised->quantised_frame[3*(*vit)+2]);
+            }//if
+// #else
+
+            renderCylinder(quantised->quantised_frame[3*start],
+                           quantised->quantised_frame[3*start+1],
+                           quantised->quantised_frame[3*start+2],
+                           quantised->quantised_frame[3*(*vit)],
+                           quantised->quantised_frame[3*(*vit)+1],
+                           quantised->quantised_frame[3*(*vit)+2],
+                           radius, 8, quadric);
+
+            /*
+            for (a = 0; a < 3; a++)
+                vec[a] = quantised->quantised_frame[3*(*vit)+a]
+                         - quantised->quantised_frame[3*start+a];
+            v = sqrt(len2(vec));
+            if (v < EPSILON)
+                continue;
+
+            ax = DEG(acos(vec[2]/v));
+            if (vec[2] < 0)
+                ax = -ax;
+            rx = -vec[1]*vec[2];
+            ry = vec[0]*vec[2];
+
+
+
+            glPushMatrix();
+
+            // draw the body
+            glTranslatef(quantised->quantised_frame[3*start],
+                       quantised->quantised_frame[3*start+1],
+                       quantised->quantised_frame[3*start+2]);
+            glRotatef(ax, rx, ry, 0.0);
+            gluQuadricOrientation(quadric,GLU_OUTSIDE);
+            gluCylinder(quadric, radius, radius, v, hslice, 1);
+
+            // draw the first cap
+            gluQuadricOrientation(quadric,GLU_INSIDE);
+            gluDisk(quadric, 0.0, radius, hslice, 1);
+
+            // draw the second cap
+            glTranslatef(0, 0, v);
+            gluQuadricOrientation(quadric,GLU_OUTSIDE);
+            gluDisk(quadric, 0.0, radius, hslice, 1);
+
+            glPopMatrix();
+            */
+
+
+// #endif
+
         }//for
     }//for
+#ifdef DRAW_LINES
     glEnd();
+#endif
+    first = false;
 }//render
 
 
@@ -180,7 +314,9 @@ void ClusterView::setClusterID(int value)
     if (value < 0) value = -1;
     if (value >= num_clusters) value = num_clusters - 1;
     current_cluster = value;
+    // countLabel->setNum((int)(current_cluster > -1 ? sizes[current_cluster] : num_clusters-1));
     countLabel->setNum((int)(current_cluster > -1 ? sizes[current_cluster] : num_clusters-1));
+    first = true;
 }//setClusterID
 
 

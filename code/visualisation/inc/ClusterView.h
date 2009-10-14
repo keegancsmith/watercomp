@@ -3,6 +3,7 @@
 
 #include "BaseView.h"
 
+#include <GL/glu.h>
 #include <map>
 #include <vector>
 
@@ -44,11 +45,14 @@ class ClusterView : public BaseView
         int _lineWidth;
         int num_clusters;
         int current_cluster;
+        GLUquadricObj* quadric;
 
         QSlider* lineWidthSlider;
         QSlider* lineAlphaSlider;
         QSpinBox* clusterSpinBox;
         QLabel* countLabel;
+
+        bool first;
 
         std::vector<WaterMolecule> waters;
         std::vector<unsigned int> others;
