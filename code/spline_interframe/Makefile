@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-O3 -g -I../components/ 
+CXXFLAGS=-O3 -I../components/ 
 
 INCS = ../dcd_loader/dcd.h ../components/pdbio/DCDReader.h ../components/pdbio/DCDWriter.h ../components/pdbio/Frame.h ../components/quantiser/QuantisedFrame.h ../components/FrameWriter.h ../components/FrameReader.h ../components/arithmetic/ArithmeticEncoder.h ../components/arithmetic/AdaptiveModelEncoder.h ../components/arithmetic/ArithmeticDecoder.h ../components/arithmetic/AdaptiveModelDecoder.h ../components/arithmetic/FenwickTree.h SplineInterframeWriter.h SplineInterframeReader.h
 
