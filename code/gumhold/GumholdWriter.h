@@ -6,11 +6,11 @@
 
 #include <cstdio>
 
-class NaiveWriter : public FrameWriter
+class GumholdWriter : public FrameWriter
 {
 public:
-    NaiveWriter(FILE * fout);
-    ~NaiveWriter();
+    GumholdWriter(FILE * fout);
+    ~GumholdWriter();
 
     void start(int atoms, int frames, int ISTART = 0,
                int NSAVC = 1, double DELTA = 0.0);

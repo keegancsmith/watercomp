@@ -1,17 +1,17 @@
-#include "NaiveReader.h"
+#include "GumholdReader.h"
 
 #include "arithmetic/ByteDecoder.h"
 #include "TreeSerialiser.h"
 
 #include <cassert>
 
-NaiveReader::NaiveReader(FILE * fin)
+GumholdReader::GumholdReader(FILE * fin)
     : m_fin(fin)
 {
 }
 
 
-void NaiveReader::start()
+void GumholdReader::start()
 {
     m_decoder.start_decode(m_fin);
     ByteDecoder dec(&m_decoder);
@@ -31,7 +31,7 @@ void NaiveReader::start()
 }
 
 
-bool NaiveReader::next_frame(QuantisedFrame & qframe)
+bool GumholdReader::next_frame(QuantisedFrame & qframe)
 {
     ByteDecoder dec(&m_decoder);
 
@@ -53,6 +53,6 @@ bool NaiveReader::next_frame(QuantisedFrame & qframe)
 }
 
 
-void NaiveReader::end()
+void GumholdReader::end()
 {
 }

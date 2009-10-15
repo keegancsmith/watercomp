@@ -5,11 +5,11 @@
 
 #include <cstdio>
 
-class NaiveReader : public FrameReader
+class GumholdReader : public FrameReader
 {
 public:
-    NaiveReader(FILE * fin);
-    ~NaiveReader() {}
+    GumholdReader(FILE * fin);
+    ~GumholdReader() {}
 
     void start();
     bool next_frame(QuantisedFrame & qframe);

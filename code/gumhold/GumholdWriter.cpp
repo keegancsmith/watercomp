@@ -1,20 +1,20 @@
-#include "NaiveWriter.h"
+#include "GumholdWriter.h"
 #include "arithmetic/ByteEncoder.h"
 #include "SpanningTree.h"
 #include "TreeSerialiser.h"
 
-NaiveWriter::NaiveWriter(FILE * fout)
+GumholdWriter::GumholdWriter(FILE * fout)
     : m_fout(fout)
 {
 }
 
 
-NaiveWriter::~NaiveWriter()
+GumholdWriter::~GumholdWriter()
 {
 }
 
 
-void NaiveWriter::start(int atoms, int frames, int ISTART,
+void GumholdWriter::start(int atoms, int frames, int ISTART,
                         int NSAVC, double DELTA)
 {
     m_encoder.start_encode(m_fout);
@@ -27,7 +27,7 @@ void NaiveWriter::start(int atoms, int frames, int ISTART,
 }
 
 
-void NaiveWriter::next_frame(const QuantisedFrame& qframe)
+void GumholdWriter::next_frame(const QuantisedFrame& qframe)
 {
     ByteEncoder enc(&m_encoder);
 
@@ -51,7 +51,7 @@ void NaiveWriter::next_frame(const QuantisedFrame& qframe)
 }
 
 
-void NaiveWriter::end()
+void GumholdWriter::end()
 {
     m_encoder.end_encode();
 }

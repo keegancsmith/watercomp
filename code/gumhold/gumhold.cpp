@@ -1,22 +1,22 @@
-#include "NaiveWriter.h"
-#include "NaiveReader.h"
+#include "GumholdWriter.h"
+#include "GumholdReader.h"
 #include "Compressor.h"
 
-class NaiveCompressor : public Compressor
+class GumholdCompressor : public Compressor
 {
 public:
     FrameReader * frame_reader(FILE * fin) {
-        return new NaiveReader(fin);
+        return new GumholdReader(fin);
     }
 
     FrameWriter * frame_writer(FILE * fout) {
-        return new NaiveWriter(fout);
+        return new GumholdWriter(fout);
     }
 };
 
 
 int main(int argc, char ** argv)
 {
-    NaiveCompressor c;
+    GumholdCompressor c;
     return do_main(c, argc, argv);
 }
