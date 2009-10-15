@@ -5,6 +5,7 @@
 #include "FrameWriter.h"
 #include "quantiser/QuantisedFrame.h"
 #include "arithmetic/ArithmeticEncoder.h"
+#include "arithmetic/AdaptiveModelEncoder.h"
 
 class InterframeWriter : public FrameWriter
 {
@@ -38,4 +39,5 @@ class InterframeWriter : public FrameWriter
         FILE* out_file;
         
         ArithmeticEncoder encoder;
+        AdaptiveModelEncoder model;
 };

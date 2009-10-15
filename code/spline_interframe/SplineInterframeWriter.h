@@ -3,7 +3,6 @@
 #include <deque>
 #include <cstdio>
 #include <map>
-#include <fann.h>
 #include "FrameWriter.h"
 #include "quantiser/QuantisedFrame.h"
 #include "arithmetic/ArithmeticEncoder.h"
@@ -39,7 +38,5 @@ class SplineInterframeWriter : public FrameWriter
         FILE* out_file;
         
         ArithmeticEncoder encoder;
-        
-        AdaptiveModelEncoder index_model;
         AdaptiveModelEncoder error_model;
 };

@@ -8,8 +8,8 @@
 
 using namespace std;
 
-InterframeReader::InterframeReader(FILE* input_file, int predict_on)
- : in_file(input_file), K(predict_on), index_model(&decoder), error_model(&decoder)
+InterframeReader::InterframeReader(FILE* input_file)
+ : in_file(input_file), K(2), index_model(&decoder), error_model(&decoder)
 {
 }
 
@@ -27,6 +27,8 @@ void InterframeReader::start()
     fread(&istart, sizeof(int), 1, in_file);
     fread(&nsavc, sizeof(int), 1, in_file);
     fread(&delta, sizeof(double), 1, in_file); 
+    
+    fread(&K, sizeof(int), 1, in_file);
     
     decoder.start_decode(in_file);
 }

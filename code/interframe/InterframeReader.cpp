@@ -6,18 +6,15 @@
 
 using namespace std;
 
-InterframeReader::InterframeReader(FILE* input_file, int predict_on)
- : in_file(input_file), K(predict_on)
+InterframeReader::InterframeReader(FILE* input_file)
+ : in_file(input_file), K(2), model(&decoder)
 {
     factorial = 1;
-    
-    // Only allow upto 170 frames to be predicted on to avoid 
-    assert(0 <= K && K <= 170);
     
     for(int i = 1; i <= K; ++i)
         factorial *= i;
     
-    for(int j = 0; j < K; ++j)
+    for(int j = 0; j <= 170; ++j)
     {
         double weight = 1;
         
@@ -46,7 +43,29 @@ void InterframeReader::start()
     // Write data to be able to reconstitute the dcd file on decompression
     fread(&istart, sizeof(int), 1, in_file);
     fread(&nsavc, sizeof(int), 1, in_file);
-    fread(&delta, sizeof(double), 1, in_file); 
+    fread(&delta, sizeof(double), 1, in_file);
+    
+    fread(&K, sizeof(int), 1, in_file);
+    
+    factorial = 1.0;
+    for(int i = 1; i <= K; ++i)
+        factorial *= i;
+    
+    weights.clear();
+    for(int j = 0; j < K; ++j)
+    {
+        double weight = 1;
+        
+        for(int i = 0; i < K; ++i)
+        {
+            if(i == j)
+                continue;
+            
+            weight *= (j - i);
+        }
+        
+        weights.push_back(weight);
+    }
     
     decoder.start_decode(in_file);
 }
@@ -73,7 +92,7 @@ bool InterframeReader::next_frame(QuantisedFrame& qframe)
 
     if(frames.size() == K)
     {
-        AdaptiveModelDecoder model(&decoder);
+        
         
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
         {

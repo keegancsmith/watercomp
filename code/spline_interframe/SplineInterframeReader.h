@@ -10,7 +10,7 @@
 class SplineInterframeReader : public FrameReader
 {
     public:
-        SplineInterframeReader(FILE* input_file, int predict_on);
+        SplineInterframeReader(FILE* input_file);
 
         ~SplineInterframeReader();
         
@@ -39,7 +39,7 @@ class SplineInterframeReader : public FrameReader
         /* The amount of frames to predict with */
         int K;
         
-        /* Precomputed value for Lagrange interpolating polynomial */
+        /* Precomputed value for spline polynomial */
         std::vector<double> factorials;
         
         /* Stored frames to predict on */

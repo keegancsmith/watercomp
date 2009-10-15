@@ -29,6 +29,8 @@ void NearestInterframeWriter::start(int atoms, int frames, int ISTART, int NSAVC
     fwrite(&NSAVC, sizeof(int), 1, out_file);
     fwrite(&DELTA, sizeof(double), 1, out_file);
     
+    fwrite(&K, sizeof(int), 1, out_file);
+    
     encoder.start_encode(out_file);
 }
 

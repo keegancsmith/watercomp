@@ -4,7 +4,7 @@
 #include "arithmetic/AdaptiveModelEncoder.h"
 
 InterframeWriter::InterframeWriter(FILE* output_file, int predict_on)
- : out_file(output_file), K(predict_on)
+ : out_file(output_file), K(predict_on), model(&encoder)
 {
     factorial = 1;
     
@@ -45,6 +45,8 @@ void InterframeWriter::start(int atoms, int frames, int ISTART, int NSAVC, doubl
     fwrite(&NSAVC, sizeof(int), 1, out_file);
     fwrite(&DELTA, sizeof(double), 1, out_file);
     
+    fwrite(&K, sizeof(int), 1, out_file);
+    
     encoder.start_encode(out_file);
 }
 
@@ -78,8 +80,6 @@ void InterframeWriter::next_frame(const QuantisedFrame& qframe)
     
     if(frames.size() == K)
     {
-        AdaptiveModelEncoder model(&encoder);
-        
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
         {
             double estimated = -double(qframe.quantised_frame[i]);

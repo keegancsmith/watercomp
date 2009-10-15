@@ -20,15 +20,12 @@ void print_usage()
     printf("Decompression: driver x <input compressed file> <output DCD file>\n");
     printf("Switches: -x X-quantisation levels\n");
     printf("          -y Y-quantisation levels\n");
-    printf("          -z Z-quantisation levels\n");   
+    printf("          -z Z-quantisation levels\n");
+    printf("          -k prediction window size\n");
 }
 
 int main(int argc, char** argv)
-{
-    /// ./driver <c> <input DCD_file> <output Compressed_file>
-    /// ./driver <x> <input Compressed_file> <output DCD_file>
-    /// Switches: -x: X quantisation levels, -y: Y quantisation levels, -z: Z quantisation levels
-    
+{    
     if(argc < 4)
     {
         print_usage();
@@ -38,6 +35,7 @@ int main(int argc, char** argv)
     unsigned int x_quant = 8;
     unsigned int y_quant = 8;
     unsigned int z_quant = 8;
+    unsigned int k = 2;
     
     for(int i = 2; i < argc-1; ++i)
         if(strncmp(argv[i], "-x", 2) == 0)
@@ -46,7 +44,9 @@ int main(int argc, char** argv)
             sscanf(argv[i+1], "%d", &y_quant);
         else if(strncmp(argv[i], "-z", 2) == 0)
             sscanf(argv[i+1], "%d", &z_quant);
-
+        else if(strncmp(argv[i], "-k", 2) == 0)
+            sscanf(argv[i+1], "%d", &k);
+        
     if(argv[1][0] == 'c')
     {
         DCDReader dcdreader;
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
         Frame atoms(dcdreader.natoms());
 
         FILE* fout = fopen(argv[3], "w");
-        InterframeWriter writer(fout, 1);
+        InterframeWriter writer(fout, k);
         writer.start(dcdreader.natoms(), dcdreader.nframes()); 
         
         for(int i = 0 ; i < dcdreader.nframes(); ++i)
@@ -62,9 +62,11 @@ int main(int argc, char** argv)
             dcdreader.next_frame(atoms);
             QuantisedFrame qframe(atoms, x_quant, y_quant, z_quant);
             
-            printf("Compressing: Frame %d written\n", i);
+            printf("Compressing: Frame %d written\r", i);
+            fflush(stdout);
             writer.next_frame(qframe);
         }
+        printf("\n");
         
         writer.end();
         fclose(fout);
@@ -72,10 +74,9 @@ int main(int argc, char** argv)
     }
     else if(argv[1][0] == 'x')
     {
-        
         FILE* fin = fopen(argv[2], "r");
         
-        InterframeReader reader(fin, 1);
+        InterframeReader reader(fin);
         reader.start();
         
         DCDWriter dcdwriter;
@@ -83,7 +84,9 @@ int main(int argc, char** argv)
             
         for(int i = reader.get_frames(); i > 0 ; --i)
         {
-            printf("Uncompressing: %d frames left\n", i);
+            printf("Uncompressing: %d frames left\r", i);
+            fflush(stdout);
+            
             QuantisedFrame qframe(reader.get_atoms(), 8, 8, 8);
             
             if(!reader.next_frame(qframe))
@@ -92,6 +95,7 @@ int main(int argc, char** argv)
             Frame uncompressed = qframe.toFrame();
             dcdwriter.save_dcd_frame(uncompressed);
         }
+        printf("\n");
         
         reader.end();
         fclose(fin);    

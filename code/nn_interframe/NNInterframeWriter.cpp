@@ -31,6 +31,9 @@ void NNInterframeWriter::start(int atoms, int frames, int ISTART, int NSAVC, dou
     fwrite(&NSAVC, sizeof(int), 1, out_file);
     fwrite(&DELTA, sizeof(double), 1, out_file);
     
+    fwrite(&K, sizeof(int), 1, out_file);
+    fwrite(&V, sizeof(int), 1, out_file);
+    
     encoder.start_encode(out_file);
 }
 

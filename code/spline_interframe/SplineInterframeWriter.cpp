@@ -12,7 +12,7 @@
 using namespace std;
 
 SplineInterframeWriter::SplineInterframeWriter(FILE* output_file, int predict_on)
- : out_file(output_file), K(predict_on), index_model(AdaptiveModelEncoder(&encoder)), error_model(AdaptiveModelEncoder(&encoder))
+ : out_file(output_file), K(predict_on), error_model(AdaptiveModelEncoder(&encoder))
 {
     factorials.push_back(1.0);
     
@@ -34,6 +34,8 @@ void SplineInterframeWriter::start(int atoms, int frames, int ISTART, int NSAVC,
     fwrite(&ISTART, sizeof(int), 1, out_file);
     fwrite(&NSAVC, sizeof(int), 1, out_file);
     fwrite(&DELTA, sizeof(double), 1, out_file);
+    
+    fwrite(&K, sizeof(int), 1, out_file);
     
     encoder.start_encode(out_file);
 }
