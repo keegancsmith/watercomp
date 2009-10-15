@@ -47,7 +47,7 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
             error[i] = frame->quantised_frame[3*v + i] - predictions[v][i];
 
         // Assert if values are sensible
-        assert(0 <= size && size <= 2);
+        assert(0 <= size && size < atoms);
         assert(0 <= index && index < atoms);
 
         // Write values to arithmetic encoder
@@ -108,7 +108,7 @@ void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame)
             error[i] = err_decoder.decode_int();
 
         // Check if they are sane
-        assert(0 <= size && size <= 2);
+        assert(0 <= size && size < atoms);
         assert(0 <= index && index < atoms);
 
         // Values is the prediction + the error

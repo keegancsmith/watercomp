@@ -4,7 +4,7 @@ import os
 import os.path
 import sys
 
-PERMUTATIONS = 'null best gumhold interframe delta'.split()
+PERMUTATIONS = 'null best naive interframe delta'.split()
 DCDS = 'mscl smallwater mscl1000atoms mscl5frames'.split()
 
 CMD_PATH = os.path.abspath(sys.argv[0])
