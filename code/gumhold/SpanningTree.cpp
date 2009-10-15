@@ -1,7 +1,8 @@
 #include "SpanningTree.h"
 
-#include <vector>
+#include <algorithm>
 #include <climits>
+#include <vector>
 
 using std::vector;
 
@@ -17,6 +18,7 @@ int dist_squared(const QuantisedFrame & frame, int a, int b)
     }
     return d;
 }
+
 
 // Returns the closest atom to order[i] such that the atom is in order[k]
 // where k < i
@@ -38,7 +40,31 @@ int find_closest_seen_atom(const QuantisedFrame & frame,
     return closest;
 }
 
-Graph * spanning_tree(const QuantisedFrame & frame, int & root) {
+
+class AxisCompare
+{
+public:
+    AxisCompare(const QuantisedFrame & frame, int dim)
+        : m_frame(frame), m_dim(dim) {}
+
+    bool operator () (int i, int j) const {
+        for (int k = 0; k < 3; k++) {
+            int d = (m_dim + k) % 3;
+            unsigned int a = m_frame.quantised_frame[i*3 + d];
+            unsigned int b = m_frame.quantised_frame[j*3 + d];
+            if (a != b)
+                return a < b;
+        }
+        return false;
+    }
+
+    const QuantisedFrame & m_frame;
+    int m_dim;
+};
+
+
+Graph * spanning_tree(const QuantisedFrame & frame, int & root)
+{
     // We process atom order[i] in the ith turn
     vector<int> order(frame.natoms());
 
@@ -46,6 +72,11 @@ Graph * spanning_tree(const QuantisedFrame & frame, int & root) {
     // ordering either by x, y or z coord.
     for (int i = 0; i < frame.natoms(); i++)
         order[i] = i;
+
+    // TODO make dim choosable
+    int dim = 0;
+    AxisCompare cmp(frame, dim);
+    sort(order.begin(), order.end(), cmp);
     root = order[0];
 
     Graph * tree = new Graph(&frame, frame.natoms());
