@@ -25,7 +25,8 @@ class AdaptiveModelEncoder
         
         Trie<unsigned int> symbol_table;
         AdaptiveModelEncoder(ArithmeticEncoder* arithmetic_encoder);
-        
+        ~AdaptiveModelEncoder();
+
         void encode(std::string symbol);
         void encode_int(int symbol);
         void end_encode();

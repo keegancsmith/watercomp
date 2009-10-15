@@ -11,6 +11,11 @@ AdaptiveModelEncoder::AdaptiveModelEncoder(ArithmeticEncoder* arithmetic_encoder
     symbol_table.insert("_NEW", tree.add_symbol());
     symbol_table.insert("_EOF", tree.add_symbol());
 }
+
+AdaptiveModelEncoder::~AdaptiveModelEncoder()
+{
+    symbol_table.destroy();
+}
         
 void AdaptiveModelEncoder::encode(string symbol)
 {
