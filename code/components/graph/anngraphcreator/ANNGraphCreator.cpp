@@ -9,7 +9,7 @@
 
 using namespace std;
 
-map< unsigned int, vector<unsigned int> > create_graph(vector<WaterMolecule>& waters, Frame& frame, double tolerance = 0.2, double predicted_distance = 2.95)
+map< unsigned int, vector<unsigned int> > create_graph(vector<WaterMolecule>& waters, Frame& frame, double tolerance, double predicted_distance)
 {
     map< unsigned int, vector<unsigned int> > graph;
     
