@@ -14,6 +14,8 @@
 
 #define CHECK_GL_ERRORS
 
+// #define HAVE_FOCUS_PLANE
+
 Renderer::Renderer(QWidget* parent)
     : QGLWidget(parent)
 {
@@ -83,10 +85,8 @@ void Renderer::initializeGL()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
-    glPointSize(10.0);
-    glLineWidth(2.0);
     // glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_POINT_SMOOTH);
+    // glEnable(GL_POINT_SMOOTH);
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
 }//initializeGL
@@ -117,7 +117,6 @@ void Renderer::paintGL()
     //setup camera
     glTranslatef(0, 0, -_zoom);
     glPushMatrix();
-    // glTranslatef(-128, -128, -128);
     glMultMatrixd(rot->matrix);
 
     glTranslatef(-volume_middle[0], -volume_middle[1], -volume_middle[2]);
@@ -126,6 +125,7 @@ void Renderer::paintGL()
     renderModes[_renderMode]->render();
 
     glPopMatrix();
+#ifdef HAVE_FOCUS_PLANE
     if (_focusPlane)
     {
         glBegin(GL_QUADS);
@@ -136,6 +136,7 @@ void Renderer::paintGL()
         glVertex3f(-max_side*1,  max_side*1, focusPlaneDepth);
         glEnd();
     }//if
+#endif
 
 #ifdef CHECK_GL_ERRORS
     GLenum errcode = glGetError();
@@ -160,7 +161,7 @@ void Renderer::resetView(float* min_coord, float* max_coord)
     }//for
 
     //set a default zoom which should cover the entire volume
-    _zoom = max_side * 0.7;
+    _zoom = max_side * 1.5;
     focusPlaneDepth = 0;
     scrollSensitivity = max_side * 0.1;
     if (scrollSensitivity < 1) scrollSensitivity = 1;
@@ -220,7 +221,7 @@ void Renderer::setRenderMode(int mode)
     {
         renderModes[_renderMode]->current = false;
         BaseView* old_view = renderModes[_renderMode];
-        renderModes[mode]->tick(framenum, old_view->frame, old_view->quantised, old_view->dequantised);
+        renderModes[mode]->tick(framenum, old_view->unquantised, old_view->quantised, old_view->dequantised);
     }//if
     _renderMode = mode;
     settings->setValue("Renderer/renderMode", _renderMode);
@@ -236,11 +237,11 @@ int Renderer::addRenderMode(BaseView* view)
     return viewID;
 }//addRenderMode
 
-void Renderer::dataTick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised)
+void Renderer::dataTick(int framenum, Frame* unquantised, QuantisedFrame* quantised, Frame* dequantised)
 {
     this->framenum = framenum;
     if (_renderMode >= 0)
-        renderModes[_renderMode]->tick(framenum, frame, quantised, dequantised);
+        renderModes[_renderMode]->tick(framenum, unquantised, quantised, dequantised);
 }//dataTick
 
 void Renderer::tick()
@@ -264,6 +265,7 @@ void Renderer::tick()
         spinning[1] = RAD(dify);
     }//if
 
+#ifdef HAVE_FOCUS_PLANE
     if (dragging[1])
     {
         if (_focusPlane)
@@ -271,6 +273,7 @@ void Renderer::tick()
             focusPlaneDepth -= dify * 2;
         }//if
     }//if
+#endif
 
     if (dragging[2])
     {

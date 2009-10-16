@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <pdbio/AtomInformation.h>
+#include <splitter/WaterMolecule.h>
 
 class QWidget;
 
@@ -28,7 +29,7 @@ class BaseView : public QObject
 
         bool current;
         int framenum;
-        Frame* frame;
+        Frame* unquantised;
         QuantisedFrame* quantised;
         Frame* dequantised;
 
@@ -40,7 +41,7 @@ class BaseView : public QObject
         virtual void updatePreferences();
         virtual QWidget* preferenceWidget();
 
-        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised);
+        virtual void tick(int framenum, Frame* unquantised, QuantisedFrame* quantised, Frame* dequantised);
         virtual void render();
 
     signals:
@@ -51,6 +52,9 @@ class BaseView : public QObject
 
     protected:
         QWidget* _preferenceWidget;
+        bool doSplitWaters;
+        std::vector<WaterMolecule> waters;
+        std::vector<unsigned int> others;
 
         bool pickColor(float* color);
 

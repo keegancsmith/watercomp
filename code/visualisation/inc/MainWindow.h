@@ -41,7 +41,7 @@ class MainWindow : public QMainWindow
         void doViewPreferences();
         void setFrame(int value);
 
-        void __do__process__all__frames__();
+        void doProcessAllFrames();
 
     private:
         QSettings* settings;
@@ -55,7 +55,7 @@ class MainWindow : public QMainWindow
         std::vector<AtomInformation> pdb;
         DCDReader* dcdreader;
         float* atoms;
-        Frame* frame;
+        Frame* unquantised;
         QuantisedFrame* quantised;
         Frame* dequantised;
 
@@ -63,7 +63,7 @@ class MainWindow : public QMainWindow
         Renderer* renderer;
         ViewPreferenceDialog* viewPreferenceDialog;
 
-        MetaballsView* __metaballs__;
+        MetaballsView* metaballsView;
 
 
         void setupMenu();

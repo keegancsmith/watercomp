@@ -18,10 +18,6 @@ class Renderer : public QGLWidget
     Q_OBJECT
     friend class MainWindow;
     public:
-        const static int RENDER_BLANK = -1;
-        const static int RENDER_POINTS = 0;
-        const static int RENDER_METABALLS = 1;
-
         double scrollSensitivity;
 
         float volume_min[3];
@@ -55,7 +51,7 @@ class Renderer : public QGLWidget
     public slots:
         void toggleFocusPlane();
         void setRenderMode(int mode);
-        void dataTick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised);
+        void dataTick(int framenum, Frame* unquantised, QuantisedFrame* quantised, Frame* dequantised);
 
     private slots:
         void tick();

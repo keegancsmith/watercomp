@@ -52,9 +52,6 @@ class BallStickView : public BaseView
         int number;
         GLUquadricObj* quadric;
 
-        std::vector<WaterMolecule> waters;
-        std::vector<unsigned int> others;
-
         QWidget* _preferenceWidget;
         QSlider* hAlphaSlider;
         QSlider* oAlphaSlider;

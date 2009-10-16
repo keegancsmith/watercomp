@@ -15,7 +15,6 @@
 #include <GL/gl.h>
 
 #include <quantiser/QuantisedFrame.h>
-#include <splitter/FrameSplitter.h>
 
 #include "Renderer.h"
 #include "Util.h"
@@ -48,6 +47,7 @@ BallStickView::BallStickView()
     quadric = gluNewQuadric();
     number = settings->value("BallStickView/number", 50).toInt();
     // gluQuadricDrawStyle(quadric, GLU_SILHOUETTE);
+    doSplitWaters = true;
 }//constructor
 
 BallStickView::~BallStickView()
@@ -60,8 +60,7 @@ BallStickView::~BallStickView()
 
 void BallStickView::init(std::vector<AtomInformation> pdb)
 {
-    this->pdb = pdb;
-    split_frame(pdb, waters, others);
+    BaseView::init(pdb);
     numberBox->setRange(0, waters.size());
 }//init
 
@@ -146,6 +145,20 @@ void BallStickView::initGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    float l0_amb[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float l0_dif[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    float l0_spe[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    glLightfv(GL_LIGHT0, GL_AMBIENT, l0_amb);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, l0_dif);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, l0_spe);
+
+    float l1_amb[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float l1_dif[] = {0.4f, 0.4f, 0.4f, 1.0f};
+    float l1_spe[] = {0.9f, 0.9f, 0.9f, 1.0f};
+    glLightfv(GL_LIGHT1, GL_AMBIENT, l1_amb);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, l1_dif);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, l1_spe);
+
     glColorMaterial(GL_FRONT, GL_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
 
@@ -158,13 +171,12 @@ void BallStickView::initGL()
 void BallStickView::render()
 {
     if (dequantised == NULL) return;
-    // if (parent) glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
 
-    float l_pos[] = {1.0f, 1.0f, 1.0f, 0.0f};
-    glLightfv(GL_LIGHT0, GL_POSITION, l_pos);
+    float l0_pos[] = {-1.0f, 1.0f, 2.0f, 0.0f};
+    glLightfv(GL_LIGHT0, GL_POSITION, l0_pos);
 
-    float l2_pos[] = {-1.0f, -1.0f, -1.0f, 0.0f};
-    glLightfv(GL_LIGHT1, GL_POSITION, l2_pos);
+    float l1_pos[] = {0.0f, 0.0f, -1.0f, 0.0f};
+    glLightfv(GL_LIGHT1, GL_POSITION, l1_pos);
 
     int n = 0;
     int oslice = oSliceCount * 2;
@@ -172,17 +184,17 @@ void BallStickView::render()
     float pos[3];
     float dis_ratio = 1;
 
-        /*
-        for (int a = 0; a < 3; a++)
-            pos[a] = quantised->quantised_frame[3*waters[i].OH2_index + a] - parent->volume_middle[a];
-        pos[2] += parent->zoom();
-        dis_ratio = 100000 / len2(pos);
-        oslice = oSliceCount * _oSize * _oSize * dis_ratio;
-        hslice = hSliceCount * _hSize * _hSize * dis_ratio;
-        // oslice = oSliceCount;
-        // hslice = hSliceCount;
-        // printf("slice: %i %i\n", oslice, hslice);
-        // */
+    /*
+    for (int a = 0; a < 3; a++)
+        pos[a] = quantised->quantised_frame[3*waters[i].OH2_index + a] - parent->volume_middle[a];
+    pos[2] += parent->zoom();
+    dis_ratio = 100000 / len2(pos);
+    oslice = oSliceCount * _oSize * _oSize * dis_ratio;
+    hslice = hSliceCount * _hSize * _hSize * dis_ratio;
+    // oslice = oSliceCount;
+    // hslice = hSliceCount;
+    // printf("slice: %i %i\n", oslice, hslice);
+    // */
     if (oslice < 4) oslice = 4;
     if (hslice < 4) hslice = 4;
 

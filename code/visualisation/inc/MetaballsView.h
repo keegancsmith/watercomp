@@ -5,7 +5,10 @@
 
 #include <gts.h>
 #include <map>
+#include <QHash>
 #include <QVector>
+
+#define USE_GRID
 
 class QCheckBox;
 class QFile;
@@ -50,19 +53,15 @@ class MetaballsView : public BaseView
 
         int stepSize();
 
+        virtual void init(std::vector<AtomInformation> pdb);
+
         virtual void updatePreferences();
 
-        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised);
+        virtual void tick(int framenum, Frame* unquantised, QuantisedFrame* quantised, Frame* dequantised);
         virtual void render();
 
-        // epic hack of note
-        QVector<QVector<Triangle> > __all__frames__;
-        bool __process__frames__(DCDReader* reader, int start, int end);
-        bool __save__header__(QDataStream& out);
-        bool __save__frames__(QDataStream& out, int start, int end);
-        bool __process__and__save__(QString filename, DCDReader* reader);
-        bool __load__file__(QString filename);
-        bool __load__all__frames__(QString filename);
+        bool processVolume(QString filename, DCDReader* reader);
+        bool loadFile(QString filename);
 
     protected:
         virtual void initGL();
@@ -90,14 +89,16 @@ class MetaballsView : public BaseView
         int cur_quant;
         int size;
 
+#ifdef USE_GRID
         unsigned char*** volumedata;
+#else
+        QHash<Point3f, int> meta_volume;
+#endif
 
         QSlider* metaballsAlphaSlider;
         QSlider* stepSizeSlider;
         QCheckBox* lightCheckBox;
         QCheckBox* cullCheckBox;
-
-        void init();
 
 
         float sampleVolume(float x, float y, float z);
@@ -111,7 +112,7 @@ class MetaballsView : public BaseView
         GtsCartesianGrid g_grid;
 
 
-        bool __do__processing__;
+        bool doProcessing;
         QFile* meta_file;
         QDataStream* meta_data;
         QVector<qint64> meta_pos;
