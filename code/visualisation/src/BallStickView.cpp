@@ -15,7 +15,6 @@
 #include <GL/gl.h>
 
 #include <quantiser/QuantisedFrame.h>
-#include <splitter/FrameSplitter.h>
 
 #include "Renderer.h"
 #include "Util.h"
@@ -48,6 +47,7 @@ BallStickView::BallStickView()
     quadric = gluNewQuadric();
     number = settings->value("BallStickView/number", 50).toInt();
     // gluQuadricDrawStyle(quadric, GLU_SILHOUETTE);
+    doSplitWaters = true;
 }//constructor
 
 BallStickView::~BallStickView()
@@ -60,8 +60,7 @@ BallStickView::~BallStickView()
 
 void BallStickView::init(std::vector<AtomInformation> pdb)
 {
-    this->pdb = pdb;
-    split_frame(pdb, waters, others);
+    BaseView::init(pdb);
     numberBox->setRange(0, waters.size());
 }//init
 
@@ -163,7 +162,7 @@ void BallStickView::render()
     float l_pos[] = {1.0f, 1.0f, 1.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, l_pos);
 
-    float l2_pos[] = {-1.0f, -1.0f, -1.0f, 0.0f};
+    float l2_pos[] = {-1.0f, 0.0f, 0.0f, 0.0f};
     glLightfv(GL_LIGHT1, GL_POSITION, l2_pos);
 
     int n = 0;
@@ -172,17 +171,17 @@ void BallStickView::render()
     float pos[3];
     float dis_ratio = 1;
 
-        /*
-        for (int a = 0; a < 3; a++)
-            pos[a] = quantised->quantised_frame[3*waters[i].OH2_index + a] - parent->volume_middle[a];
-        pos[2] += parent->zoom();
-        dis_ratio = 100000 / len2(pos);
-        oslice = oSliceCount * _oSize * _oSize * dis_ratio;
-        hslice = hSliceCount * _hSize * _hSize * dis_ratio;
-        // oslice = oSliceCount;
-        // hslice = hSliceCount;
-        // printf("slice: %i %i\n", oslice, hslice);
-        // */
+    /*
+    for (int a = 0; a < 3; a++)
+        pos[a] = quantised->quantised_frame[3*waters[i].OH2_index + a] - parent->volume_middle[a];
+    pos[2] += parent->zoom();
+    dis_ratio = 100000 / len2(pos);
+    oslice = oSliceCount * _oSize * _oSize * dis_ratio;
+    hslice = hSliceCount * _hSize * _hSize * dis_ratio;
+    // oslice = oSliceCount;
+    // hslice = hSliceCount;
+    // printf("slice: %i %i\n", oslice, hslice);
+    // */
     if (oslice < 4) oslice = 4;
     if (hslice < 4) hslice = 4;
 

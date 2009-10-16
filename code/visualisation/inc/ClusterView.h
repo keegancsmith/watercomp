@@ -7,8 +7,8 @@
 #include <map>
 #include <vector>
 
-#include <splitter/WaterMolecule.h>
 
+class QCheckBox;
 class QLabel;
 class QSettings;
 class QSlider;
@@ -21,8 +21,6 @@ class ClusterView : public BaseView
     public:
         ClusterView();
         virtual ~ClusterView();
-
-        virtual void init(std::vector<AtomInformation> pdb);
 
         virtual void updatePreferences();
 
@@ -37,6 +35,7 @@ class ClusterView : public BaseView
         void setLineAlpha(int value);
         void setLineWidth(int value);
         void pickLineColor();
+        void setLighting(int state);
         void setClusterID(int value);
 
     private:
@@ -46,16 +45,16 @@ class ClusterView : public BaseView
         int num_clusters;
         int current_cluster;
         GLUquadricObj* quadric;
+        bool lighting;
 
         QSlider* lineWidthSlider;
         QSlider* lineAlphaSlider;
         QSpinBox* clusterSpinBox;
+        QCheckBox* lightCheckBox;
         QLabel* countLabel;
 
         bool first;
 
-        std::vector<WaterMolecule> waters;
-        std::vector<unsigned int> others;
         std::map<unsigned int, std::vector<unsigned int> > graph;
         std::map<int, int> components;
         std::map<unsigned int, unsigned int> sizes;

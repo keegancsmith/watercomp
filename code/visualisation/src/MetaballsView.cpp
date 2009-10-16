@@ -5,6 +5,7 @@
 #include <cassert>
 
 #include <QCheckBox>
+#include <QFile>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
@@ -12,17 +13,13 @@
 #include <QSlider>
 #include <QWidget>
 
-#include <quantiser/QuantisedFrame.h>
-
 #include <pdbio/DCDReader.h>
-#include <pdbio/Frame.h>
 #include <quantiser/QuantisedFrame.h>
-#include <QFile>
 
 #define ALPHA_MAX_SLIDER 100
 #define ALPHA_MAX_VAL 1.0
 
-// #define USE_PREPROCESSED_FILE
+#define USE_PREPROCESSED_FILE
 
 #include "MarchingTables.cpp"
 #include "Renderer.h"
@@ -45,6 +42,29 @@ bool Point3f::operator<(const Point3f& p) const
     }//if
     return x < p.x;
 }//operator<
+
+
+#ifndef USE_GRID
+
+bool operator==(const Point3f& p1, const Point3f& p2)
+{
+    if ((fabs(p1.x - p2.x) > 1e-6) ||
+        (fabs(p1.y - p2.y) > 1e-6) ||
+        (fabs(p1.z - p2.z) > 1e-6))
+        return false;
+    return true;
+}//operator==
+
+uint qHash(const Point3f& p)
+{
+    // some arb 3 float function
+// #define HF(x) (int)((x)*1000)
+    // return HF(p.x) ^ HF(p.y) ^ HF(p.z)
+// #undef
+    return p.x*p.x + p.y*p.y + p.z*p.z;
+}//qHash
+
+#endif
 
 
 void sampleSphere(gdouble** f, GtsCartesianGrid g, guint k, gpointer data)
@@ -135,13 +155,23 @@ int draw_face(gpointer item, gpointer data)
 
 void sample_volume_data(gdouble** f, GtsCartesianGrid g, guint k, gpointer data)
 {
+#ifdef USE_GRID
     unsigned char*** volume = (unsigned char***)data;
     int x, y, z = g.z;
     int i, j;
     for (i = 0, x = g.x; i < g.nx; i++, x+=g.dx)
         for (j = 0, y = g.y; j < g.ny; j++, y+=g.dy)
             f[i][j] = volume[z][y][x];
-}//sampleVolume
+#else
+    QHash<Point3f, int>* volume = (QHash<Point3f, int>*)data;
+    Point3f p3f;
+    p3f.z = g.z;
+    int i, j;
+    for (i = 0, p3f.x = g.x; i < g.nx; i++, p3f.x+=g.dx)
+        for (j = 0, p3f.y = g.y; j < g.ny; j++, p3f.y+=g.dy)
+            f[i][j] = (*volume)[p3f];
+#endif
+}//sample_volume_data
 
 
 int process_vertex(MetaballsView* view, float* vertex, float* normal)
@@ -295,7 +325,7 @@ MetaballsView::MetaballsView()
     triangle_num = 0;
     vertex_num = 0;
 
-    init();
+    doSplitWaters = true;
 
     __do__processing__ = false;
     meta_file = 0;
@@ -313,6 +343,7 @@ MetaballsView::~MetaballsView()
         delete meta_data;
     settings->sync();
     delete settings;
+#ifdef USE_GRID
     int x, y, z;
     if (volumedata != NULL)
     {
@@ -324,6 +355,7 @@ MetaballsView::~MetaballsView()
         }//for
         delete [] volumedata;
     }//if
+#endif
 }//destructor
 
 
@@ -333,8 +365,10 @@ int MetaballsView::stepSize()
 }//stepSize
 
 
-void MetaballsView::init()
+void MetaballsView::init(std::vector<AtomInformation> pdb)
 {
+    BaseView::init(pdb);
+#ifdef USE_GRID
     max_quant = 8;
     size = 1 << max_quant;
 
@@ -350,6 +384,7 @@ void MetaballsView::init()
                 volumedata[z][y][x] = 0;
         }//for
     }//for
+#endif
 }//init
 
 
@@ -501,11 +536,16 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, 
 
     int max_coord[] = {1 << quantised->m_xquant, 1 << quantised->m_yquant, 1 << quantised->m_zquant};
     int z, y, x;
+#ifdef USE_GRID
     for (z = 0; z < max_coord[2]; ++z)
         for (y = 0; y < max_coord[1]; ++y)
             for (x = 0; x < max_coord[0]; ++x)
                 volumedata[z][y][x] = 0;
     printf("done clearing\n");
+#else
+    meta_volume.clear();
+    Point3f p3f;
+#endif
 
     int start_coord[3];
     int final_coord[3];
@@ -520,29 +560,34 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, 
     int max_dataval = 0;
     int v, c;
     printf("reset: %i\n", quantised->natoms());
-    for (int i = 0; i < quantised->natoms(); ++i)
+    for (int i = 0; i < waters.size(); ++i)
     {
-        if (pdb[i].atom_name == "OH2")
+        for (c = 0; c < 3; ++c)
         {
-            for (c = 0; c < 3; ++c)
-            {
-                v = quantised->quantised_frame[i*3+c];
-                start_coord[c] = v - metaballs_size[c];
-                if (start_coord[c] < 0) start_coord[c] = 0;
-                final_coord[c] = v + metaballs_size[c];
-                if (final_coord[c] > max_coord[c]) final_coord[c] = max_coord[c];
-            }//for
+            v = quantised->quantised_frame[3*waters[i].OH2_index+c];
+            start_coord[c] = v - metaballs_size[c];
+            if (start_coord[c] < 0) start_coord[c] = 0;
+            final_coord[c] = v + metaballs_size[c];
+            if (final_coord[c] > max_coord[c]) final_coord[c] = max_coord[c];
+        }//for
 
-            for (z = start_coord[2]; z < final_coord[2]; ++z)
-                for (y = start_coord[1]; y < final_coord[1]; ++y)
-                    for (x = start_coord[0]; x < final_coord[0]; ++x)
-                    {
-                        v = volumedata[z][y][x] + contrib;
-                        volumedata[z][y][x] = (v > maxval) ? maxval : v;
-                        if (v < min_dataval) min_dataval = v;
-                        if (v > max_dataval) max_dataval = v;
-                    }//for
-        }//if
+        for (z = start_coord[2]; z < final_coord[2]; ++z)
+            for (y = start_coord[1]; y < final_coord[1]; ++y)
+                for (x = start_coord[0]; x < final_coord[0]; ++x)
+                {
+#ifdef USE_GRID
+                    v = volumedata[z][y][x] + contrib;
+                    volumedata[z][y][x] = (v > maxval) ? maxval : v;
+#else
+                    p3f.x = x;
+                    p3f.y = y;
+                    p3f.z = z;
+                    v = meta_volume[p3f] + contrib;
+                    meta_volume[p3f] = (v > maxval) ? maxval : v;
+#endif
+                    if (v < min_dataval) min_dataval = v;
+                    if (v > max_dataval) max_dataval = v;
+                }//for
     }//for
 
     _surface.clear();
@@ -554,10 +599,20 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, 
                                 gts_edge_class(),
                                 gts_vertex_class());
     printf("value: (%d, %d)\n", min_dataval, max_dataval);
-    // gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, (int)((min_dataval + max_dataval) * 0.5));
-    // gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, (int)((min_dataval + max_dataval) * 0.8));
-    gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 128);
-    // gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 40);
+
+#ifdef USE_GRID
+    // mscl
+    // gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 128);
+
+    // amall
+    // gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 14);
+
+    // gala
+    gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 15);
+#else
+    gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)&meta_volume, 15);
+#endif
+
     int count = gts_surface_face_number(g_surface);
     printf("face number: %u\n", count);
 
@@ -777,25 +832,6 @@ void MetaballsView::render()
                 vertices[indices[v+2]]);
     }//for
 
-    / * /
-
-    Triangle t;
-    for (int i = 0; i < _surface.size(); i++)
-    {
-        t = _surface.at(i);
-        // printf("normal: %f %f %f\n", t.n[0][0], t.n[0][1], t.n[0][2]);
-        // printf("vertex: %f %f %f\n", t.p[0][0], t.p[0][1], t.p[0][2]);
-        glNormal3fv(t.n[0]);
-        glVertex3fv(t.p[0]);
-        // printf("normal: %f %f %f\n", t.n[1][0], t.n[1][1], t.n[1][2]);
-        // printf("vertex: %f %f %f\n", t.p[1][0], t.p[1][1], t.p[1][2]);
-        glNormal3fv(t.n[1]);
-        glVertex3fv(t.p[1]);
-        // printf("normal: %f %f %f\n", t.n[2][0], t.n[2][1], t.n[2][2]);
-        // printf("vertex: %f %f %f\n", t.p[2][0], t.p[2][1], t.p[2][2]);
-        glNormal3fv(t.n[2]);
-        glVertex3fv(t.p[2]);
-    }//for
     // */
 
 #ifdef USE_PREPROCESSED_FILE
@@ -880,7 +916,6 @@ void MetaballsView::pickMetaballsColor()
     settings->setValue("MetaballsView/colorB", _metaballsColor[2]);
 }//pickMetaballsColor
 
-
 void MetaballsView::setCullFace(int state)
 {
     cullFace = state != 0;
@@ -917,10 +952,14 @@ void MetaballsView::updateFaces()
 
 float MetaballsView::sampleVolume(float x, float y, float z)
 {
+#ifdef USE_GRID
     int ix = (int)x;
     int iy = (int)y;
     int iz = (int)z;
     return volumedata[iz][iy][ix];
+#else
+    return 0;
+#endif
 }//sampleVolume
 
 
@@ -1144,67 +1183,7 @@ void MetaballsView::callMarchingCubes(float x, float y, float z, float scale)
 
 
 
-bool MetaballsView::__process__frames__(DCDReader* reader, int start, int end)
-{
-    float* atoms = new float[3 * reader->natoms()];
-    Frame frame(atoms, reader->natoms());
-    __all__frames__.clear();
-    __all__frames__.resize(reader->nframes());
-    QuantisedFrame* qf = new QuantisedFrame(1, 1, 1, 1);;
-    Frame* dq = new Frame(qf->toFrame());
-    __do__processing__ = true;
-    int v;
-    for (int i = start; i < end; i++)
-    {
-        reader->set_frame(i);
-        reader->next_frame(frame);
-
-        delete qf; qf = new QuantisedFrame(frame, 8, 8, 8);
-        delete dq; dq = new Frame(qf->toFrame());
-
-        tick(i, &frame, qf, dq);
-        // __all__frames__.at(i).resize(_surface.size());
-        __all__frames__[i].resize(_surface.size());
-        for (v = 0; v < _surface.size(); v++)
-            // __all__frames__.at(i).at(v) = _surface[v];
-            __all__frames__[i][v] = _surface[v];
-        printf("Frame: %i\n", i);
-    }//for
-    __do__processing__ = false;
-    return true;
-}//__process__frames__
-
-
-bool MetaballsView::__save__header__(QDataStream& out)
-{
-    out << (quint32)__all__frames__.size();
-    return true;
-}//__save__header__
-
-
-bool MetaballsView::__save__frames__(QDataStream& out, int start, int end)
-{
-    int j, k, l;
-    Triangle t;
-    for (int i = start; i < end; i++)
-    {
-        out << (quint32)__all__frames__.at(i).size();
-        for (j = 0; j < __all__frames__.at(i).size(); j++)
-        {
-            t = __all__frames__.at(i).at(j);
-            for (k = 0; k < 3; k++)
-                for (l = 0; l < 3; l++)
-                    out << t.p[k][l];
-            for (k = 0; k < 3; k++)
-                for (l = 0; l < 3; l++)
-                    out << t.n[k][l];
-        }//for
-    }//for
-    return true;
-}//__save__frames__
-
-
-bool MetaballsView::__process__and__save__(QString filename, DCDReader* reader)
+bool MetaballsView::processVolume(QString filename, DCDReader* reader)
 {
     QFile file(filename);
     file.open(QIODevice::WriteOnly);
@@ -1247,9 +1226,10 @@ bool MetaballsView::__process__and__save__(QString filename, DCDReader* reader)
 
     file.close();
     return true;
-}//__process__and__save__
+}//processVolume
 
-bool MetaballsView::__load__file__(QString filename)
+
+bool MetaballsView::loadFile(QString filename)
 {
 #ifdef USE_PREPROCESSED_FILE
     if (meta_file != 0)
@@ -1279,34 +1259,5 @@ bool MetaballsView::__load__file__(QString filename)
     loadedframe = -1;
 #endif
     return true;
-}//__load__file__
-
-bool MetaballsView::__load__all__frames__(QString filename)
-{
-    /*
-    __all__frames__.clear();
-    __all__frames__.resize(total_size);
-    int j, k, l;
-    for (int i = 0; i < total_size; i++)
-    {
-        in >> size;
-        // __all__frames__.at(i).resize(size);
-        __all__frames__[i].resize(size);
-
-        for (j = 0; j < size; j++)
-        {
-            Triangle t;
-            for (k = 0; k < 3; k++)
-                for (l = 0; l < 3; l++)
-                    in >> t.p[k][l];
-            for (k = 0; k < 3; k++)
-                for (l = 0; l < 3; l++)
-                    in >> t.n[k][l];
-            // __all__frames__.at(i).at(j) = t;
-            __all__frames__[i][j] = t;
-        }//for
-    }//for
-    // */
-    return true;
-}//__load__all__frames__
+}//loadFile
 

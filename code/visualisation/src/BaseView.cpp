@@ -3,6 +3,8 @@
 #include <QColor>
 #include <QColorDialog>
 
+#include <splitter/FrameSplitter.h>
+
 #include "Renderer.h"
 
 BaseView::BaseView()
@@ -19,6 +21,8 @@ BaseView::BaseView()
     frame = 0;
     quantised = 0;
     dequantised = 0;
+
+    doSplitWaters = false;
 }//constructor
 
 BaseView::~BaseView()
@@ -29,6 +33,12 @@ BaseView::~BaseView()
 void BaseView::init(std::vector<AtomInformation> pdb)
 {
     this->pdb = pdb;
+    if (doSplitWaters)
+    {
+        waters.clear();
+        others.clear();
+        split_frame(pdb, waters, others);
+    }//if
 }//init
 
 void BaseView::updatePreferences()

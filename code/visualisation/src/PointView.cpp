@@ -30,6 +30,7 @@ PointView::PointView()
     quantised = 0;
     _preferenceWidget = NULL;
     _pointSize = settings->value("PointView/pointSize", 10).toInt();
+    doSplitWaters = true;
 }//constructor
 
 PointView::~PointView()
@@ -95,12 +96,11 @@ void PointView::render()
     //draw points
     glColor4fv(_pointColor);
     glBegin(GL_POINTS);
-    for (int i = 0; i < dequantised->natoms(); i++)
+    for (int i = 0; i < waters.size(); i++)
     {
-        if (pdb[i].atom_name == "OH2")
-            glVertex3i(dequantised->atom_data[i*3],
-                       dequantised->atom_data[i*3+1],
-                       dequantised->atom_data[i*3+2]);
+        glVertex3i(dequantised->atom_data[3*waters[i].OH2_index],
+                    dequantised->atom_data[3*waters[i].OH2_index+1],
+                    dequantised->atom_data[3*waters[i].OH2_index+2]);
     }//for
     glEnd();
     glDepthFunc(GL_LEQUAL);

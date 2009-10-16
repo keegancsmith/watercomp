@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <pdbio/AtomInformation.h>
+#include <splitter/WaterMolecule.h>
 
 class QWidget;
 
@@ -51,6 +52,9 @@ class BaseView : public QObject
 
     protected:
         QWidget* _preferenceWidget;
+        bool doSplitWaters;
+        std::vector<WaterMolecule> waters;
+        std::vector<unsigned int> others;
 
         bool pickColor(float* color);
 

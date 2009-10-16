@@ -40,6 +40,7 @@ QuantiseErrorView::QuantiseErrorView()
     _startErrorValue = settings->value("QuantiseErrorView/startError", 0.06).toDouble();
     _finalErrorValue = settings->value("QuantiseErrorView/finalError", 0.06).toDouble();
     errors = 0;
+    doSplitWaters = true;
 }//constructor
 
 QuantiseErrorView::~QuantiseErrorView()
@@ -140,20 +141,17 @@ void QuantiseErrorView::tick(int framenum, Frame* frame, QuantisedFrame* quantis
     float d;
     float range = _finalErrorValue - _startErrorValue;
     if (errors) delete errors;
-    errors = new float[dequantised->natoms()];
-    for (int i = 0; i < dequantised->natoms(); i++)
+    errors = new float[waters.size()];
+    for (int i = 0; i < waters.size(); i++)
     {
-        if (pdb[i].atom_name == "OH2")
-        {
-            dif[0] = dequantised->atom_data[i*3  ] - frame->atom_data[i*3];
-            dif[1] = dequantised->atom_data[i*3+1] - frame->atom_data[i*3+1];
-            dif[2] = dequantised->atom_data[i*3+2] - frame->atom_data[i*3+2];
-            d = sqrt(len2(dif));
-            errors[i] = (d - _startErrorValue) / range;
-            if (errors[i] < 0) errors[i] = 0;
-            if (errors[i] > 1) errors[i] = 1;
-            if (errors[i] > 0.5) errors[i] = 1;
-        }//if
+        dif[0] = dequantised->atom_data[3*waters[i].OH2_index  ] - frame->atom_data[3*waters[i].OH2_index];
+        dif[1] = dequantised->atom_data[3*waters[i].OH2_index+1] - frame->atom_data[3*waters[i].OH2_index+1];
+        dif[2] = dequantised->atom_data[3*waters[i].OH2_index+2] - frame->atom_data[3*waters[i].OH2_index+2];
+        d = sqrt(len2(dif));
+        errors[i] = (d - _startErrorValue) / range;
+        if (errors[i] < 0) errors[i] = 0;
+        if (errors[i] > 1) errors[i] = 1;
+        if (errors[i] > 0.5) errors[i] = 1;
     }//for
 }//tick
 
@@ -163,27 +161,24 @@ void QuantiseErrorView::render()
 
     //draw points
     float range[] = {_finalColor[0] - _startColor[0],
-                _finalColor[1] - _startColor[1],
-                _finalColor[2] - _startColor[2],
-                _finalColor[3] - _startColor[3]};
+                     _finalColor[1] - _startColor[1],
+                     _finalColor[2] - _startColor[2],
+                     _finalColor[3] - _startColor[3]};
     glBegin(GL_LINES);
-    for (int i = 0; i < dequantised->natoms(); i++)
+    for (int i = 0; i < waters.size(); i++)
     {
-        if (pdb[i].atom_name == "OH2")
+        if (errors[i] > 1e-6)
         {
-            if (errors[i] > 1e-6)
-            {
-                glColor4f(_startColor[0] + errors[i] * range[0],
-                          _startColor[1] + errors[i] * range[1],
-                          _startColor[2] + errors[i] * range[2],
-                          _startColor[3] + errors[i] * range[3]);
-                glVertex3f(frame->atom_data[i*3],
-                           frame->atom_data[i*3+1],
-                           frame->atom_data[i*3+2]);
-                glVertex3f(dequantised->atom_data[i*3],
-                           dequantised->atom_data[i*3+1],
-                           dequantised->atom_data[i*3+2]);
-            }//if
+            glColor4f(_startColor[0] + errors[i] * range[0],
+                       _startColor[1] + errors[i] * range[1],
+                       _startColor[2] + errors[i] * range[2],
+                       _startColor[3] + errors[i] * range[3]);
+            glVertex3f(frame->atom_data[3*waters[i].OH2_index],
+                       frame->atom_data[3*waters[i].OH2_index+1],
+                       frame->atom_data[3*waters[i].OH2_index+2]);
+            glVertex3f(dequantised->atom_data[3*waters[i].OH2_index],
+                       dequantised->atom_data[3*waters[i].OH2_index+1],
+                       dequantised->atom_data[3*waters[i].OH2_index+2]);
         }//if
     }//for
     glEnd();

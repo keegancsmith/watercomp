@@ -69,7 +69,7 @@ MainWindow::MainWindow()
     dequantised = 0;
     renderer->setRenderMode(settings->value("Renderer/renderMode", 0).toInt());
 
-    quantisationLevel = 8;
+    quantisationLevel = 5;
 }//constructor
 
 MainWindow::~MainWindow()
@@ -102,7 +102,7 @@ void MainWindow::doOpenFile()
     dcdreader->open_file(tFilename.replace(QRegExp(".pdb$"), ".dcd").toStdString().c_str());
     playbackControl->setTotalFrames(dcdreader->nframes());
 
-    __metaballs__->__load__file__(tFilename.replace(QRegExp(".dcd$"), ".mbd").toStdString().c_str());
+    __metaballs__->loadFile(tFilename.replace(QRegExp(".dcd$"), ".mbd").toStdString().c_str());
 
     foreach (BaseView* view, views)
     {
@@ -211,6 +211,6 @@ void MainWindow::addRenderMode(BaseView* view, QMenu* menu)
 void MainWindow::__do__process__all__frames__()
 {
     QString mbdFilename(lastLocation);
-    __metaballs__->__process__and__save__(mbdFilename.replace(QRegExp(".pdb$"), ".mbd").toStdString().c_str(), dcdreader);
+    __metaballs__->processVolume(mbdFilename.replace(QRegExp(".pdb$"), ".mbd").toStdString().c_str(), dcdreader);
 }//__do__process__all__frames__
 

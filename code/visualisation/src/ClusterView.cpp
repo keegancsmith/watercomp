@@ -1,9 +1,11 @@
 #include "ClusterView.h"
 
+#include <cmath>
 #include <cstdio>
 #include <map>
 #include <vector>
 
+#include <QCheckBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
@@ -13,15 +15,8 @@
 #include <QWidget>
 #include <GL/gl.h>
 
-#include <pdbio/AtomInformation.h>
-#include <pdbio/DCDReader.h>
-#include <pdbio/Frame.h>
-#include <pdbio/PDBReader.h>
 #include <quantiser/QuantisedFrame.h>
-#include <splitter/FrameSplitter.h>
-#include <splitter/WaterMolecule.h>
 #include <graph/anngraphcreator/ANNGraphCreator.h>
-#include <graph/gridgraphcreator/GridGraphCreator.h>
 
 #include "Renderer.h"
 #include "Util.h"
@@ -61,13 +56,15 @@ void renderCylinder(float x1, float y1, float z1, float x2,float y2, float z2, f
     gluCylinder(quadric, radius, radius, v, subdivisions, 1);
 
     //draw the first cap
-    gluQuadricOrientation(quadric,GLU_INSIDE);
-    gluDisk( quadric, 0.0, radius, subdivisions, 1);
+    // gluQuadricOrientation(quadric,GLU_INSIDE);
+    // gluDisk( quadric, 0.0, radius, subdivisions, 1);
+    gluSphere(quadric, radius, subdivisions, subdivisions);
     glTranslatef( 0,0,v );
 
     //draw the second cap
-    gluQuadricOrientation(quadric,GLU_OUTSIDE);
-    gluDisk( quadric, 0.0, radius, subdivisions, 1);
+    // gluQuadricOrientation(quadric,GLU_OUTSIDE);
+    // gluDisk( quadric, 0.0, radius, subdivisions, 1);
+    gluSphere(quadric, radius, subdivisions, subdivisions);
     glPopMatrix();
 }
 
@@ -82,6 +79,8 @@ ClusterView::ClusterView()
     _lineColor[2] = settings->value("ClusterView/colorB", 1.0).toDouble();
     _lineColor[3] = settings->value("ClusterView/colorA", 0.8).toDouble();
     _lineWidth = settings->value("ClusterView/lineWidth", 2).toInt();
+
+    lighting = settings->value("ClusterView/lighting", false).toBool();
     _preferenceWidget = NULL;
 
     quantised = 0;
@@ -91,6 +90,7 @@ ClusterView::ClusterView()
     quadric = gluNewQuadric();
 
     first = true;
+    doSplitWaters = true;
 }//constructor
 
 ClusterView::~ClusterView()
@@ -101,17 +101,13 @@ ClusterView::~ClusterView()
 }//destructor
 
 
-void ClusterView::init(std::vector<AtomInformation> pdb)
-{
-    this->pdb = pdb;
-    split_frame(pdb, waters, others);
-}//init
-
-
 void ClusterView::updatePreferences()
 {
     lineWidthSlider->setValue(_lineWidth);
     lineAlphaSlider->setValue((int)(_lineColor[3] * MAX_ALPHA_SLIDER / MAX_ALPHA_VAL));
+    lightCheckBox->setCheckState(lighting ? Qt::Checked : Qt::Unchecked);
+    clusterSpinBox->setMaximum(num_clusters-1);
+    if (current_cluster == -1) countLabel->setNum((int)(num_clusters-1));
 }//updatePreferences
 
 void ClusterView::setupPreferenceWidget(QWidget* preferenceWidget)
@@ -140,19 +136,26 @@ void ClusterView::setupPreferenceWidget(QWidget* preferenceWidget)
     connect(lineWidthSlider, SIGNAL(valueChanged(int)), this, SLOT(setLineWidth(int)));
     layout->addWidget(lineWidthSlider, 2, 1);
 
+    QLabel* lightLabel = new QLabel(tr("Enable lighting"), preferenceWidget);
+    layout->addWidget(lightLabel, 3, 0);
+
+    lightCheckBox = new QCheckBox(preferenceWidget);
+    connect(lightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setLighting(int)));
+    layout->addWidget(lightCheckBox, 3, 1);
+
     QLabel* clusterLabel = new QLabel(tr("Cluster ID"), preferenceWidget);
-    layout->addWidget(clusterLabel, 3, 0);
+    layout->addWidget(clusterLabel, 4, 0);
 
     clusterSpinBox = new QSpinBox(preferenceWidget);
     clusterSpinBox->setRange(-1, -1);
     connect(clusterSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setClusterID(int)));
-    layout->addWidget(clusterSpinBox, 3, 1);
+    layout->addWidget(clusterSpinBox, 4, 1);
 
     QLabel* countLabelLabel = new QLabel(tr("Cluster count"), preferenceWidget);
-    layout->addWidget(countLabelLabel, 4, 0);
+    layout->addWidget(countLabelLabel, 5, 0);
 
     countLabel = new QLabel(tr("-1"), preferenceWidget);
-    layout->addWidget(countLabel, 4, 1);
+    layout->addWidget(countLabel, 5, 1);
 
     preferenceWidget->setLayout(layout);
 }//setupPreferenceWidget
@@ -173,22 +176,18 @@ void ClusterView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, Fr
 
     graph.clear();
     graph = create_graph(waters, *frame);
-    // graph = GridGraphCreator::create_graph(waters, *frame);
 
     num_clusters = 0;
     components.clear();
     sizes.clear();
-    for(int i = 0; i < waters.size(); ++i)
+    for (int i = 0; i < waters.size(); ++i)
     {
-        if(components.find(waters[i].OH2_index) == components.end())
+        if (components.find(waters[i].OH2_index) == components.end())
         {
             sizes[num_clusters] = 0;
             dfs(waters[i].OH2_index, num_clusters++);
-        }
-    }
-    clusterSpinBox->setMaximum(num_clusters-1);
-    printf("Cluster count: %d\n", num_clusters-1);
-    if (current_cluster == -1) countLabel->setNum((int)(num_clusters-1));
+        }//if
+    }//for
 }//tick
 
 void ClusterView::initGL()
@@ -196,7 +195,13 @@ void ClusterView::initGL()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glDisable(GL_LIGHTING);
+    glColorMaterial(GL_FRONT, GL_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+
+    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT1);
+    if (lighting) glEnable(GL_LIGHTING);
+    else glDisable(GL_LIGHTING);
 
     glLineWidth(_lineWidth);
 }//initGL
@@ -350,4 +355,16 @@ void ClusterView::setClusterID(int value)
     countLabel->setNum((int)(current_cluster > -1 ? sizes[current_cluster] : num_clusters-1));
     first = true;
 }//setClusterID
+
+void ClusterView::setLighting(int state)
+{
+    lighting = state != 0;
+    settings->setValue("ClusterView/lighting", lighting);
+
+    if (current)
+    {
+        if (lighting) glEnable(GL_LIGHTING);
+        else glDisable(GL_LIGHTING);
+    }//if
+}//setLighting
 
