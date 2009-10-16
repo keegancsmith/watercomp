@@ -52,7 +52,7 @@ TESTS = {
     'gumhold': {
         'bin'    : './gumhold/gumhold',
         'perms'  : PERMUTATIONS,
-        'dcds'   : ['smallwater', 'mscl1000atoms'],
+        'dcds'   : DCDS,
         'author' : 'keegan',
     },
 
