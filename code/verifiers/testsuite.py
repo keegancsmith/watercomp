@@ -31,6 +31,24 @@ TESTS = {
         'author' : 'julian',
     },
 
+    'nearest_interframe': {
+        'bin'    : './nearest_interframe/driver',
+        'dcds'   : DCDS,
+        'author' : 'julian',
+    },
+
+    'nn_interframe': {
+        'bin'    : './nn_interframe/driver',
+        'dcds'   : DCDS,
+        'author' : 'julian',
+    },
+
+    'spline_interframe': {
+        'bin'    : './spline_interframe/driver',
+        'dcds'   : DCDS,
+        'author' : 'julian',
+    },
+
     'gumhold': {
         'bin'    : './gumhold/gumhold',
         'perms'  : PERMUTATIONS,
