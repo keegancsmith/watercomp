@@ -305,15 +305,12 @@ MetaballsView::~MetaballsView()
 {
     settings->sync();
     delete settings;
-    int nz = 255;
-    int ny = 255;
-    int nx = 255;
     int x, y, z;
     if (volumedata != NULL)
     {
-        for (z = 0; z < nz; z++)
+        for (z = 0; z < size; z++)
         {
-            for (y = 0; y < ny; y++)
+            for (y = 0; y < size; y++)
                 delete [] volumedata[z][y];
             delete [] volumedata[z];
         }//for
@@ -330,30 +327,18 @@ int MetaballsView::stepSize()
 
 void MetaballsView::init()
 {
-    g_grid.nx = 255;
-    g_grid.ny = 255;
-    g_grid.nz = 255;
+    max_quant = 8;
+    size = 1 << max_quant;
 
-    g_grid.dx = 5;
-    g_grid.dy = 5;
-    g_grid.dz = 5;
-
-    g_grid.nx /= g_grid.dx;
-    g_grid.ny /= g_grid.dy;
-    g_grid.nz /= g_grid.dz;
-
-    int vz = 255;
-    int vy = 255;
-    int vx = 255;
     int x, y, z;
-    volumedata = new unsigned char**[vz];
-    for (z = 0; z < vz; z++)
+    volumedata = new unsigned char**[size];
+    for (z = 0; z < size; z++)
     {
-        volumedata[z] = new unsigned char*[vy];
-        for (y = 0; y < vy; y++)
+        volumedata[z] = new unsigned char*[size];
+        for (y = 0; y < size; y++)
         {
-            volumedata[z][y] = new unsigned char[vx];
-            for (x = 0; x < vx; x++)
+            volumedata[z][y] = new unsigned char[size];
+            for (x = 0; x < size; x++)
                 volumedata[z][y][x] = 0;
         }//for
     }//for
@@ -492,45 +477,54 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, 
     if (dequantised == 0) return;
     if (!__do__processing__) return;
 
+    g_grid.nx = 1 << quantised->m_xquant;
+    g_grid.ny = 1 << quantised->m_yquant;
+    g_grid.nz = 1 << quantised->m_zquant;
+
+    g_grid.dx = 5;
+    g_grid.dy = 5;
+    g_grid.dz = 5;
+
+    g_grid.nx /= g_grid.dx;
+    g_grid.ny /= g_grid.dy;
+    g_grid.nz /= g_grid.dz;
+
+    int max_coord[] = {g_grid.nx, g_grid.ny, g_grid.nz};
     int z, y, x;
-    for (z = 0; z < 255; z++)
-        for (y = 0; y < 255; y++)
-            for (x = 0; x < 255; x++)
+    for (z = 0; z < max_coord[2]; ++z)
+        for (y = 0; y < max_coord[1]; ++y)
+            for (x = 0; x < max_coord[0]; ++x)
                 volumedata[z][y][x] = 0;
 
-    int sz, sy, sx, fz, fy, fx;
-    int metaballs_size = 15;
+    int start_coord[3];
+    int final_coord[3];
+    float metaballs_ratio = 0.18;
+    int metaballs_size[] = {max_coord[0] * metaballs_ratio,
+                            max_coord[1] * metaballs_ratio,
+                            max_coord[2] * metaballs_ratio};
     int contrib = 10;
-    int v;
-    printf("reset: %i\n", quantised->natoms());
+    int maxval = 255;
+    int v, c;
+    // printf("reset: %i\n", quantised->natoms());
     for (int i = 0; i < quantised->natoms(); i++)
     {
         if (pdb[i].atom_name == "OH2")
         {
-            x = quantised->quantised_frame[i*3];
-            sx = x - metaballs_size;
-            if (sx < 0) sx = 0;
-            fx = x + metaballs_size;
-            if (fx > 255) fx = 255;
+            for (c = 0; c < 3; ++c)
+            {
+                v = quantised->quantised_frame[i*3+c];
+                start_coord[c] = v - metaballs_size[c];
+                if (start_coord[c] < 0) start_coord[c] = 0;
+                final_coord[c] = v + metaballs_size[c];
+                if (final_coord[c] > max_coord[c]) final_coord[c] = max_coord[c];
+            }//for
 
-            y = quantised->quantised_frame[i*3+1];
-            sy = y - metaballs_size;
-            if (sy < 0) sy = 0;
-            fy = y + metaballs_size;
-            if (fy > 255) fy = 255;
-
-            z = quantised->quantised_frame[i*3+2];
-            sz = z - metaballs_size;
-            if (sz < 0) sz = 0;
-            fz = z + metaballs_size;
-            if (fz > 255) fz = 255;
-
-            for (z = sz; z < fz; z++)
-                for (y = sy; y < fy; y++)
-                    for (x = sx; x < fx; x++)
+            for (z = start_coord[2]; z < final_coord[2]; ++z)
+                for (y = start_coord[1]; y < final_coord[1]; ++y)
+                    for (x = start_coord[0]; x < final_coord[0]; ++x)
                     {
                         v = volumedata[z][y][x] + contrib;
-                        volumedata[z][y][x] = (v > 255) ? 255 : v;
+                        volumedata[z][y][x] = (v > maxval) ? maxval : v;
                     }//for
         }//if
     }//for
@@ -545,6 +539,10 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, 
     gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 128);
     int count = gts_surface_face_number(g_surface);
     printf("face number: %u\n", count);
+
+
+    gts_surface_foreach_face(g_surface, draw_face, (void*)&_surface);
+    return;
 
 
 
@@ -565,8 +563,6 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, 
 
     printf("vertex num: %i\n", gts_surface_vertex_number(g_surface));
 
-    gts_surface_foreach_face(g_surface, draw_face, (void*)&_surface);
-    return;
     // printf("surface count: %i\n", _surface.count());
     gts_surface_foreach_face(g_surface, process_surface, (void*)this);
 

@@ -85,7 +85,9 @@ class MetaballsView : public BaseView
         float _metaballsColor[4];
         QVector<Triangle> _surface;
 
-        int framenum;
+        int max_quant;
+        int cur_quant;
+        int size;
 
         unsigned char*** volumedata;
 
