@@ -3,7 +3,6 @@
 #include <deque>
 #include <cstdio>
 #include <map>
-#include <fann.h>
 #include "FrameWriter.h"
 #include "quantiser/QuantisedFrame.h"
 #include "arithmetic/ArithmeticEncoder.h"
