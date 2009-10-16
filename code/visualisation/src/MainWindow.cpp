@@ -87,7 +87,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::doOpenFile()
 {
-    lastLocation = QFileDialog::getOpenFileName(this, tr("Open data"), lastLocation, tr("All (*.*)"));
+    lastLocation = QFileDialog::getOpenFileName(this, tr("Open data"), lastLocation, tr("PDB files (*.pdb)"));
     if (lastLocation.isEmpty())
         return;
     // recentFiles.push_back(lastLocation);
@@ -96,11 +96,13 @@ void MainWindow::doOpenFile()
     // settings->setValue("recentFiles", recentFiles);
     settings->setValue("lastFile", lastLocation);
 
-    // pdb = PDBReader::load_pdbfile(lastLocation.toStdString().c_str());
     pdb = load_pdbfile(lastLocation.toStdString().c_str());
-    QString dcdFilename(lastLocation);
-    dcdreader->open_file(dcdFilename.replace(QRegExp(".pdb$"), ".dcd").toStdString().c_str());
+    printf("pdb: %d\n", pdb.size());
+    QString tFilename(lastLocation);
+    dcdreader->open_file(tFilename.replace(QRegExp(".pdb$"), ".dcd").toStdString().c_str());
     playbackControl->setTotalFrames(dcdreader->nframes());
+
+    __metaballs__->__load__file__(tFilename.replace(QRegExp(".dcd$"), ".mbd").toStdString().c_str());
 
     foreach (BaseView* view, views)
     {
@@ -112,8 +114,7 @@ void MainWindow::doOpenFile()
     if (frame) delete frame;
     frame = new Frame(atoms, dcdreader->natoms());
     setFrame(0);
-    float volumeSize[] = {1<<quantisationLevel, 1<<quantisationLevel, 1<<quantisationLevel};
-    renderer->resetView(volumeSize);
+    renderer->resetView(quantised->min_coord, quantised->max_coord);
     renderer->currentView()->select();
 }//doOpenFile
 
@@ -132,7 +133,10 @@ void MainWindow::setFrame(int value)
 {
     dcdreader->set_frame(value);
     if (!dcdreader->next_frame(*frame))
+    {
+        printf("DCDReader error\n");
         return;
+    }//if
 
     if (quantised != NULL) delete quantised;
     quantised = new QuantisedFrame(*frame, quantisationLevel, quantisationLevel, quantisationLevel);
@@ -176,9 +180,6 @@ void MainWindow::setupMenu()
     connect(__process__all__frames__action__, SIGNAL(triggered()), this, SLOT(__do__process__all__frames__()));
     fileMenu->addSeparator();
     fileMenu->addAction(__process__all__frames__action__);
-    QAction* __open__file__action__ = new QAction(tr("Open metaballs data"), fileMenu);
-    connect(__open__file__action__, SIGNAL(triggered()), this, SLOT(__do__open__file__()));
-    fileMenu->addAction(__open__file__action__);
 
     viewMenu->addSeparator();
     QAction* viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
@@ -209,14 +210,7 @@ void MainWindow::addRenderMode(BaseView* view, QMenu* menu)
 
 void MainWindow::__do__process__all__frames__()
 {
-    __metaballs__->__process__and__save__("metaballs.data", dcdreader);
-    // __metaballs__->__save__all__frames__("metaballs.data");
+    QString mbdFilename(lastLocation);
+    __metaballs__->__process__and__save__(mbdFilename.replace(QRegExp(".pdb$"), ".mbd").toStdString().c_str(), dcdreader);
 }//__do__process__all__frames__
 
-void MainWindow::__do__open__file__()
-{
-    QString ss = QFileDialog::getOpenFileName(this, tr("Open data"), lastLocation, tr("All (*.*)"));
-    if (ss.isEmpty())
-        return;
-    __metaballs__->__load__all__frames__(ss);
-}//__do__open__file__

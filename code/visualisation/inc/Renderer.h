@@ -40,7 +40,7 @@ class Renderer : public QGLWidget
         void resizeGL(int w, int h);
         void paintGL();
 
-        void resetView(float volumeSize[3]);
+        void resetView(float* min_coord, float* max_coord);
 
         int tps();
         void setTps(int value);

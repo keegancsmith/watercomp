@@ -8,6 +8,8 @@
 #include <QVector>
 
 class QCheckBox;
+class QFile;
+class QDataStream;
 class QSettings;
 class QSlider;
 
@@ -59,8 +61,7 @@ class MetaballsView : public BaseView
         bool __save__header__(QDataStream& out);
         bool __save__frames__(QDataStream& out, int start, int end);
         bool __process__and__save__(QString filename, DCDReader* reader);
-        bool __process__all__frames__(DCDReader* reader);
-        bool __save__all__frames__(QString filename);
+        bool __load__file__(QString filename);
         bool __load__all__frames__(QString filename);
 
     protected:
@@ -108,7 +109,14 @@ class MetaballsView : public BaseView
 
         GtsSurface* g_surface;
         GtsCartesianGrid g_grid;
+
+
         bool __do__processing__;
+        QFile* meta_file;
+        QDataStream* meta_data;
+        QVector<qint64> meta_pos;
+        int lastframe;
+        int loadedframe;
 
 };//MetaballsView
 

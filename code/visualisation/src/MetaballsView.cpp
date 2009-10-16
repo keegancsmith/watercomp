@@ -299,10 +299,19 @@ MetaballsView::MetaballsView()
     init();
 
     __do__processing__ = false;
+    meta_file = 0;
+    meta_data = 0;
 }//constructor
 
 MetaballsView::~MetaballsView()
 {
+    if (meta_file != 0)
+    {
+        meta_file->close();
+        delete meta_file;
+    }//if
+    if (meta_data != 0)
+        delete meta_data;
     settings->sync();
     delete settings;
     int x, y, z;
@@ -403,7 +412,6 @@ void MetaballsView::setupPreferenceWidget(QWidget* preferenceWidget)
 
 void MetaballsView::initGL()
 {
-    printf("initGL\n");
     // float m_amb[] = {0.3f, 0.3f, 0.3f, 1.0f};
     // float m_spe[] = {1.0f, 1.0f, 1.0f, 1.0f};
     // float m_shin[] = {50.0f};
@@ -476,6 +484,7 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, 
     BaseView::tick(framenum, frame, quantised, dequantised);
     if (dequantised == 0) return;
     if (!__do__processing__) return;
+    printf("tick tick tick\n");
 
     g_grid.nx = 1 << quantised->m_xquant;
     g_grid.ny = 1 << quantised->m_yquant;
@@ -706,7 +715,7 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, 
 
 void MetaballsView::render()
 {
-    if (dequantised == 0) return;
+    if (meta_data == 0) return;
     // if (parent) glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
 
     float l_pos[] = {200.0f, 200.0f, 200.0f, 0.0f};
@@ -770,10 +779,43 @@ void MetaballsView::render()
     }//for
     // */
 
-    Triangle t;
-    for (int i = 0; i < __all__frames__.at(framenum).size(); i++)
+    int size;
+    // jump around in the file to find the frame positions
+    // and do this lazily
+    while (lastframe < framenum)
     {
-        t = __all__frames__.at(framenum).at(i);
+        (*meta_data) >> size;
+        meta_file->seek(meta_file->pos() +
+                size * ((3*3*sizeof(float)) + (3*3*sizeof(float))));
+        meta_pos[++lastframe] = meta_file->pos();
+    }//if
+
+    int j, k, l;
+    // if the loaded frame is not the current frame to show
+    // then jump to the position and load the data
+    if (loadedframe != framenum)
+    {
+        meta_file->seek(meta_pos[framenum]);
+        loadedframe = framenum;
+        (*meta_data) >> size;
+        _surface.resize(size);
+        for (j = 0; j < size; j++)
+        {
+            Triangle t;
+            for (k = 0; k < 3; k++)
+                for (l = 0; l < 3; l++)
+                    (*meta_data) >> t.p[k][l];
+            for (k = 0; k < 3; k++)
+                for (l = 0; l < 3; l++)
+                    (*meta_data) >> t.n[k][l];
+            _surface[j] = t;
+        }//for
+    }//if
+
+    Triangle t;
+    for (int i = 0; i < _surface.size(); i++)
+    {
+        t = _surface.at(i);
         glNormal3fv(t.n[0]);
         glVertex3fv(t.p[0]);
         glNormal3fv(t.n[1]);
@@ -1184,32 +1226,40 @@ bool MetaballsView::__process__and__save__(QString filename, DCDReader* reader)
     return true;
 }//__process__and__save__
 
-
-bool MetaballsView::__process__all__frames__(DCDReader* reader)
+bool MetaballsView::__load__file__(QString filename)
 {
-    return __process__frames__(reader, 0, reader->nframes());
-}//__process__all__frames__
+    if (meta_file != 0)
+    {
+        meta_file->close();
+        delete meta_file;
+    }//if
+    meta_file = new QFile(filename);
+    if (!meta_file->open(QIODevice::ReadOnly))
+    {
+        meta_file->close();
+        delete meta_file;
+        meta_file = 0;
+        return false;
+    }//if
 
+    if (meta_data != 0)
+        delete meta_data;
+    meta_data = new QDataStream(meta_file);
 
-bool MetaballsView::__save__all__frames__(QString filename)
-{
-    QFile file(filename);
-    file.open(QIODevice::WriteOnly);
-    QDataStream out(&file);
-    __save__header__(out);
-    __save__frames__(out, 0, __all__frames__.size());
-    file.close();
+    int total_size, size;
+    (*meta_data) >> total_size;
+
+    meta_pos.resize(total_size);
+    meta_pos[0] = meta_file->pos();
+    lastframe = 0;
+    loadedframe = -1;
+
     return true;
-}//__save__all__frames__
-
+}//__load__file__
 
 bool MetaballsView::__load__all__frames__(QString filename)
 {
-    QFile file(filename);
-    file.open(QIODevice::ReadOnly);
-    QDataStream in(&file);
-    int total_size, size;
-    in >> total_size;
+    /*
     __all__frames__.clear();
     __all__frames__.resize(total_size);
     int j, k, l;
@@ -1232,7 +1282,7 @@ bool MetaballsView::__load__all__frames__(QString filename)
             __all__frames__[i][j] = t;
         }//for
     }//for
-    file.close();
+    // */
     return true;
 }//__load__all__frames__
 

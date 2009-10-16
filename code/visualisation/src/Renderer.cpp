@@ -20,6 +20,9 @@ Renderer::Renderer(QWidget* parent)
     settings = new QSettings;
     _zoom = 10.0f;
 
+    lastpos[0] = -1;
+    lastpos[1] = -1;
+
     spinning[0] = 0;
     spinning[1] = 0;
     spinning[2] = 0;
@@ -41,7 +44,7 @@ Renderer::Renderer(QWidget* parent)
     timer->setSingleShot(false);
     connect(timer, SIGNAL(timeout()), this, SLOT(tick()));
 
-    setTps(60);
+    setTps(1);
     timer->start();
 
     scrollSensitivity = 1;
@@ -115,7 +118,7 @@ void Renderer::paintGL()
     glTranslatef(0, 0, -_zoom);
     glPushMatrix();
     glMultMatrixd(rot->matrix);
-    // glTranslatef(-volume_middle[0], -volume_middle[1], -volume_middle[2]);
+    glTranslatef(-volume_middle[0], -volume_middle[1], -volume_middle[2]);
 
     // renderAxes();
     renderModes[_renderMode]->render();
@@ -139,15 +142,15 @@ void Renderer::paintGL()
 #endif
 }//paintGL
 
-void Renderer::resetView(float volumeSize[3])
+void Renderer::resetView(float* min_coord, float* max_coord)
 {
     rot->reset();
 
     max_side = 0;
     for (int i = 0; i < 3; i++)
     {
-        volume_min[i] = 0;
-        volume_max[i] = volumeSize[i];
+        volume_min[i] = min_coord[i];
+        volume_max[i] = max_coord[i];
         volume_range[i] = volume_max[i] - volume_min[i];
         volume_middle[i] = (volume_max[i] + volume_min[i]) * 0.5;
         if (volume_range[i] > max_side)
@@ -241,8 +244,17 @@ void Renderer::dataTick(int framenum, Frame* frame, QuantisedFrame* quantised, F
 void Renderer::tick()
 {
     QPoint pos = mapFromGlobal(QCursor::pos());
-    int difx = lastpos[0] - pos.x();
-    int dify = lastpos[1] - pos.y();
+    int difx, dify;
+    if (lastpos[0] == -1)
+    {
+        difx = 0;
+        dify = 0;
+    }//if
+    else
+    {
+        difx = lastpos[0] - pos.x();
+        dify = lastpos[1] - pos.y();
+    }//else
 
     if (dragging[0])
     {

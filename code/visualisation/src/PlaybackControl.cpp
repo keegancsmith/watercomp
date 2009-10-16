@@ -1,5 +1,6 @@
 #include "PlaybackControl.h"
 
+#include <cstdio>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
@@ -87,7 +88,7 @@ void PlaybackControl::setTotalFrames(int value)
 {
     if (value < 0) value = 0;
     _totalFrames = value;
-    slider->setMaximum(_totalFrames-1);
+    slider->setRange(0, _totalFrames - 1);
 }//setTotalFrames
 
 int PlaybackControl::frame()
