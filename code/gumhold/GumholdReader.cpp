@@ -1,12 +1,11 @@
 #include "GumholdReader.h"
 
 #include "arithmetic/ByteDecoder.h"
-#include "TreeSerialiser.h"
 
 #include <cassert>
 
-GumholdReader::GumholdReader(FILE * fin)
-    : m_fin(fin)
+GumholdReader::GumholdReader(FILE * fin, gumhold_predictor * pred)
+    : m_fin(fin), m_pred(pred)
 {
 }
 
@@ -47,7 +46,7 @@ bool GumholdReader::next_frame(QuantisedFrame & qframe)
     qframe.m_yquant = header_quant[1];
     qframe.m_zquant = header_quant[2];
 
-    deserialise_tree(m_decoder, qframe);
+    deserialise_tree(m_decoder, qframe, m_pred);
 
     return true;
 }

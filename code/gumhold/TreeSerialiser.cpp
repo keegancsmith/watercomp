@@ -15,7 +15,8 @@ using namespace std;
 
 
 // Serialises the tree in a BFS order
-void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
+void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root,
+                    gumhold_predictor * pred)
 {
     QuantisedFrame * frame = (QuantisedFrame *)g->data;
 
@@ -27,9 +28,11 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
     int atoms = frame->natoms();
     int count = 0;
 
-    // root is predicted to be at (0,0,0)
     unsigned int predictions[atoms][3];
-    fill(predictions[root], predictions[root] + 3, 0);
+    pred(frame, -1, -1, predictions[root]);
+
+    vector<int> parent(atoms);
+    parent[root] = -1;
 
     queue<int> q;
     q.push(root);
@@ -56,11 +59,16 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
         for (int i = 0; i < 3; i++)
             err_encoder.encode_int(error[i]);
 
+        // Calculate prediction for children
+        unsigned int p[3];
+        pred(frame, v, parent[v], p);
+
         // Add children verticies to process queue
         for (int i = 0; i < size; i++) {
             int u = g->adjacent[v][i];
+            parent[u] = v;
             for (int j = 0; j < 3; j++)
-                predictions[u][j] = frame->quantised_frame[3*v + j];
+                predictions[u][j] = p[j];
             q.push(u);
         }
     }
@@ -73,7 +81,8 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root)
 
 
 // Deserialise the tree in a BFS order
-void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame)
+void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame,
+                      gumhold_predictor * pred)
 {
     AdaptiveModelDecoder tree_decoder(&ad);
     AdaptiveModelDecoder err_decoder(&ad);
@@ -84,6 +93,7 @@ void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame)
     int atoms = frame.natoms();
     int count = 0;
 
+    vector<int> parent(atoms);
     queue<int> q;
     q.push(-1);
 
@@ -92,13 +102,10 @@ void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame)
         q.pop();
         count++;
 
-        // Get position of parent and use it as the prediction
+        // Predict position from parent and grandparent
+        int v_parent = v == -1 ? -1 : parent[v];
         unsigned int p[3];
-        if (v == -1)
-            p[0] = p[1] = p[2] = 0; // root is predicted to be at (0,0,0)
-        else
-            for (int i = 0; i < 3; i++)
-                p[i] = frame.quantised_frame[3*v + i];
+        pred(&frame, v, v_parent, p);
 
         // Read in values from file
         int size  = tree_decoder.decode_int();
@@ -111,13 +118,15 @@ void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame)
         assert(0 <= size && size < atoms);
         assert(0 <= index && index < atoms);
 
-        // Values is the prediction + the error
+        // Value is the prediction + the error
         for (int i = 0; i < 3; i++)
             frame.quantised_frame[3*index + i] = p[i] + error[i];
 
         // Need to process each of its children
         for (int i = 0; i < size; i++)
             q.push(index);
+
+        parent[index] = v;
     }
 
     assert(count == atoms);

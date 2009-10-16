@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FrameWriter.h"
+#include "TreeSerialiser.h"
 #include "arithmetic/ArithmeticEncoder.h"
 #include "quantiser/QuantisedFrame.h"
 
@@ -9,7 +10,7 @@
 class GumholdWriter : public FrameWriter
 {
 public:
-    GumholdWriter(FILE * fout);
+    GumholdWriter(FILE * fout, gumhold_predictor * pred);
     ~GumholdWriter();
 
     void start(int atoms, int frames, int ISTART = 0,
@@ -20,4 +21,5 @@ public:
 private:
     FILE * m_fout;
     ArithmeticEncoder m_encoder;
+    gumhold_predictor * m_pred;
 };

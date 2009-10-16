@@ -7,12 +7,12 @@
 using std::vector;
 
 
-int dist_squared(const QuantisedFrame & frame, int a, int b)
+int dist_squared(const QuantisedFrame & frame, int a, unsigned int * p)
 {
     int d = 0;
     for (int i = 0; i < 3; i++) {
         int x = frame.quantised_frame[a*3 + i];
-        int y = frame.quantised_frame[b*3 + i];
+        int y = p[i];
         int delta = x - y;
         d += (delta * delta);
     }
@@ -24,14 +24,15 @@ int dist_squared(const QuantisedFrame & frame, int a, int b)
 // where k < i
 int find_closest_seen_atom(const QuantisedFrame & frame,
                            const vector<int> & order,
+                           unsigned int * predictions,
                            int i)
 {
     int v = order[i];
     int closest = order[0];
-    int closest_dist = dist_squared(frame, v, order[0]);
+    int closest_dist = dist_squared(frame, v, predictions);
     for (int j = 1; j < i; j++) {
         int u = order[j];
-        int d = dist_squared(frame, v, u);
+        int d = dist_squared(frame, v, predictions + (j*3));
         if (d < closest_dist) {
             closest = u;
             closest_dist = d;
@@ -63,14 +64,17 @@ public:
 };
 
 
-Graph * spanning_tree(const QuantisedFrame & frame, int & root)
+Graph * spanning_tree(const QuantisedFrame & frame, int & root,
+                      gumhold_predictor * pred)
 {
+    int atoms = frame.natoms();
+
     // We process atom order[i] in the ith turn
-    vector<int> order(frame.natoms());
+    vector<int> order(atoms);
 
     // For now just assign the order as listed. Gumhold et al did this by
     // ordering either by x, y or z coord.
-    for (int i = 0; i < frame.natoms(); i++)
+    for (int i = 0; i < atoms; i++)
         order[i] = i;
 
     // TODO make dim choosable
@@ -79,12 +83,16 @@ Graph * spanning_tree(const QuantisedFrame & frame, int & root)
     sort(order.begin(), order.end(), cmp);
     root = order[0];
 
-    Graph * tree = new Graph(&frame, frame.natoms());
+    unsigned int predictions[atoms*3];
+    pred(&frame, -1, -1, predictions);
 
-    for (int i = 1; i < frame.natoms(); i++) {
-        int v = find_closest_seen_atom(frame, order, i);
+    Graph * tree = new Graph(&frame, atoms);
+
+    for (int i = 1; i < atoms; i++) {
+        int v = find_closest_seen_atom(frame, order, predictions, i);
         int u = order[i];
         tree->addEdge(v, u);
+        pred(&frame, u, v, predictions + (i*3));
     }
 
     return tree;

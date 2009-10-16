@@ -1,10 +1,9 @@
 #include "GumholdWriter.h"
 #include "arithmetic/ByteEncoder.h"
 #include "SpanningTree.h"
-#include "TreeSerialiser.h"
 
-GumholdWriter::GumholdWriter(FILE * fout)
-    : m_fout(fout)
+GumholdWriter::GumholdWriter(FILE * fout, gumhold_predictor * pred)
+    : m_fout(fout), m_pred(pred)
 {
 }
 
@@ -41,10 +40,10 @@ void GumholdWriter::next_frame(const QuantisedFrame& qframe)
 
     // Create spanning tree of atoms
     int root;
-    Graph * tree = spanning_tree(qframe, root);
+    Graph * tree = spanning_tree(qframe, root, m_pred);
 
     // Output the spanning tree
-    serialise_tree(m_encoder, tree, root);
+    serialise_tree(m_encoder, tree, root, m_pred);
 
     // Cleanup
     delete tree;
