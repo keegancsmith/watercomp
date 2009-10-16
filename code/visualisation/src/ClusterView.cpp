@@ -170,12 +170,12 @@ void ClusterView::dfs(int current, int component)
             dfs(graph[current][i], component);
 }//dfs
 
-void ClusterView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised)
+void ClusterView::tick(int framenum, Frame* unquantised, QuantisedFrame* quantised, Frame* dequantised)
 {
-    BaseView::tick(framenum, frame, quantised, dequantised);
+    BaseView::tick(framenum, unquantised, quantised, dequantised);
 
     graph.clear();
-    graph = create_graph(waters, *frame);
+    graph = create_graph(waters, *unquantised);
 
     num_clusters = 0;
     components.clear();
@@ -192,8 +192,24 @@ void ClusterView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, Fr
 
 void ClusterView::initGL()
 {
+    glLineWidth(_lineWidth);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    float l0_amb[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float l0_dif[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    float l0_spe[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    glLightfv(GL_LIGHT0, GL_AMBIENT, l0_amb);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, l0_dif);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, l0_spe);
+
+    float l1_amb[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float l1_dif[] = {0.4f, 0.4f, 0.4f, 1.0f};
+    float l1_spe[] = {0.9f, 0.9f, 0.9f, 1.0f};
+    glLightfv(GL_LIGHT1, GL_AMBIENT, l1_amb);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, l1_dif);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, l1_spe);
 
     glColorMaterial(GL_FRONT, GL_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
@@ -202,33 +218,24 @@ void ClusterView::initGL()
     glEnable(GL_LIGHT1);
     if (lighting) glEnable(GL_LIGHTING);
     else glDisable(GL_LIGHTING);
-
-    glLineWidth(_lineWidth);
 }//initGL
 
-// #define DRAW_LINES
+#define DRAW_LINES
 
 void ClusterView::render()
 {
     if (dequantised == NULL) return;
 
+    float l0_pos[] = {-1.0f, 1.0f, 2.0f, 0.0f};
+    glLightfv(GL_LIGHT0, GL_POSITION, l0_pos);
+
+    float l1_pos[] = {0.0f, 0.0f, -1.0f, 0.0f};
+    glLightfv(GL_LIGHT1, GL_POSITION, l1_pos);
+
     double radius = 2;
-    float dif[3];
-    double height = 2;
-    int hslice = 16;
-    int vslice = 4;
-
-    // if (parent) glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
-
-    float vec[3];
     int count = 0;
-    int a, v, ax, rx, ry;
-
-    glColor4fv(_lineColor);
-#ifdef DRAW_LINES
-    glBegin(GL_LINES);
-#endif
     int start;
+    glColor4fv(_lineColor);
     for (std::map<unsigned int, std::vector<unsigned int> >::iterator it = graph.begin(); it != graph.end(); it++)
     {
         start = it->first;
@@ -239,7 +246,7 @@ void ClusterView::render()
         for (std::vector<unsigned int>::iterator vit = it->second.begin(); vit != it->second.end(); vit++)
         {
 
-// #ifdef DRAW_LINES
+#ifdef DRAW_LINES
             glBegin(GL_LINES);
             glVertex3i(dequantised->atom_data[3*start],
                        dequantised->atom_data[3*start+1],
@@ -248,6 +255,7 @@ void ClusterView::render()
                        dequantised->atom_data[3*(*vit)+1],
                        dequantised->atom_data[3*(*vit)+2]);
             glEnd();
+#endif
             // if (first)
             // {
                 // printf("%f %f %f ~ %f %f %f\n",
@@ -258,7 +266,6 @@ void ClusterView::render()
                         // dequantised->atom_data[3*(*vit)+1],
                         // dequantised->atom_data[3*(*vit)+2]);
             // }//if
-// #else
 
             renderCylinder(dequantised->atom_data[3*start],
                            dequantised->atom_data[3*start+1],
@@ -267,53 +274,8 @@ void ClusterView::render()
                            dequantised->atom_data[3*(*vit)+1],
                            dequantised->atom_data[3*(*vit)+2],
                            radius, 8, quadric);
-
-            /*
-            for (a = 0; a < 3; a++)
-                vec[a] = quantised->quantised_frame[3*(*vit)+a]
-                         - quantised->quantised_frame[3*start+a];
-            v = sqrt(len2(vec));
-            if (v < EPSILON)
-                continue;
-
-            ax = DEG(acos(vec[2]/v));
-            if (vec[2] < 0)
-                ax = -ax;
-            rx = -vec[1]*vec[2];
-            ry = vec[0]*vec[2];
-
-
-
-            glPushMatrix();
-
-            // draw the body
-            glTranslatef(quantised->quantised_frame[3*start],
-                       quantised->quantised_frame[3*start+1],
-                       quantised->quantised_frame[3*start+2]);
-            glRotatef(ax, rx, ry, 0.0);
-            gluQuadricOrientation(quadric,GLU_OUTSIDE);
-            gluCylinder(quadric, radius, radius, v, hslice, 1);
-
-            // draw the first cap
-            gluQuadricOrientation(quadric,GLU_INSIDE);
-            gluDisk(quadric, 0.0, radius, hslice, 1);
-
-            // draw the second cap
-            glTranslatef(0, 0, v);
-            gluQuadricOrientation(quadric,GLU_OUTSIDE);
-            gluDisk(quadric, 0.0, radius, hslice, 1);
-
-            glPopMatrix();
-            */
-
-
-// #endif
-
         }//for
     }//for
-#ifdef DRAW_LINES
-    glEnd();
-#endif
     first = false;
 }//render
 
@@ -351,7 +313,6 @@ void ClusterView::setClusterID(int value)
     if (value < 0) value = -1;
     if (value >= num_clusters) value = num_clusters - 1;
     current_cluster = value;
-    // countLabel->setNum((int)(current_cluster > -1 ? sizes[current_cluster] : num_clusters-1));
     countLabel->setNum((int)(current_cluster > -1 ? sizes[current_cluster] : num_clusters-1));
     first = true;
 }//setClusterID

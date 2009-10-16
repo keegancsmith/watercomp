@@ -18,7 +18,7 @@ BaseView::BaseView()
     current = false;
 
     framenum = -1;
-    frame = 0;
+    unquantised = 0;
     quantised = 0;
     dequantised = 0;
 
@@ -71,10 +71,10 @@ void BaseView::initGL()
 {
 }//initGL
 
-void BaseView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised)
+void BaseView::tick(int framenum, Frame* unquantised, QuantisedFrame* quantised, Frame* dequantised)
 {
     this->framenum = framenum;
-    this->frame = frame;
+    this->unquantised = unquantised;
     this->quantised = quantised;
     this->dequantised = dequantised;
 }//tick

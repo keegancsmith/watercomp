@@ -124,17 +124,17 @@ void QuantiseErrorView::setupPreferenceWidget(QWidget* preferenceWidget)
 
 void QuantiseErrorView::initGL()
 {
+    glLineWidth(_lineSize);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glLineWidth(_lineSize);
 
     glDisable(GL_LIGHTING);
 }//initGL
 
-void QuantiseErrorView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised)
+void QuantiseErrorView::tick(int framenum, Frame* unquantised, QuantisedFrame* quantised, Frame* dequantised)
 {
-    BaseView::tick(framenum, frame, quantised, dequantised);
+    BaseView::tick(framenum, unquantised, quantised, dequantised);
     if (dequantised == NULL) return;
 
     float dif[3];
@@ -144,9 +144,9 @@ void QuantiseErrorView::tick(int framenum, Frame* frame, QuantisedFrame* quantis
     errors = new float[waters.size()];
     for (int i = 0; i < waters.size(); i++)
     {
-        dif[0] = dequantised->atom_data[3*waters[i].OH2_index  ] - frame->atom_data[3*waters[i].OH2_index];
-        dif[1] = dequantised->atom_data[3*waters[i].OH2_index+1] - frame->atom_data[3*waters[i].OH2_index+1];
-        dif[2] = dequantised->atom_data[3*waters[i].OH2_index+2] - frame->atom_data[3*waters[i].OH2_index+2];
+        dif[0] = dequantised->atom_data[3*waters[i].OH2_index  ] - unquantised->atom_data[3*waters[i].OH2_index];
+        dif[1] = dequantised->atom_data[3*waters[i].OH2_index+1] - unquantised->atom_data[3*waters[i].OH2_index+1];
+        dif[2] = dequantised->atom_data[3*waters[i].OH2_index+2] - unquantised->atom_data[3*waters[i].OH2_index+2];
         d = sqrt(len2(dif));
         errors[i] = (d - _startErrorValue) / range;
         if (errors[i] < 0) errors[i] = 0;
@@ -170,12 +170,12 @@ void QuantiseErrorView::render()
         if (errors[i] > 1e-6)
         {
             glColor4f(_startColor[0] + errors[i] * range[0],
-                       _startColor[1] + errors[i] * range[1],
-                       _startColor[2] + errors[i] * range[2],
-                       _startColor[3] + errors[i] * range[3]);
-            glVertex3f(frame->atom_data[3*waters[i].OH2_index],
-                       frame->atom_data[3*waters[i].OH2_index+1],
-                       frame->atom_data[3*waters[i].OH2_index+2]);
+                      _startColor[1] + errors[i] * range[1],
+                      _startColor[2] + errors[i] * range[2],
+                      _startColor[3] + errors[i] * range[3]);
+            glVertex3f(unquantised->atom_data[3*waters[i].OH2_index],
+                       unquantised->atom_data[3*waters[i].OH2_index+1],
+                       unquantised->atom_data[3*waters[i].OH2_index+2]);
             glVertex3f(dequantised->atom_data[3*waters[i].OH2_index],
                        dequantised->atom_data[3*waters[i].OH2_index+1],
                        dequantised->atom_data[3*waters[i].OH2_index+2]);
@@ -200,7 +200,7 @@ void QuantiseErrorView::setStartErrorValue(double value)
     _startErrorValue = value;
 
     settings->setValue("QuantiseErrorView/startError", _startErrorValue);
-    tick(framenum, frame, quantised, dequantised);
+    tick(framenum, unquantised, quantised, dequantised);
 }//setStartErrorValue
 
 void QuantiseErrorView::setFinalErrorValue(double value)
@@ -208,7 +208,7 @@ void QuantiseErrorView::setFinalErrorValue(double value)
     _finalErrorValue = value;
 
     settings->setValue("QuantiseErrorView/finalError", _finalErrorValue);
-    tick(framenum, frame, quantised, dequantised);
+    tick(framenum, unquantised, quantised, dequantised);
 }//setFinalErrorValue
 
 void QuantiseErrorView::pickStartColor()

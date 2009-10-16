@@ -64,7 +64,7 @@ MainWindow::MainWindow()
     //setup menu last since the renderer views depends on some stuff
     setupMenu();
 
-    frame = 0;
+    unquantised = 0;
     quantised = 0;
     dequantised = 0;
     renderer->setRenderMode(settings->value("Renderer/renderMode", 0).toInt());
@@ -102,7 +102,7 @@ void MainWindow::doOpenFile()
     dcdreader->open_file(tFilename.replace(QRegExp(".pdb$"), ".dcd").toStdString().c_str());
     playbackControl->setTotalFrames(dcdreader->nframes());
 
-    __metaballs__->loadFile(tFilename.replace(QRegExp(".dcd$"), ".mbd").toStdString().c_str());
+    metaballsView->loadFile(tFilename.replace(QRegExp(".dcd$"), ".mbd").toStdString().c_str());
 
     foreach (BaseView* view, views)
     {
@@ -111,8 +111,8 @@ void MainWindow::doOpenFile()
 
     if (atoms) delete [] atoms;
     atoms = new float[3 * dcdreader->natoms()];
-    if (frame) delete frame;
-    frame = new Frame(atoms, dcdreader->natoms());
+    if (unquantised) delete unquantised;
+    unquantised = new Frame(atoms, dcdreader->natoms());
     setFrame(0);
     renderer->resetView(quantised->min_coord, quantised->max_coord);
     renderer->currentView()->select();
@@ -132,17 +132,17 @@ void MainWindow::doViewPreferences()
 void MainWindow::setFrame(int value)
 {
     dcdreader->set_frame(value);
-    if (!dcdreader->next_frame(*frame))
+    if (!dcdreader->next_frame(*unquantised))
     {
         printf("DCDReader error\n");
         return;
     }//if
 
     if (quantised != NULL) delete quantised;
-    quantised = new QuantisedFrame(*frame, quantisationLevel, quantisationLevel, quantisationLevel);
+    quantised = new QuantisedFrame(*unquantised, quantisationLevel, quantisationLevel, quantisationLevel);
     if (dequantised != NULL) delete dequantised;
     dequantised = new Frame(quantised->toFrame());
-    renderer->dataTick(value, frame, quantised, dequantised);
+    renderer->dataTick(value, unquantised, quantised, dequantised);
 }//setFrame
 
 
@@ -170,16 +170,16 @@ void MainWindow::setupMenu()
 
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     addRenderMode(new PointView(), viewMenu);
-    __metaballs__ = new MetaballsView();
-    addRenderMode(__metaballs__, viewMenu);
+    metaballsView = new MetaballsView();
+    addRenderMode(metaballsView, viewMenu);
     addRenderMode(new ClusterView(), viewMenu);
     addRenderMode(new QuantiseErrorView(), viewMenu);
     addRenderMode(new BallStickView(), viewMenu);
 
-    QAction* __process__all__frames__action__ = new QAction(tr("Process all frames for Metaballs view"), fileMenu);
-    connect(__process__all__frames__action__, SIGNAL(triggered()), this, SLOT(__do__process__all__frames__()));
+    QAction* processAllFramesAction = new QAction(tr("Process all frames for Metaballs view"), fileMenu);
+    connect(processAllFramesAction, SIGNAL(triggered()), this, SLOT(doProcessAllFrames()));
     fileMenu->addSeparator();
-    fileMenu->addAction(__process__all__frames__action__);
+    fileMenu->addAction(processAllFramesAction);
 
     viewMenu->addSeparator();
     QAction* viewPreferencesAction = new QAction(tr("&View preferences"), viewMenu);
@@ -208,9 +208,9 @@ void MainWindow::addRenderMode(BaseView* view, QMenu* menu)
 
 
 
-void MainWindow::__do__process__all__frames__()
+void MainWindow::doProcessAllFrames()
 {
     QString mbdFilename(lastLocation);
-    __metaballs__->processVolume(mbdFilename.replace(QRegExp(".pdb$"), ".mbd").toStdString().c_str(), dcdreader);
-}//__do__process__all__frames__
+    metaballsView->processVolume(mbdFilename.replace(QRegExp(".pdb$"), ".mbd").toStdString().c_str(), dcdreader);
+}//doProcessAllFrames
 

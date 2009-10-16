@@ -24,7 +24,7 @@ class ClusterView : public BaseView
 
         virtual void updatePreferences();
 
-        virtual void tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised);
+        virtual void tick(int framenum, Frame* unquantised, QuantisedFrame* quantised, Frame* dequantised);
         virtual void render();
 
     protected:

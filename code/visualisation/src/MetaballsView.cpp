@@ -145,10 +145,6 @@ int draw_face(gpointer item, gpointer data)
     pack3f(t.n[2], e3[0], e3[1], e3[2]);
     surface->push_back(t);
 
-    // glNormal3fv(e3);
-    // glVertex3d(v1->x, v1->y, v1->z);
-    // glVertex3d(v2->x, v2->y, v2->z);
-    // glVertex3d(v3->x, v3->y, v3->z);
     return 0;
 }//draw_face
 
@@ -297,8 +293,6 @@ int process_surface(gpointer item, gpointer data)
 MetaballsView::MetaballsView()
 {
     settings = new QSettings;
-    // TODO: define maxStepSize relative to the volume size
-    // TODO: define _stepSize relative to the volume size
     maxStepSize = 80;
     _stepSize = settings->value("MetaballsView/stepSize", 5).toInt();
 
@@ -327,7 +321,7 @@ MetaballsView::MetaballsView()
 
     doSplitWaters = true;
 
-    __do__processing__ = false;
+    doProcessing = false;
     meta_file = 0;
     meta_data = 0;
 }//constructor
@@ -413,7 +407,7 @@ void MetaballsView::setupPreferenceWidget(QWidget* preferenceWidget)
     connect(metaballsAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setMetaballsAlpha(int)));
     layout->addWidget(metaballsAlphaSlider, 1, 1);
 
-    QLabel* stepSizeLabel = new QLabel(tr("Grid size"), preferenceWidget);
+    QLabel* stepSizeLabel = new QLabel(tr("Step size"), preferenceWidget);
     layout->addWidget(stepSizeLabel, 2, 0);
 
     stepSizeSlider = new QSlider(preferenceWidget);
@@ -446,79 +440,54 @@ void MetaballsView::setupPreferenceWidget(QWidget* preferenceWidget)
 
 void MetaballsView::initGL()
 {
-    // float m_amb[] = {0.3f, 0.3f, 0.3f, 1.0f};
-    // float m_spe[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    // float m_shin[] = {50.0f};
-    // float l_pos[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    float l_pos[] = {200.0f, 200.0f, 200.0f, 0.0f};
-    // float l_amb[] = {0.4f, 0.4f, 0.4f, 1.0f};
-    // float l_dif[] = {0.7f, 0.7f, 0.7f, 1.0f};
-    // float l_spe[] = {0.9f, 0.9f, 0.9f, 1.0f};
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    // glEnable(GL_LIGHT0);
-    // glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, m_amb);
-    // glMaterialfv(GL_FRONT, GL_SPECULAR, m_spe);
-    // glMaterialfv(GL_FRONT, GL_SHININESS, m_shin);
+    float l0_amb[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float l0_dif[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    float l0_spe[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    glLightfv(GL_LIGHT0, GL_AMBIENT, l0_amb);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, l0_dif);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, l0_spe);
 
-    glLightfv(GL_LIGHT0, GL_POSITION, l_pos);
-    // glLightfv(GL_LIGHT0, GL_AMBIENT, l_amb);
-    // glLightfv(GL_LIGHT0, GL_DIFFUSE, l_dif);
-    // glLightfv(GL_LIGHT0, GL_SPECULAR, l_spe);
+    float l1_amb[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float l1_dif[] = {0.4f, 0.4f, 0.4f, 1.0f};
+    float l1_spe[] = {0.9f, 0.9f, 0.9f, 1.0f};
+    glLightfv(GL_LIGHT1, GL_AMBIENT, l1_amb);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, l1_dif);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, l1_spe);
 
+    float backAmbient[] = {0.00, 0.25, 0.00, 1.00};
+    float backDiffuse[] = {0.00, 0.75, 0.00, 1.00};
+    float frontAmbient[] = {0.00, 0.00, 0.25, 1.00};
+    float frontDiffuse[] = {0.00, 0.15, 0.75, 1.00};
+    // float specularWhite[] = {1.00, 1.00, 1.00, 1.00};
 
-    // float g_amb[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    //glLightModelfv(GL_LIGHT_MODEL_AMBIENT, g_amb);
-
-    float afPropertiesAmbient [] = {0.50, 0.50, 0.50, 1.00};
-    float afPropertiesDiffuse [] = {0.75, 0.75, 0.75, 1.00};
-    float afPropertiesSpecular[] = {1.00, 1.00, 1.00, 1.00};
-    float afAmbientWhite [] = {0.25, 0.25, 0.25, 1.00};
-    float afAmbientRed   [] = {0.25, 0.00, 0.00, 1.00};
-    float afAmbientGreen [] = {0.00, 0.25, 0.00, 1.00};
-    float afAmbientBlue  [] = {0.00, 0.00, 0.25, 1.00};
-    float afDiffuseWhite [] = {0.75, 0.75, 0.75, 1.00};
-    float afDiffuseRed   [] = {0.75, 0.00, 0.00, 1.00};
-    float afDiffuseGreen [] = {0.00, 0.75, 0.00, 1.00};
-    float afDiffuseBlue  [] = {0.00, 0.00, 0.75, 1.00};
-    float afSpecularWhite[] = {1.00, 1.00, 1.00, 1.00};
-    float afSpecularRed  [] = {1.00, 0.25, 0.25, 1.00};
-    float afSpecularGreen[] = {0.25, 1.00, 0.25, 1.00};
-    float afSpecularBlue [] = {0.25, 0.25, 1.00, 1.00};
-    glLightfv( GL_LIGHT0, GL_AMBIENT,  afPropertiesAmbient);
-    glLightfv( GL_LIGHT0, GL_DIFFUSE,  afPropertiesDiffuse);
-    glLightfv( GL_LIGHT0, GL_SPECULAR, afPropertiesSpecular);
-    glMaterialfv(GL_BACK,  GL_AMBIENT,   afAmbientGreen);
-    glMaterialfv(GL_BACK,  GL_DIFFUSE,   afDiffuseGreen);
-    // glMaterialfv(GL_BACK, GL_AMBIENT,   afAmbientBlue);
-    // glMaterialfv(GL_BACK, GL_DIFFUSE,   afDiffuseBlue);
-    // glMaterialfv(GL_BACK, GL_SPECULAR,  afSpecularWhite);
-    // glMaterialf( GL_BACK, GL_SHININESS, 15.0);
-    glMaterialfv(GL_FRONT, GL_AMBIENT,   afAmbientBlue);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE,   afDiffuseBlue);
-    glMaterialfv(GL_FRONT, GL_SPECULAR,  afSpecularWhite);
-    glMaterialf( GL_FRONT, GL_SHININESS, 15.0);
+    glMaterialfv(GL_BACK,  GL_AMBIENT,   backAmbient);
+    glMaterialfv(GL_BACK,  GL_DIFFUSE,   backDiffuse);
+    // glMaterialfv(GL_BACK, GL_SPECULAR,  whiteSpecular);
+    // glMaterialf(GL_BACK, GL_SHININESS, 15.0);
+    glMaterialfv(GL_FRONT, GL_AMBIENT,   frontAmbient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE,   frontDiffuse);
+    // glMaterialfv(GL_FRONT, GL_SPECULAR,  whiteSpecular);
+    // glMaterialf(GL_FRONT, GL_SHININESS, 15.0);
     glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 1.0);
+    glDisable(GL_COLOR_MATERIAL);
+
     glEnable(GL_LIGHT0);
-
-    glColorMaterial(GL_FRONT, GL_DIFFUSE);
-    glEnable(GL_COLOR_MATERIAL);
-
+    glEnable(GL_LIGHT1);
     if (lighting) glEnable(GL_LIGHTING);
     else glDisable(GL_LIGHTING);
 
     if (cullFace) glEnable(GL_CULL_FACE);
     else glDisable(GL_CULL_FACE);
-
-    glDepthFunc(GL_LEQUAL);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }//initGL
 
-void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, Frame* dequantised)
+void MetaballsView::tick(int framenum, Frame* unquantised, QuantisedFrame* quantised, Frame* dequantised)
 {
-    BaseView::tick(framenum, frame, quantised, dequantised);
+    BaseView::tick(framenum, unquantised, quantised, dequantised);
     if (dequantised == 0) return;
 #ifdef USE_PREPROCESSED_FILE
-    if (!__do__processing__) return;
+    if (!doProcessing) return;
 #endif
     printf("tick tick tick\n");
 
@@ -526,9 +495,9 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, 
     g_grid.ny = 1 << quantised->m_yquant;
     g_grid.nz = 1 << quantised->m_zquant;
 
-    g_grid.dx = 5;
-    g_grid.dy = 5;
-    g_grid.dz = 5;
+    g_grid.dx = _stepSize;
+    g_grid.dy = _stepSize;
+    g_grid.dz = _stepSize;
 
     g_grid.nx /= g_grid.dx;
     g_grid.ny /= g_grid.dy;
@@ -790,8 +759,11 @@ void MetaballsView::render()
 #endif
     // if (parent) glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
 
-    float l_pos[] = {200.0f, 200.0f, 200.0f, 0.0f};
-    glLightfv(GL_LIGHT0, GL_POSITION, l_pos);
+    float l0_pos[] = {-1.0f, 1.0f, 2.0f, 0.0f};
+    glLightfv(GL_LIGHT0, GL_POSITION, l0_pos);
+
+    float l1_pos[] = {0.0f, 0.0f, -1.0f, 0.0f};
+    glLightfv(GL_LIGHT1, GL_POSITION, l1_pos);
 
     glTranslatef(-128, -128, -350);
 
@@ -946,7 +918,7 @@ void MetaballsView::setLighting(int state)
 
 void MetaballsView::updateFaces()
 {
-    tick(this->framenum, this->frame, this->quantised, this->dequantised);
+    tick(this->framenum, this->unquantised, this->quantised, this->dequantised);
 }//updateFaces
 
 
@@ -1191,11 +1163,11 @@ bool MetaballsView::processVolume(QString filename, DCDReader* reader)
     out << (quint32)reader->nframes();
 
     float* atoms = new float[3 * reader->natoms()];
-    Frame frame(atoms, reader->natoms());
-    QuantisedFrame* qf = new QuantisedFrame(1, 1, 1, 1);;
-    Frame* dq = new Frame(qf->toFrame());
+    Frame* unquant = new Frame(atoms, reader->natoms());
+    QuantisedFrame* quant = new QuantisedFrame(1, 1, 1, 1);;
+    Frame* dequant = new Frame(quant->toFrame());
 
-    __do__processing__ = true;
+    doProcessing = true;
     int v;
     int j, k, l;
     Triangle t;
@@ -1203,11 +1175,11 @@ bool MetaballsView::processVolume(QString filename, DCDReader* reader)
     for (int i = 0; i < reader->nframes(); i++)
     {
         reader->set_frame(i);
-        reader->next_frame(frame);
+        reader->next_frame(*unquant);
 
-        delete qf; qf = new QuantisedFrame(frame, quant_level, quant_level, quant_level);
-        delete dq; dq = new Frame(qf->toFrame());
-        tick(i, &frame, qf, dq);
+        delete quant; quant = new QuantisedFrame(*unquant, quant_level, quant_level, quant_level);
+        delete dequant; dequant = new Frame(quant->toFrame());
+        tick(i, unquant, quant, dequant);
 
         out << (quint32)_surface.size();
         for (j = 0; j < _surface.size(); j++)
@@ -1222,7 +1194,11 @@ bool MetaballsView::processVolume(QString filename, DCDReader* reader)
         }//for
         printf("Frame: %i\n", i);
     }//for
-    __do__processing__ = false;
+    doProcessing = false;
+
+    delete unquant;
+    delete quant;
+    delete dequant;
 
     file.close();
     return true;
