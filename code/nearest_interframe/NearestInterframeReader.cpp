@@ -65,12 +65,12 @@ bool InterframeReader::next_frame(QuantisedFrame& qframe)
             sort(items.begin(), items.end());
             
             int index = 0;
-            double error = 0;
+            int error = 0;
             
             sscanf(index_model.decode().c_str(), "%d", &index);
-            sscanf(error_model.decode().c_str(), "%lf", &error);
+            sscanf(error_model.decode().c_str(), "%d", &error);
             
-            qframe.quantised_frame[i] = frames[index].quantised_frame[i] - error;
+            qframe.quantised_frame[i] = items[index] - error;
         }
         
         if(frames.size() == K)

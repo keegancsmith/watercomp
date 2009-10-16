@@ -74,21 +74,19 @@ void NearestInterframeWriter::next_frame(const QuantisedFrame& qframe)
             sort(items.begin(), items.end());
             
             int nearest = 0;
-            int nearest_distance = fabs(items[0] - qframe.quantised_frame[i]);
+            int nearest_distance = fabs(items[0] - (int)qframe.quantised_frame[i]);
             
             for(int j = 1; j < K; ++j)
-                if(fabs(items[j] - qframe.quantised_frame[i]) < nearest_distance)
+                if(fabs(items[j] - (int)qframe.quantised_frame[i]) < nearest_distance)
                 {
                     nearest = j;
-                    nearest_distance = fabs(items[j] - qframe.quantised_frame[i]);
+                    nearest_distance = fabs(items[j] - (int)qframe.quantised_frame[i]);
                 }
             
             sprintf(buffer, "%d", nearest);
             index_model.encode(buffer);
-            
-            sprintf(buffer, "%lf", double((long long)items[nearest] - (long long)qframe.quantised_frame[i]));
+            sprintf(buffer, "%d", items[nearest] - (int)qframe.quantised_frame[i]);
             error_model.encode(buffer);
-            
         }
         
         if(frames.size() == K)
