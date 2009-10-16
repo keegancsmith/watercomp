@@ -1,20 +1,19 @@
-#include "NaiveWriter.h"
+#include "GumholdWriter.h"
 #include "arithmetic/ByteEncoder.h"
 #include "SpanningTree.h"
-#include "TreeSerialiser.h"
 
-NaiveWriter::NaiveWriter(FILE * fout)
-    : m_fout(fout)
+GumholdWriter::GumholdWriter(FILE * fout, gumhold_predictor * pred)
+    : m_fout(fout), m_pred(pred)
 {
 }
 
 
-NaiveWriter::~NaiveWriter()
+GumholdWriter::~GumholdWriter()
 {
 }
 
 
-void NaiveWriter::start(int atoms, int frames, int ISTART,
+void GumholdWriter::start(int atoms, int frames, int ISTART,
                         int NSAVC, double DELTA)
 {
     m_encoder.start_encode(m_fout);
@@ -27,7 +26,7 @@ void NaiveWriter::start(int atoms, int frames, int ISTART,
 }
 
 
-void NaiveWriter::next_frame(const QuantisedFrame& qframe)
+void GumholdWriter::next_frame(const QuantisedFrame& qframe)
 {
     ByteEncoder enc(&m_encoder);
 
@@ -41,17 +40,17 @@ void NaiveWriter::next_frame(const QuantisedFrame& qframe)
 
     // Create spanning tree of atoms
     int root;
-    Graph * tree = spanning_tree(qframe, root);
+    Graph * tree = spanning_tree(qframe, root, m_pred);
 
     // Output the spanning tree
-    serialise_tree(m_encoder, tree, root);
+    serialise_tree(m_encoder, tree, root, m_pred);
 
     // Cleanup
     delete tree;
 }
 
 
-void NaiveWriter::end()
+void GumholdWriter::end()
 {
     m_encoder.end_encode();
 }

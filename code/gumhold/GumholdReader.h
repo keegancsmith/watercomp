@@ -1,15 +1,16 @@
 #pragma once
 
 #include "FrameReader.h"
+#include "TreeSerialiser.h"
 #include "arithmetic/ArithmeticDecoder.h"
 
 #include <cstdio>
 
-class NaiveReader : public FrameReader
+class GumholdReader : public FrameReader
 {
 public:
-    NaiveReader(FILE * fin);
-    ~NaiveReader() {}
+    GumholdReader(FILE * fin, gumhold_predictor * pred);
+    ~GumholdReader() {}
 
     void start();
     bool next_frame(QuantisedFrame & qframe);
@@ -18,4 +19,5 @@ public:
 private:
     FILE * m_fin;
     ArithmeticDecoder m_decoder;
+    gumhold_predictor * m_pred;
 };

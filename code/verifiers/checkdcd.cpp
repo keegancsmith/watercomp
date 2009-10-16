@@ -43,6 +43,8 @@ int main(int argc, char ** argv) {
         float avg_error[3] = {0, 0, 0};
         float max_error[3] = {0, 0, 0};
         float min_error[3] = {9e10, 9e10, 9e10};
+        float var_error[3] = {0, 0, 0};
+
         for (size_t i = 0; i < f1.natoms(); i++) {
             for (int d = 0; d < 3; d++) {
                 float v1 = f1.atom_data[3*i + d];
@@ -58,6 +60,16 @@ int main(int argc, char ** argv) {
         // the average
         for (int d = 0; d < 3; d++)
             avg_error[d] /= f1.natoms();
+
+        for(size_t i = 0; i < f1.natoms(); ++i)
+            for(int d = 0; d < 3; ++d)
+            {
+                float e = f1.atom_data[3*i + d] - f2.atom_data[3*i + d] - avg_error[d];
+                var_error[d] += e*e;
+            }
+
+        for(int d = 0; d < 3; ++d)
+            var_error[d] /= (f1.natoms()-1);
 
         if (!same)
             all_same = false;
@@ -78,7 +90,9 @@ int main(int argc, char ** argv) {
              << "min error:     " << min_error[0] << ' ' << min_error[1]
              << ' ' << min_error[2] << endl
              << "max error:     " << max_error[0] << ' ' << max_error[1]
-             << ' ' << max_error[2] << endl << endl;
+             << ' ' << max_error[2] << endl
+             << "variance:      " << var_error[0] << ' ' << var_error[1]
+             << ' ' << var_error[2] << endl << endl;
     }
 
     if (!verbose)

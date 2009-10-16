@@ -7,8 +7,8 @@
 
 using namespace std;
 
-CommonInterframeReader::CommonInterframeReader(FILE* input_file, int predict_on)
- : in_file(input_file), K(predict_on), index_decoder(AdaptiveModelDecoder(&decoder)), error_decoder(AdaptiveModelDecoder(&decoder))
+CommonInterframeReader::CommonInterframeReader(FILE* input_file)
+ : in_file(input_file), K(2), index_decoder(AdaptiveModelDecoder(&decoder)), error_decoder(AdaptiveModelDecoder(&decoder))
 {
     
 }
@@ -23,10 +23,12 @@ void CommonInterframeReader::start()
     fread(&atoms, sizeof(unsigned int), 1, in_file);
     fread(&frames_left, sizeof(unsigned int), 1, in_file);
 
-    // Write data to be able to reconstitute the dcd file on decompression
+    // Read data to be able to reconstitute the dcd file on decompression
     fread(&istart, sizeof(int), 1, in_file);
     fread(&nsavc, sizeof(int), 1, in_file);
     fread(&delta, sizeof(double), 1, in_file); 
+    
+    fread(&K, sizeof(int), 1, in_file); 
     
     decoder.start_decode(in_file);
 }

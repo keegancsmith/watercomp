@@ -7,8 +7,8 @@
 
 using namespace std;
 
-NNInterframeReader::NNInterframeReader(FILE* input_file, int predict_on, int vector_size)
- : in_file(input_file), K(predict_on), V(vector_size), error_model(AdaptiveModelDecoder(&decoder))
+NNInterframeReader::NNInterframeReader(FILE* input_file)
+ : in_file(input_file), K(2), V(1), error_model(AdaptiveModelDecoder(&decoder))
 {
     
 }
@@ -27,6 +27,10 @@ void NNInterframeReader::start()
     fread(&istart, sizeof(int), 1, in_file);
     fread(&nsavc, sizeof(int), 1, in_file);
     fread(&delta, sizeof(double), 1, in_file); 
+    
+    fread(&K, sizeof(int), 1, in_file);
+    fread(&V, sizeof(int), 1, in_file);
+    
     
     decoder.start_decode(in_file);
 }

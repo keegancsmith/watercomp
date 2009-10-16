@@ -104,7 +104,7 @@ ClusterView::~ClusterView()
 void ClusterView::init(std::vector<AtomInformation> pdb)
 {
     this->pdb = pdb;
-    FrameSplitter::split_frame(pdb, waters, others);
+    split_frame(pdb, waters, others);
 }//init
 
 
@@ -172,7 +172,7 @@ void ClusterView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, Fr
     BaseView::tick(framenum, frame, quantised, dequantised);
 
     graph.clear();
-    graph = ANNGraphCreator::create_graph(waters, *frame);
+    graph = create_graph(waters, *frame);
     // graph = GridGraphCreator::create_graph(waters, *frame);
 
     num_clusters = 0;

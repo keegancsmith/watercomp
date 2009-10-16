@@ -5,11 +5,12 @@
 #include "FrameReader.h"
 #include "quantiser/QuantisedFrame.h"
 #include "arithmetic/ArithmeticDecoder.h"
+#include "arithmetic/AdaptiveModelDecoder.h"
 
 class InterframeReader : public FrameReader
 {
     public:
-        InterframeReader(FILE* input_file, int predict_on);
+        InterframeReader(FILE* input_file);
 
         ~InterframeReader();
         
@@ -60,4 +61,5 @@ class InterframeReader : public FrameReader
         double delta;
         
         ArithmeticDecoder decoder;
+        AdaptiveModelDecoder model;
 };

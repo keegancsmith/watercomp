@@ -61,7 +61,7 @@ BallStickView::~BallStickView()
 void BallStickView::init(std::vector<AtomInformation> pdb)
 {
     this->pdb = pdb;
-    FrameSplitter::split_frame(pdb, waters, others);
+    split_frame(pdb, waters, others);
     numberBox->setRange(0, waters.size());
 }//init
 

@@ -31,8 +31,8 @@ TESTS = {
         'author' : 'julian',
     },
 
-    'naive': {
-        'bin'    : './naivecomp/naivecomp',
+    'gumhold': {
+        'bin'    : './gumhold/gumhold',
         'perms'  : PERMUTATIONS,
         'dcds'   : ['smallwater', 'mscl1000atoms'],
         'author' : 'keegan',

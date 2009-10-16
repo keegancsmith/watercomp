@@ -130,13 +130,11 @@ class Trie
         
         void destroy()
         {
-            for(typename std::map<char, Trie<T>* >::iterator it = links.begin(); it != links.end(); ++it)
-            {
-                if(it->second != NULL)
+            for(int i  = 0; i < 256; ++i)
+                if(links[i] != NULL)
                 {
-                    it->destroy();
-                    delete it;
+                    links[i]->destroy();
+                    delete links[i];
                 }
-            }
         }
 };

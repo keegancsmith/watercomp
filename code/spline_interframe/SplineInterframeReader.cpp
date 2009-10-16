@@ -7,8 +7,8 @@
 
 using namespace std;
 
-SplineInterframeReader::SplineInterframeReader(FILE* input_file, int predict_on)
- : in_file(input_file), K(predict_on), error_model(AdaptiveModelDecoder(&decoder))
+SplineInterframeReader::SplineInterframeReader(FILE* input_file)
+ : in_file(input_file), K(2), error_model(AdaptiveModelDecoder(&decoder))
 {
     factorials.push_back(1.0);
     
@@ -26,10 +26,17 @@ void SplineInterframeReader::start()
     fread(&atoms, sizeof(unsigned int), 1, in_file);
     fread(&frames_left, sizeof(unsigned int), 1, in_file);
 
-    // Write data to be able to reconstitute the dcd file on decompression
+    // Read data to be able to reconstitute the dcd file on decompression
     fread(&istart, sizeof(int), 1, in_file);
     fread(&nsavc, sizeof(int), 1, in_file);
-    fread(&delta, sizeof(double), 1, in_file); 
+    fread(&delta, sizeof(double), 1, in_file);
+    
+    fread(&K, sizeof(int), 1, in_file);
+    
+    factorials.clear();
+    factorials.push_back(1.0);
+    for(int i = 1; i < K; ++i)
+        factorials.push_back(factorials[factorials.size()-1]*i);
     
     decoder.start_decode(in_file);
 }

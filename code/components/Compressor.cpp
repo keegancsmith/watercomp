@@ -9,6 +9,7 @@ extern "C" {
 #include <getopt.h>
 }
 
+#include <cassert>
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
@@ -277,7 +278,7 @@ int do_main(Compressor & c, int argc, char ** argv)
             print_error("Could not read '%s'. Please specify "
                         "the pdb file with --pdb\n\n", pdb_path.c_str());
 
-        c.m_atom_information = PDBReader::load_pdbfile(pdb_path);
+        c.m_atom_information = load_pdbfile(pdb_path);
     }
 
 

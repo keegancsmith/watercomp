@@ -10,7 +10,7 @@
 class NNInterframeReader : public FrameReader
 {
     public:
-        NNInterframeReader(FILE* input_file, int predict_on, int vector_size);
+        NNInterframeReader(FILE* input_file);
 
         ~NNInterframeReader();
         

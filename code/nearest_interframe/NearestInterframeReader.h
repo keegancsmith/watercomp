@@ -10,7 +10,7 @@
 class InterframeReader : public FrameReader
 {
     public:
-        InterframeReader(FILE* input_file, int predict_on);
+        InterframeReader(FILE* input_file);
 
         ~InterframeReader();
         
