@@ -22,6 +22,7 @@
 #define ALPHA_MAX_SLIDER 100
 #define ALPHA_MAX_VAL 1.0
 
+// #define USE_PREPROCESSED_FILE
 
 #include "MarchingTables.cpp"
 #include "Renderer.h"
@@ -281,10 +282,8 @@ MetaballsView::MetaballsView()
     lighting = settings->value("MetaballsView/lighting", false).toBool();
     cullFace = settings->value("MetaballsView/cullFace", false).toBool();
 
-    g_surface = gts_surface_new(gts_surface_class(),
-                                gts_face_class(),
-                                gts_edge_class(),
-                                gts_vertex_class());
+    g_surface = 0;
+
     g_grid.x = 0;
     g_grid.y = 0;
     g_grid.z = 0;
@@ -483,7 +482,9 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, 
 {
     BaseView::tick(framenum, frame, quantised, dequantised);
     if (dequantised == 0) return;
+#ifdef USE_PREPROCESSED_FILE
     if (!__do__processing__) return;
+#endif
     printf("tick tick tick\n");
 
     g_grid.nx = 1 << quantised->m_xquant;
@@ -498,24 +499,28 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, 
     g_grid.ny /= g_grid.dy;
     g_grid.nz /= g_grid.dz;
 
-    int max_coord[] = {g_grid.nx, g_grid.ny, g_grid.nz};
+    int max_coord[] = {1 << quantised->m_xquant, 1 << quantised->m_yquant, 1 << quantised->m_zquant};
     int z, y, x;
     for (z = 0; z < max_coord[2]; ++z)
         for (y = 0; y < max_coord[1]; ++y)
             for (x = 0; x < max_coord[0]; ++x)
                 volumedata[z][y][x] = 0;
+    printf("done clearing\n");
 
     int start_coord[3];
     int final_coord[3];
-    float metaballs_ratio = 0.18;
+    float metaballs_ratio = 0.06;
     int metaballs_size[] = {max_coord[0] * metaballs_ratio,
                             max_coord[1] * metaballs_ratio,
                             max_coord[2] * metaballs_ratio};
+    printf("metaballs size: %d %d %d\n", metaballs_size[0], metaballs_size[1], metaballs_size[2]);
     int contrib = 10;
     int maxval = 255;
+    int min_dataval = maxval;
+    int max_dataval = 0;
     int v, c;
-    // printf("reset: %i\n", quantised->natoms());
-    for (int i = 0; i < quantised->natoms(); i++)
+    printf("reset: %i\n", quantised->natoms());
+    for (int i = 0; i < quantised->natoms(); ++i)
     {
         if (pdb[i].atom_name == "OH2")
         {
@@ -534,23 +539,31 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, 
                     {
                         v = volumedata[z][y][x] + contrib;
                         volumedata[z][y][x] = (v > maxval) ? maxval : v;
+                        if (v < min_dataval) min_dataval = v;
+                        if (v > max_dataval) max_dataval = v;
                     }//for
         }//if
     }//for
 
     _surface.clear();
     printf("march march march\n");
-    delete g_surface;
+    if (g_surface) gts_object_destroy((GtsObject*)g_surface);
+    // if (g_surface) delete g_surface;
     g_surface = gts_surface_new(gts_surface_class(),
                                 gts_face_class(),
                                 gts_edge_class(),
                                 gts_vertex_class());
+    printf("value: (%d, %d)\n", min_dataval, max_dataval);
+    // gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, (int)((min_dataval + max_dataval) * 0.5));
+    // gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, (int)((min_dataval + max_dataval) * 0.8));
     gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 128);
+    // gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 40);
     int count = gts_surface_face_number(g_surface);
     printf("face number: %u\n", count);
 
 
     gts_surface_foreach_face(g_surface, draw_face, (void*)&_surface);
+    printf("_surface: %u\n", _surface.size());
     return;
 
 
@@ -715,11 +728,17 @@ void MetaballsView::tick(int framenum, Frame* frame, QuantisedFrame* quantised, 
 
 void MetaballsView::render()
 {
+#ifdef USE_PREPROCESSED_FILE
     if (meta_data == 0) return;
+#else
+    if (dequantised == 0) return;
+#endif
     // if (parent) glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
 
     float l_pos[] = {200.0f, 200.0f, 200.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, l_pos);
+
+    glTranslatef(-128, -128, -350);
 
     glColor4fv(_metaballsColor);
     glBegin(GL_TRIANGLES);
@@ -779,6 +798,7 @@ void MetaballsView::render()
     }//for
     // */
 
+#ifdef USE_PREPROCESSED_FILE
     int size;
     // jump around in the file to find the frame positions
     // and do this lazily
@@ -810,7 +830,9 @@ void MetaballsView::render()
                     (*meta_data) >> t.n[k][l];
             _surface[j] = t;
         }//for
+        printf("surface size: %d\n", _surface.size());
     }//if
+#endif
 
     Triangle t;
     for (int i = 0; i < _surface.size(); i++)
@@ -1198,12 +1220,13 @@ bool MetaballsView::__process__and__save__(QString filename, DCDReader* reader)
     int v;
     int j, k, l;
     Triangle t;
+    int quant_level = 8;
     for (int i = 0; i < reader->nframes(); i++)
     {
         reader->set_frame(i);
         reader->next_frame(frame);
 
-        delete qf; qf = new QuantisedFrame(frame, 8, 8, 8);
+        delete qf; qf = new QuantisedFrame(frame, quant_level, quant_level, quant_level);
         delete dq; dq = new Frame(qf->toFrame());
         tick(i, &frame, qf, dq);
 
@@ -1228,6 +1251,7 @@ bool MetaballsView::__process__and__save__(QString filename, DCDReader* reader)
 
 bool MetaballsView::__load__file__(QString filename)
 {
+#ifdef USE_PREPROCESSED_FILE
     if (meta_file != 0)
     {
         meta_file->close();
@@ -1253,7 +1277,7 @@ bool MetaballsView::__load__file__(QString filename)
     meta_pos[0] = meta_file->pos();
     lastframe = 0;
     loadedframe = -1;
-
+#endif
     return true;
 }//__load__file__
 

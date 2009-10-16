@@ -44,7 +44,7 @@ Renderer::Renderer(QWidget* parent)
     timer->setSingleShot(false);
     connect(timer, SIGNAL(timeout()), this, SLOT(tick()));
 
-    setTps(1);
+    setTps(20);
     timer->start();
 
     scrollSensitivity = 1;
@@ -117,7 +117,9 @@ void Renderer::paintGL()
     //setup camera
     glTranslatef(0, 0, -_zoom);
     glPushMatrix();
+    // glTranslatef(-128, -128, -128);
     glMultMatrixd(rot->matrix);
+
     glTranslatef(-volume_middle[0], -volume_middle[1], -volume_middle[2]);
 
     // renderAxes();
