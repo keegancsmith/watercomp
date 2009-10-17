@@ -205,8 +205,8 @@ public:
             }
         }
 
-        assert(false);
-        return -1;
+        assert(closest != -1);
+        return closest;
     }
 
 private:
