@@ -55,8 +55,9 @@ gumhold_predictor * get_gumhold_predictor()
     std::string perm = get_predictor_env();
     if (perm == "constant")
         return gumhold_constant_predictor;
-    if (perm == "linear")
-        return gumhold_linear_predictor;
+// TODO make grid work with linear
+//    if (perm == "linear")
+//        return gumhold_linear_predictor;
     fprintf(stderr, "%s", pred_error_msg);
     exit(1);
 }
