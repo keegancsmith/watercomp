@@ -11,6 +11,7 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QSlider>
+#include <QSpinBox>
 #include <QWidget>
 
 #include <pdbio/DCDReader.h>
@@ -18,8 +19,6 @@
 
 #define ALPHA_MAX_SLIDER 100
 #define ALPHA_MAX_VAL 1.0
-
-#define USE_PREPROCESSED_FILE
 
 #include "MarchingTables.cpp"
 #include "Renderer.h"
@@ -305,6 +304,9 @@ MetaballsView::MetaballsView()
 
     lighting = settings->value("MetaballsView/lighting", false).toBool();
     cullFace = settings->value("MetaballsView/cullFace", false).toBool();
+    haveDataFile = false;
+    useDataFile = settings->value("MetaballsView/dataFile", true).toBool();
+    isoValue = settings->value("MetaballsView/isoValue", 100).toInt();
 
     g_surface = 0;
 
@@ -321,47 +323,8 @@ MetaballsView::MetaballsView()
 
     doSplitWaters = true;
 
-    doProcessing = false;
     meta_file = 0;
     meta_data = 0;
-}//constructor
-
-MetaballsView::~MetaballsView()
-{
-    if (meta_file != 0)
-    {
-        meta_file->close();
-        delete meta_file;
-    }//if
-    if (meta_data != 0)
-        delete meta_data;
-    settings->sync();
-    delete settings;
-#ifdef USE_GRID
-    int x, y, z;
-    if (volumedata != NULL)
-    {
-        for (z = 0; z < size; z++)
-        {
-            for (y = 0; y < size; y++)
-                delete [] volumedata[z][y];
-            delete [] volumedata[z];
-        }//for
-        delete [] volumedata;
-    }//if
-#endif
-}//destructor
-
-
-int MetaballsView::stepSize()
-{
-    return _stepSize;
-}//stepSize
-
-
-void MetaballsView::init(std::vector<AtomInformation> pdb)
-{
-    BaseView::init(pdb);
 #ifdef USE_GRID
     max_quant = 8;
     size = 1 << max_quant;
@@ -379,15 +342,47 @@ void MetaballsView::init(std::vector<AtomInformation> pdb)
         }//for
     }//for
 #endif
-}//init
+}//constructor
+
+MetaballsView::~MetaballsView()
+{
+    if (meta_file != 0)
+    {
+        meta_file->close();
+        delete meta_file;
+    }//if
+    if (meta_data != 0)
+        delete meta_data;
+    settings->sync();
+    delete settings;
+#ifdef USE_GRID
+    int x, y, z;
+    for (z = 0; z < size; z++)
+    {
+        for (y = 0; y < size; y++)
+            delete [] volumedata[z][y];
+        delete [] volumedata[z];
+    }//for
+    delete [] volumedata;
+#endif
+}//destructor
+
+
+int MetaballsView::stepSize()
+{
+    return _stepSize;
+}//stepSize
 
 
 void MetaballsView::updatePreferences()
 {
     metaballsAlphaSlider->setValue((int)(_metaballsColor[3] * ALPHA_MAX_SLIDER / ALPHA_MAX_VAL));
-    stepSizeSlider->setValue(_stepSize);
+    stepSizeSpinBox->setValue(_stepSize);
     lightCheckBox->setCheckState(lighting ? Qt::Checked : Qt::Unchecked);
     cullCheckBox->setCheckState(cullFace ? Qt::Checked : Qt::Unchecked);
+    dataFileCheckBox->setCheckState(useDataFile ? Qt::Checked : Qt::Unchecked);
+    dataFileCheckBox->setEnabled(haveDataFile);
+    isoValueSpinBox->setValue(isoValue);
 }//updatePreferences
 
 void MetaballsView::setupPreferenceWidget(QWidget* preferenceWidget)
@@ -410,11 +405,10 @@ void MetaballsView::setupPreferenceWidget(QWidget* preferenceWidget)
     QLabel* stepSizeLabel = new QLabel(tr("Step size"), preferenceWidget);
     layout->addWidget(stepSizeLabel, 2, 0);
 
-    stepSizeSlider = new QSlider(preferenceWidget);
-    stepSizeSlider->setOrientation(Qt::Horizontal);
-    stepSizeSlider->setRange(0, maxStepSize);
-    connect(stepSizeSlider, SIGNAL(valueChanged(int)), this, SLOT(setStepSize(int)));
-    layout->addWidget(stepSizeSlider, 2, 1);
+    stepSizeSpinBox = new QSpinBox(preferenceWidget);
+    stepSizeSpinBox->setRange(0, maxStepSize);
+    connect(stepSizeSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setStepSize(int)));
+    layout->addWidget(stepSizeSpinBox, 2, 1);
 
     QLabel* cullLabel = new QLabel(tr("Cull faces"), preferenceWidget);
     layout->addWidget(cullLabel, 3, 0);
@@ -430,9 +424,24 @@ void MetaballsView::setupPreferenceWidget(QWidget* preferenceWidget)
     connect(lightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setLighting(int)));
     layout->addWidget(lightCheckBox, 4, 1);
 
+    QLabel* dataFileLabel = new QLabel(tr("Use data file"), preferenceWidget);
+    layout->addWidget(dataFileLabel, 5, 0);
+
+    dataFileCheckBox = new QCheckBox(preferenceWidget);
+    connect(dataFileCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setUseDataFile(int)));
+    layout->addWidget(dataFileCheckBox, 5, 1);
+
+    QLabel* isoValueLabel = new QLabel(tr("Iso value"), preferenceWidget);
+    layout->addWidget(isoValueLabel, 6, 0);
+
+    isoValueSpinBox = new QSpinBox(preferenceWidget);
+    isoValueSpinBox->setRange(0, 255);
+    connect(isoValueSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setIsoValue(int)));
+    layout->addWidget(isoValueSpinBox, 6, 1);
+
     QPushButton* updateButton = new QPushButton(tr("Update faces"), preferenceWidget);
     connect(updateButton, SIGNAL(clicked()), this, SLOT(updateFaces()));
-    layout->addWidget(updateButton, 5, 0);
+    layout->addWidget(updateButton, 7, 0);
 
     preferenceWidget->setLayout(layout);
 }//setupPreferenceWidget
@@ -486,10 +495,8 @@ void MetaballsView::tick(int framenum, Frame* unquantised, QuantisedFrame* quant
 {
     BaseView::tick(framenum, unquantised, quantised, dequantised);
     if (dequantised == 0) return;
-#ifdef USE_PREPROCESSED_FILE
-    if (!doProcessing) return;
-#endif
-    printf("tick tick tick\n");
+    if (useDataFile) return;
+    // printf("tick tick tick\n");
 
     g_grid.nx = 1 << quantised->m_xquant;
     g_grid.ny = 1 << quantised->m_yquant;
@@ -510,7 +517,7 @@ void MetaballsView::tick(int framenum, Frame* unquantised, QuantisedFrame* quant
         for (y = 0; y < max_coord[1]; ++y)
             for (x = 0; x < max_coord[0]; ++x)
                 volumedata[z][y][x] = 0;
-    printf("done clearing\n");
+    // printf("done clearing (%d, %d, %d)\n", max_coord[0], max_coord[1], max_coord[2]);
 #else
     meta_volume.clear();
     Point3f p3f;
@@ -522,13 +529,13 @@ void MetaballsView::tick(int framenum, Frame* unquantised, QuantisedFrame* quant
     int metaballs_size[] = {max_coord[0] * metaballs_ratio,
                             max_coord[1] * metaballs_ratio,
                             max_coord[2] * metaballs_ratio};
-    printf("metaballs size: %d %d %d\n", metaballs_size[0], metaballs_size[1], metaballs_size[2]);
+    // printf("metaballs size: %d %d %d\n", metaballs_size[0], metaballs_size[1], metaballs_size[2]);
     int contrib = 10;
     int maxval = 255;
     int min_dataval = maxval;
     int max_dataval = 0;
     int v, c;
-    printf("reset: %i\n", quantised->natoms());
+    // printf("reset: %i\n", quantised->natoms());
     for (int i = 0; i < waters.size(); ++i)
     {
         for (c = 0; c < 3; ++c)
@@ -560,14 +567,14 @@ void MetaballsView::tick(int framenum, Frame* unquantised, QuantisedFrame* quant
     }//for
 
     _surface.clear();
-    printf("march march march\n");
+    // printf("march march march\n");
     if (g_surface) gts_object_destroy((GtsObject*)g_surface);
     // if (g_surface) delete g_surface;
     g_surface = gts_surface_new(gts_surface_class(),
                                 gts_face_class(),
                                 gts_edge_class(),
                                 gts_vertex_class());
-    printf("value: (%d, %d)\n", min_dataval, max_dataval);
+    // printf("value: (%d, %d)\n", min_dataval, max_dataval);
 
 #ifdef USE_GRID
     // mscl
@@ -577,17 +584,22 @@ void MetaballsView::tick(int framenum, Frame* unquantised, QuantisedFrame* quant
     // gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 14);
 
     // gala
-    gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 15);
+    // gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 45);
+
+
+    gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, isoValue);
 #else
-    gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)&meta_volume, 15);
+    gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)&meta_volume, isoValue);
 #endif
 
     int count = gts_surface_face_number(g_surface);
-    printf("face number: %u\n", count);
+    // printf("face number: %u\n", count);
 
 
     gts_surface_foreach_face(g_surface, draw_face, (void*)&_surface);
-    printf("_surface: %u\n", _surface.size());
+    printf("\r%d: %d (%d~%d) ", framenum, _surface.size(), min_dataval, max_dataval);
+    fflush(stdout);
+    // printf("_surface: %u\n", _surface.size());
     return;
 
 
@@ -752,11 +764,11 @@ void MetaballsView::tick(int framenum, Frame* unquantised, QuantisedFrame* quant
 
 void MetaballsView::render()
 {
-#ifdef USE_PREPROCESSED_FILE
-    if (meta_data == 0) return;
-#else
-    if (dequantised == 0) return;
-#endif
+    if (useDataFile)
+    {
+        if (meta_data == 0) return;
+    }//if
+    else if (dequantised == 0) return;
     // if (parent) glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
 
     float l0_pos[] = {-1.0f, 1.0f, 2.0f, 0.0f};
@@ -806,41 +818,50 @@ void MetaballsView::render()
 
     // */
 
-#ifdef USE_PREPROCESSED_FILE
-    int size;
-    // jump around in the file to find the frame positions
-    // and do this lazily
-    while (lastframe < framenum)
+    if (useDataFile)
     {
-        (*meta_data) >> size;
-        meta_file->seek(meta_file->pos() +
-                size * ((3*3*sizeof(float)) + (3*3*sizeof(float))));
-        meta_pos[++lastframe] = meta_file->pos();
-    }//if
-
-    int j, k, l;
-    // if the loaded frame is not the current frame to show
-    // then jump to the position and load the data
-    if (loadedframe != framenum)
-    {
-        meta_file->seek(meta_pos[framenum]);
-        loadedframe = framenum;
-        (*meta_data) >> size;
-        _surface.resize(size);
-        for (j = 0; j < size; j++)
+        quint32 size;
+        // jump around in the file to find the frame positions
+        // and do this lazily
+        while (lastframe < framenum)
         {
-            Triangle t;
-            for (k = 0; k < 3; k++)
-                for (l = 0; l < 3; l++)
-                    (*meta_data) >> t.p[k][l];
-            for (k = 0; k < 3; k++)
-                for (l = 0; l < 3; l++)
-                    (*meta_data) >> t.n[k][l];
-            _surface[j] = t;
-        }//for
-        printf("surface size: %d\n", _surface.size());
+            (*meta_data) >> size;
+            //3 vertices
+            //3 coords
+            //a value and a normal
+            meta_file->seek(meta_file->pos() +
+                    size * 3 * 3 * (sizeof(float) + sizeof(float)));
+            meta_pos[++lastframe] = meta_file->pos();
+        }//if
+
+        int j, k, l;
+        // if the loaded frame is not the current frame to show
+        // then jump to the position and load the data
+        if (loadedframe != framenum)
+        {
+            meta_file->seek(meta_pos[framenum]);
+            loadedframe = framenum;
+            (*meta_data) >> size;
+            _surface.resize(size);
+            for (j = 0; j < size; ++j)
+            {
+                Triangle t;
+                for (k = 0; k < 3; ++k)
+                    for (l = 0; l < 3; ++l)
+                        (*meta_data) >> t.p[k][l];
+                for (k = 0; k < 3; ++k)
+                    for (l = 0; l < 3; ++l)
+                        (*meta_data) >> t.n[k][l];
+                _surface[j] = t;
+            }//for
+            // just read a frame of data, so check if should update
+            // the meta_pos and last frame data
+            if (lastframe == framenum)
+                meta_pos[++lastframe] = meta_file->pos();
+            printf("\r%d: %d ", framenum, _surface.size());
+            fflush(stdout);
+        }//if
     }//if
-#endif
 
     Triangle t;
     for (int i = 0; i < _surface.size(); i++)
@@ -915,6 +936,18 @@ void MetaballsView::setLighting(int state)
             glDisable(GL_LIGHTING);
     }//if
 }//setLighting
+
+void MetaballsView::setUseDataFile(int state)
+{
+    useDataFile = state != 0;
+    settings->setValue("MetaballsView/dataFile", useDataFile);
+}//setUseDataFile
+
+void MetaballsView::setIsoValue(int value)
+{
+    isoValue = value;
+    settings->setValue("MetaballsView/isoValue", isoValue);
+}//setUseDataFile
 
 void MetaballsView::updateFaces()
 {
@@ -1155,7 +1188,7 @@ void MetaballsView::callMarchingCubes(float x, float y, float z, float scale)
 
 
 
-bool MetaballsView::processVolume(QString filename, DCDReader* reader)
+bool MetaballsView::processVolume(QString filename, DCDReader* reader, int quant_level)
 {
     QFile file(filename);
     file.open(QIODevice::WriteOnly);
@@ -1167,12 +1200,13 @@ bool MetaballsView::processVolume(QString filename, DCDReader* reader)
     QuantisedFrame* quant = new QuantisedFrame(1, 1, 1, 1);;
     Frame* dequant = new Frame(quant->toFrame());
 
-    doProcessing = true;
+    useDataFile = false;
     int v;
     int j, k, l;
     Triangle t;
-    int quant_level = 8;
-    for (int i = 0; i < reader->nframes(); i++)
+    int nframes = reader->nframes();
+    printf("\nFrames: %d\n", nframes);
+    for (int i = 0; i < nframes; ++i)
     {
         reader->set_frame(i);
         reader->next_frame(*unquant);
@@ -1182,19 +1216,18 @@ bool MetaballsView::processVolume(QString filename, DCDReader* reader)
         tick(i, unquant, quant, dequant);
 
         out << (quint32)_surface.size();
-        for (j = 0; j < _surface.size(); j++)
+        for (j = 0; j < _surface.size(); ++j)
         {
             t = _surface.at(j);
-            for (k = 0; k < 3; k++)
-                for (l = 0; l < 3; l++)
+            for (k = 0; k < 3; ++k)
+                for (l = 0; l < 3; ++l)
                     out << t.p[k][l];
-            for (k = 0; k < 3; k++)
-                for (l = 0; l < 3; l++)
+            for (k = 0; k < 3; ++k)
+                for (l = 0; l < 3; ++l)
                     out << t.n[k][l];
         }//for
-        printf("Frame: %i\n", i);
+        printf("%lld  ", file.pos());
     }//for
-    doProcessing = false;
 
     delete unquant;
     delete quant;
@@ -1207,7 +1240,7 @@ bool MetaballsView::processVolume(QString filename, DCDReader* reader)
 
 bool MetaballsView::loadFile(QString filename)
 {
-#ifdef USE_PREPROCESSED_FILE
+    haveDataFile = false;
     if (meta_file != 0)
     {
         meta_file->close();
@@ -1219,8 +1252,10 @@ bool MetaballsView::loadFile(QString filename)
         meta_file->close();
         delete meta_file;
         meta_file = 0;
+        useDataFile = false;
         return false;
     }//if
+    haveDataFile = true;
 
     if (meta_data != 0)
         delete meta_data;
@@ -1229,11 +1264,10 @@ bool MetaballsView::loadFile(QString filename)
     int total_size, size;
     (*meta_data) >> total_size;
 
-    meta_pos.resize(total_size);
+    meta_pos.resize(total_size+1);
     meta_pos[0] = meta_file->pos();
     lastframe = 0;
     loadedframe = -1;
-#endif
     return true;
 }//loadFile
 

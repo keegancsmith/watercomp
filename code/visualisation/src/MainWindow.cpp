@@ -3,10 +3,13 @@
 #include <QAction>
 #include <QCoreApplication>
 #include <QFileDialog>
+#include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
 #include <QRegExp>
 #include <QSettings>
+#include <QSlider>
+#include <QSpinBox>
 #include <QString>
 #include <QVBoxLayout>
 
@@ -29,6 +32,8 @@
 #include "QuantiseErrorView.h"
 #include "Renderer.h"
 #include "ViewPreference.h"
+
+#define MAX_QUANTISATION 10
 
 MainWindow::MainWindow()
 {
@@ -54,6 +59,38 @@ MainWindow::MainWindow()
     connect(playbackControl, SIGNAL(frameChange(int)), this, SLOT(setFrame(int)));
     centralLayout->addWidget(playbackControl);
 
+    QVBoxLayout* extraLayout = new QVBoxLayout();
+
+    QHBoxLayout* infoLayout = new QHBoxLayout();
+    QLabel* frameDescLabel = new QLabel(tr("Frame: "), this);
+    infoLayout->addWidget(frameDescLabel);
+    frameLabel = new QLabel("0", this);
+    infoLayout->addWidget(frameLabel);
+
+    infoLayout->addSpacing(50);
+
+    QLabel* quantisationLabel = new QLabel(tr("Quantisation level: "), this);
+    infoLayout->addWidget(quantisationLabel);
+    quantisationSpinBox = new QSpinBox(this);
+    quantisationSpinBox->setRange(1, MAX_QUANTISATION);
+    connect(quantisationSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setQuantisationLevel(int)));
+    infoLayout->addWidget(quantisationSpinBox);
+
+    extraLayout->addLayout(infoLayout);
+
+    QHBoxLayout* speedLayout = new QHBoxLayout();
+    speedSlider = new QSlider(this);
+    speedSlider->setRange(1, 20);
+    speedSlider->setOrientation(Qt::Horizontal);
+    connect(speedSlider, SIGNAL(valueChanged(int)), this, SLOT(setTps(int)));
+    speedLayout->addWidget(speedSlider);
+
+    speedLabel = new QLabel("0", this);
+    speedLayout->addWidget(speedLabel);
+    extraLayout->addLayout(speedLayout);
+
+    centralLayout->addLayout(extraLayout);
+
     setCentralWidget(centralWidget);
     resize(600, 480);
 
@@ -68,8 +105,9 @@ MainWindow::MainWindow()
     quantised = 0;
     dequantised = 0;
     renderer->setRenderMode(settings->value("Renderer/renderMode", 0).toInt());
-
-    quantisationLevel = 5;
+    quantisationLevel = settings->value("quantisationLevel", 8).toInt();
+    quantisationSpinBox->setValue(quantisationLevel);
+    speedSlider->setValue(settings->value("playbackSpeed", 10).toInt());
 }//constructor
 
 MainWindow::~MainWindow()
@@ -138,19 +176,43 @@ void MainWindow::setFrame(int value)
         return;
     }//if
 
+    framenum = value;
     if (quantised != NULL) delete quantised;
     quantised = new QuantisedFrame(*unquantised, quantisationLevel, quantisationLevel, quantisationLevel);
     if (dequantised != NULL) delete dequantised;
     dequantised = new Frame(quantised->toFrame());
-    renderer->dataTick(value, unquantised, quantised, dequantised);
+    renderer->dataTick(framenum, unquantised, quantised, dequantised);
+    frameLabel->setNum(framenum);
 }//setFrame
 
+void MainWindow::setQuantisationLevel(int value)
+{
+    if (value < 1) value = 1;
+    if (value > MAX_QUANTISATION) value = MAX_QUANTISATION;
+    quantisationLevel = value;
+    settings->setValue("quantisationLevel", quantisationLevel);
+
+    if (unquantised == NULL) return;
+    if (quantised != NULL) delete quantised;
+    quantised = new QuantisedFrame(*unquantised, quantisationLevel, quantisationLevel, quantisationLevel);
+    if (dequantised != NULL) delete dequantised;
+    dequantised = new Frame(quantised->toFrame());
+    renderer->dataTick(framenum, unquantised, quantised, dequantised);
+}//setQuantisationLevel
+
+void MainWindow::setTps(int value)
+{
+    playbackControl->setTps(value);
+    int tps = playbackControl->tps();
+    settings->setValue("playbackSpeed", tps);
+    speedLabel->setNum(tps);
+}//setTps
 
 void MainWindow::setupMenu()
 {
     QMenu* fileMenu = menuBar()->addMenu(tr("&File"));
 
-    QAction* openFileAction = new QAction(tr("&Open image"), fileMenu);
+    QAction* openFileAction = new QAction(tr("&Open data"), fileMenu);
     openFileAction->setShortcut(tr("Ctrl+O"));
     connect(openFileAction, SIGNAL(triggered()), this, SLOT(doOpenFile()));
 
@@ -211,6 +273,6 @@ void MainWindow::addRenderMode(BaseView* view, QMenu* menu)
 void MainWindow::doProcessAllFrames()
 {
     QString mbdFilename(lastLocation);
-    metaballsView->processVolume(mbdFilename.replace(QRegExp(".pdb$"), ".mbd").toStdString().c_str(), dcdreader);
+    metaballsView->processVolume(mbdFilename.replace(QRegExp(".pdb$"), ".mbd2").toStdString().c_str(), dcdreader, quantisationLevel);
 }//doProcessAllFrames
 

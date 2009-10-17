@@ -13,8 +13,11 @@
 #include <graph/gridgraphcreator/GridGraphCreator.h>
 
 class QAction;
+class QLabel;
 class QMenu;
 class QSettings;
+class QSlider;
+class QSpinBox;
 class QVBoxLayout;
 
 class DCDReader;
@@ -40,6 +43,8 @@ class MainWindow : public QMainWindow
         void doOpenFile();
         void doViewPreferences();
         void setFrame(int value);
+        void setTps(int value);
+        void setQuantisationLevel(int value);
 
         void doProcessAllFrames();
 
@@ -55,6 +60,7 @@ class MainWindow : public QMainWindow
         std::vector<AtomInformation> pdb;
         DCDReader* dcdreader;
         float* atoms;
+        int framenum;
         Frame* unquantised;
         QuantisedFrame* quantised;
         Frame* dequantised;
@@ -62,6 +68,10 @@ class MainWindow : public QMainWindow
         PlaybackControl* playbackControl;
         Renderer* renderer;
         ViewPreferenceDialog* viewPreferenceDialog;
+        QLabel* frameLabel;
+        QSpinBox* quantisationSpinBox;
+        QSlider* speedSlider;
+        QLabel* speedLabel;
 
         MetaballsView* metaballsView;
 
