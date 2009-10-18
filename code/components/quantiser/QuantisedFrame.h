@@ -22,6 +22,8 @@ class QuantisedFrame
                        
         Frame toFrame() const;
         int natoms() const;
+        const unsigned int & at(size_t atom_idx, size_t d) const;
+        unsigned int & at(size_t atom_idx, size_t d);
 
         std::vector<unsigned int> quantised_frame;
 
