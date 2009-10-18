@@ -197,6 +197,7 @@ void ClusterView::dfs(int current, int component)
 void ClusterView::tick(int framenum, Frame* unquantised, QuantisedFrame* quantised, Frame* dequantised)
 {
     BaseView::tick(framenum, unquantised, quantised, dequantised);
+    if (unquantised == NULL) return;
 
     graph.clear();
     graph = create_graph(waters, *unquantised, tolerance);
