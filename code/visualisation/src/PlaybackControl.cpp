@@ -2,7 +2,6 @@
 
 #include <cstdio>
 #include <QHBoxLayout>
-#include <QLabel>
 #include <QPushButton>
 #include <QSlider>
 #include <QTimer>
@@ -30,26 +29,12 @@ PlaybackControl::PlaybackControl(QWidget* parent)
     buttonLayout->addWidget(playButton);
     mainLayout->addLayout(buttonLayout);
 
-    QHBoxLayout* lowerLayout = new QHBoxLayout();
-
-    speedSlider = new QSlider(this);
-    speedSlider->setRange(1, 20);
-    speedSlider->setOrientation(Qt::Horizontal);
-    connect(speedSlider, SIGNAL(valueChanged(int)), this, SLOT(setTps(int)));
-    lowerLayout->addWidget(speedSlider);
-
-    speedLabel = new QLabel("0", this);
-    lowerLayout->addWidget(speedLabel);
-
-    mainLayout->addLayout(lowerLayout);
-
     timer = new QTimer(this);
     timer->setSingleShot(false);
     connect(timer, SIGNAL(timeout()), this, SLOT(timerTick()));
 
     _frame = 0;
-    playing = true;
-    playClicked(); //pause
+    setPlay(false);
     setTotalFrames(0);
 }//constructor
 
@@ -66,7 +51,7 @@ int PlaybackControl::tps()
 
 void PlaybackControl::setTps(int value)
 {
-    if (value < 0) return;
+    if (value < 1) value = 1;
     _tps = value;
     if (value == 0)
     {
@@ -75,8 +60,6 @@ void PlaybackControl::setTps(int value)
     }//if
     else
         timer->setInterval(1000 / _tps);
-    speedSlider->setValue(_tps);
-    speedLabel->setNum((int)_tps);
 }//setTps
 
 int PlaybackControl::totalFrames()
@@ -100,15 +83,18 @@ void PlaybackControl::setFrame(int value)
 {
     if (_frame == value) return;
     if (value < 0) value = 0;
-    if (value >= _totalFrames) value = _totalFrames - 1;
+    if (value >= _totalFrames)
+    {
+        value = _totalFrames - 1;
+        setPlay(false);
+    }//if
     _frame = value;
     slider->setValue(_frame);
 }//setFrame
 
-
-void PlaybackControl::playClicked()
+void PlaybackControl::setPlay(bool value)
 {
-    playing = !playing;
+    playing = value;
     if (playing)
     {
         playButton->setText(tr("Pause"));
@@ -121,18 +107,16 @@ void PlaybackControl::playClicked()
         timer->stop();
         emit pause();
     }//else
+}//setPlay
+
+
+void PlaybackControl::playClicked()
+{
+    setPlay(!playing);
 }//playClicked
 
 void PlaybackControl::timerTick()
 {
-    slider->setValue(_frame + 1);
-    // emit tick();
-
-    if (_frame == _totalFrames)
-    {
-        playing = true;
-        playClicked();
-        return;
-    }//if
+    setFrame(_frame + 1);
 }//timerTick
 

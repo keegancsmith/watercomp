@@ -281,8 +281,7 @@ void Renderer::tick()
     }//if
 
     //apply the rotations if needed
-    if ((difx != 0) || (dify != 0) ||
-        (spinning[0] != 0) || (spinning[1] != 0) || (spinning[2] != 0))
+    if ((spinning[0] != 0) || (spinning[1] != 0) || (spinning[2] != 0))
     {
         rot->rotate(spinning[0], 0, 1, 0);
         rot->rotate(spinning[1], 1, 0, 0);
@@ -334,6 +333,9 @@ void Renderer::mouseReleaseEvent(QMouseEvent* event)
             break;
         case Qt::RightButton:
             dragging[2] = false;
+            spinning[0] = 0;
+            spinning[1] = 0;
+            spinning[2] = 0;
             break;
         default:
             break;

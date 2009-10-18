@@ -3,7 +3,6 @@
 
 #include <QWidget>
 
-class QLabel;
 class QPushButton;
 class QSlider;
 class QTimer;
@@ -31,6 +30,7 @@ class PlaybackControl : public QWidget
     public slots:
         void setTps(int value);
         void setFrame(int value);
+        void setPlay(bool value);
 
     private slots:
         void playClicked();
@@ -39,9 +39,7 @@ class PlaybackControl : public QWidget
     private:
         bool playing;
         QSlider* slider;
-        QSlider* speedSlider;
         QPushButton* playButton;
-        QLabel* speedLabel;
 
         QTimer* timer;
         int _tps;

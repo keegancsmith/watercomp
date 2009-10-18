@@ -15,6 +15,7 @@ class QFile;
 class QDataStream;
 class QSettings;
 class QSlider;
+class QSpinBox;
 
 class DCDReader;
 
@@ -53,14 +54,12 @@ class MetaballsView : public BaseView
 
         int stepSize();
 
-        virtual void init(std::vector<AtomInformation> pdb);
-
         virtual void updatePreferences();
 
         virtual void tick(int framenum, Frame* unquantised, QuantisedFrame* quantised, Frame* dequantised);
         virtual void render();
 
-        bool processVolume(QString filename, DCDReader* reader);
+        bool processVolume(QString filename, DCDReader* reader, int quant_level=8);
         bool loadFile(QString filename);
 
     protected:
@@ -74,6 +73,9 @@ class MetaballsView : public BaseView
 
         void setCullFace(int state);
         void setLighting(int state);
+        void setUseDataFile(int state);
+        void setIsoValue(int value);
+
         void updateFaces();
 
     private:
@@ -84,8 +86,10 @@ class MetaballsView : public BaseView
         int _stepSize;
         float _metaballsColor[4];
         QVector<Triangle> _surface;
+        bool haveDataFile;
+        bool useDataFile;
+        int isoValue;
 
-        int max_quant;
         int cur_quant;
         int size;
 
@@ -96,9 +100,11 @@ class MetaballsView : public BaseView
 #endif
 
         QSlider* metaballsAlphaSlider;
-        QSlider* stepSizeSlider;
+        QSpinBox* stepSizeSpinBox;
         QCheckBox* lightCheckBox;
         QCheckBox* cullCheckBox;
+        QCheckBox* dataFileCheckBox;
+        QSpinBox* isoValueSpinBox;
 
 
         float sampleVolume(float x, float y, float z);
@@ -112,7 +118,6 @@ class MetaballsView : public BaseView
         GtsCartesianGrid g_grid;
 
 
-        bool doProcessing;
         QFile* meta_file;
         QDataStream* meta_data;
         QVector<qint64> meta_pos;

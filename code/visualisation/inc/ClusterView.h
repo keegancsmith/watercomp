@@ -9,6 +9,7 @@
 
 
 class QCheckBox;
+class QDoubleSpinBox;
 class QLabel;
 class QSettings;
 class QSlider;
@@ -36,6 +37,8 @@ class ClusterView : public BaseView
         void setLineWidth(int value);
         void pickLineColor();
         void setLighting(int state);
+        void setTolerance(double value);
+        void setTotal(int value);
         void setClusterID(int value);
 
     private:
@@ -44,6 +47,8 @@ class ClusterView : public BaseView
         int _lineWidth;
         int num_clusters;
         int current_cluster;
+        double tolerance;
+        int totalToDraw;
         GLUquadricObj* quadric;
         bool lighting;
 
@@ -51,6 +56,8 @@ class ClusterView : public BaseView
         QSlider* lineAlphaSlider;
         QSpinBox* clusterSpinBox;
         QCheckBox* lightCheckBox;
+        QDoubleSpinBox* toleranceSpinBox;
+        QSpinBox* totalSpinBox;
         QLabel* countLabel;
 
         bool first;
