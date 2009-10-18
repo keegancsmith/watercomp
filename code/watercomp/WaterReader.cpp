@@ -1,12 +1,17 @@
 #include "WaterReader.h"
 
+#include "arithmetic/AdaptiveModelDecoder.h"
 #include "arithmetic/ByteDecoder.h"
+#include "splitter/FrameSplitter.h"
 
 #include <cassert>
 
-WaterReader::WaterReader(FILE * fin)
+using std::vector;
+
+WaterReader::WaterReader(FILE * fin, const vector<AtomInformation> & pdb)
     : m_fin(fin)
 {
+    split_frame(pdb, m_water_molecules, m_other_atoms);
 }
 
 
@@ -32,11 +37,25 @@ void WaterReader::start()
 
 bool WaterReader::next_frame(QuantisedFrame & qframe)
 {
-    ByteDecoder dec(&m_decoder);
-
     assert(qframe.natoms() == natoms());
 
-    // Frame header
+    next_frame_header(qframe);
+    next_frame_water(qframe);
+    next_frame_other(qframe);
+
+    return true;
+}
+
+
+void WaterReader::end()
+{
+}
+
+
+void WaterReader::next_frame_header(QuantisedFrame & qframe)
+{
+    ByteDecoder dec(&m_decoder);
+
     unsigned int header_quant[3];
     dec.decode(header_quant, sizeof(int), 3);
     dec.decode(qframe.min_coord, sizeof(float), 3);
@@ -45,11 +64,30 @@ bool WaterReader::next_frame(QuantisedFrame & qframe)
     qframe.m_xquant = header_quant[0];
     qframe.m_yquant = header_quant[1];
     qframe.m_zquant = header_quant[2];
-
-    return true;
 }
 
 
-void WaterReader::end()
+void WaterReader::next_frame_water(QuantisedFrame & qframe)
 {
+    AdaptiveModelDecoder dec(&m_decoder);
+
+    for (size_t i = 0; i < m_water_molecules.size(); i++) {
+        WaterMolecule mol = m_water_molecules[i];
+        unsigned int idx[3] = { mol.OH2_index, mol.H1_index, mol.H2_index };
+        for (int j = 0; j < 3; j++)
+            for (int d = 0; d < 3; d++)
+                qframe.quantised_frame[3*idx[j] + d] = dec.decode_int();
+    }
+}
+
+
+void WaterReader::next_frame_other(QuantisedFrame & qframe)
+{
+    AdaptiveModelDecoder dec(&m_decoder);
+
+    for (size_t i = 0; i < m_other_atoms.size(); i++) {
+        int idx = m_other_atoms[i];
+        for (int d = 0; d < 3; d++)
+            qframe.quantised_frame[3*idx + d] = dec.decode_int();
+    }
 }

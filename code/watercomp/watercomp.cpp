@@ -11,12 +11,14 @@ class WaterCompressor : public Compressor
 {
 public:
     FrameReader * frame_reader(FILE * fin) {
-        return new WaterReader(fin);
+        return new WaterReader(fin, m_atom_information);
     }
 
     FrameWriter * frame_writer(FILE * fout) {
-        return new WaterWriter(fout);
+        return new WaterWriter(fout, m_atom_information);
     }
+
+    bool needs_atom_information() const { return true; }
 };
 
 
