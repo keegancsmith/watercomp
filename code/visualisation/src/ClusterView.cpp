@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <QCheckBox>
+#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
@@ -81,6 +82,8 @@ ClusterView::ClusterView()
     _lineWidth = settings->value("ClusterView/lineWidth", 2).toInt();
 
     lighting = settings->value("ClusterView/lighting", false).toBool();
+    tolerance = settings->value("ClusterView/tolerance", 0.2).toDouble();
+    totalToDraw = settings->value("ClusterView/draw", 20).toInt();
     _preferenceWidget = NULL;
 
     quantised = 0;
@@ -108,6 +111,9 @@ void ClusterView::updatePreferences()
     lightCheckBox->setCheckState(lighting ? Qt::Checked : Qt::Unchecked);
     clusterSpinBox->setMaximum(num_clusters-1);
     if (current_cluster == -1) countLabel->setNum((int)(num_clusters-1));
+    toleranceSpinBox->setValue(tolerance);
+    totalSpinBox->setValue(totalToDraw);
+    totalSpinBox->setMaximum(num_clusters-1);
 }//updatePreferences
 
 void ClusterView::setupPreferenceWidget(QWidget* preferenceWidget)
@@ -143,19 +149,37 @@ void ClusterView::setupPreferenceWidget(QWidget* preferenceWidget)
     connect(lightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setLighting(int)));
     layout->addWidget(lightCheckBox, 3, 1);
 
+    QLabel* toleranceLabel = new QLabel(tr("Tolerance"), preferenceWidget);
+    layout->addWidget(toleranceLabel, 4, 0);
+
+    toleranceSpinBox = new QDoubleSpinBox(preferenceWidget);
+    toleranceSpinBox->setRange(0.1, 6.0);
+    toleranceSpinBox->setDecimals(1);
+    toleranceSpinBox->setSingleStep(0.1);
+    connect(toleranceSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setTolerance(double)));
+    layout->addWidget(toleranceSpinBox, 4, 1);
+
+    QLabel* totalLabel = new QLabel(tr("Clusters drawn"), preferenceWidget);
+    layout->addWidget(totalLabel, 5, 0);
+
+    totalSpinBox = new QSpinBox(preferenceWidget);
+    totalSpinBox->setMinimum(1);
+    connect(totalSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setTotal(int)));
+    layout->addWidget(totalSpinBox, 5, 1);
+
     QLabel* clusterLabel = new QLabel(tr("Cluster ID"), preferenceWidget);
-    layout->addWidget(clusterLabel, 4, 0);
+    layout->addWidget(clusterLabel, 6, 0);
 
     clusterSpinBox = new QSpinBox(preferenceWidget);
     clusterSpinBox->setRange(-1, -1);
     connect(clusterSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setClusterID(int)));
-    layout->addWidget(clusterSpinBox, 4, 1);
+    layout->addWidget(clusterSpinBox, 6, 1);
 
     QLabel* countLabelLabel = new QLabel(tr("Cluster count"), preferenceWidget);
-    layout->addWidget(countLabelLabel, 5, 0);
+    layout->addWidget(countLabelLabel, 7, 0);
 
     countLabel = new QLabel(tr("-1"), preferenceWidget);
-    layout->addWidget(countLabel, 5, 1);
+    layout->addWidget(countLabel, 7, 1);
 
     preferenceWidget->setLayout(layout);
 }//setupPreferenceWidget
@@ -175,7 +199,7 @@ void ClusterView::tick(int framenum, Frame* unquantised, QuantisedFrame* quantis
     BaseView::tick(framenum, unquantised, quantised, dequantised);
 
     graph.clear();
-    graph = create_graph(waters, *unquantised);
+    graph = create_graph(waters, *unquantised, tolerance);
 
     num_clusters = 0;
     components.clear();
@@ -241,7 +265,7 @@ void ClusterView::render()
         start = it->first;
         if ((current_cluster >= 0) && (components[start] != current_cluster))
             continue;
-        if (count++ > 20)
+        if (count++ > totalToDraw)
             break;
         for (std::vector<unsigned int>::iterator vit = it->second.begin(); vit != it->second.end(); vit++)
         {
@@ -328,4 +352,17 @@ void ClusterView::setLighting(int state)
         else glDisable(GL_LIGHTING);
     }//if
 }//setLighting
+
+void ClusterView::setTolerance(double value)
+{
+    tolerance = value;
+    settings->setValue("ClusterView/tolerance", tolerance);
+    tick(framenum, unquantised, quantised, dequantised);
+}//setTolerance
+
+void ClusterView::setTotal(int value)
+{
+    totalToDraw = value;
+    settings->setValue("ClusterView/draw", totalToDraw);
+}//setTotal
 
