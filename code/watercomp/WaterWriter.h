@@ -1,7 +1,9 @@
 #pragma once
 
 #include "FrameWriter.h"
+#include "arithmetic/AdaptiveModelEncoder.h"
 #include "arithmetic/ArithmeticEncoder.h"
+#include "arithmetic/ByteEncoder.h"
 #include "splitter/WaterMolecule.h"
 #include "quantiser/QuantisedFrame.h"
 
@@ -24,8 +26,9 @@ private:
     void next_frame_water(const QuantisedFrame & qframe);
     void next_frame_other(const QuantisedFrame & qframe);
 
-    FILE * m_fout;
     ArithmeticEncoder m_encoder;
+    AdaptiveModelEncoder m_adaptive;
+    ByteEncoder m_byte;
 
     std::vector<WaterMolecule> m_water_molecules;
     std::vector<unsigned int> m_other_atoms;

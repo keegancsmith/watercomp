@@ -1,7 +1,9 @@
 #pragma once
 
 #include "FrameReader.h"
+#include "arithmetic/AdaptiveModelDecoder.h"
 #include "arithmetic/ArithmeticDecoder.h"
+#include "arithmetic/ByteDecoder.h"
 #include "splitter/WaterMolecule.h"
 
 #include <cstdio>
@@ -18,8 +20,9 @@ public:
     void end();
 
 private:
-    FILE * m_fin;
     ArithmeticDecoder m_decoder;
+    AdaptiveModelDecoder m_adaptive;
+    ByteDecoder m_byte;
 
     void next_frame_header(QuantisedFrame & qframe);
     void next_frame_water(QuantisedFrame & qframe);
