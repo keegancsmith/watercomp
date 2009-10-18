@@ -90,7 +90,6 @@ class MetaballsView : public BaseView
         bool useDataFile;
         int isoValue;
 
-        int max_quant;
         int cur_quant;
         int size;
 

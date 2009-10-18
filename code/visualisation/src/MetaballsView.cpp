@@ -20,6 +20,8 @@
 #define ALPHA_MAX_SLIDER 100
 #define ALPHA_MAX_VAL 1.0
 
+#define MAX_QUANT 8
+
 #include "MarchingTables.cpp"
 #include "Renderer.h"
 #include "Util.h"
@@ -326,8 +328,7 @@ MetaballsView::MetaballsView()
     meta_file = 0;
     meta_data = 0;
 #ifdef USE_GRID
-    max_quant = 8;
-    size = 1 << max_quant;
+    size = 1 << MAX_QUANT;
 
     int x, y, z;
     volumedata = new unsigned char**[size];
@@ -406,7 +407,7 @@ void MetaballsView::setupPreferenceWidget(QWidget* preferenceWidget)
     layout->addWidget(stepSizeLabel, 2, 0);
 
     stepSizeSpinBox = new QSpinBox(preferenceWidget);
-    stepSizeSpinBox->setRange(0, maxStepSize);
+    stepSizeSpinBox->setRange(2, maxStepSize);
     connect(stepSizeSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setStepSize(int)));
     layout->addWidget(stepSizeSpinBox, 2, 1);
 
@@ -496,11 +497,13 @@ void MetaballsView::tick(int framenum, Frame* unquantised, QuantisedFrame* quant
     BaseView::tick(framenum, unquantised, quantised, dequantised);
     if (dequantised == 0) return;
     if (useDataFile) return;
-    // printf("tick tick tick\n");
 
-    g_grid.nx = 1 << quantised->m_xquant;
-    g_grid.ny = 1 << quantised->m_yquant;
-    g_grid.nz = 1 << quantised->m_zquant;
+    // g_grid.nx = 1 << quantised->m_xquant;
+    // g_grid.ny = 1 << quantised->m_yquant;
+    // g_grid.nz = 1 << quantised->m_zquant;
+    g_grid.nx = 1 << MAX_QUANT;
+    g_grid.ny = 1 << MAX_QUANT;
+    g_grid.nz = 1 << MAX_QUANT;
 
     g_grid.dx = _stepSize;
     g_grid.dy = _stepSize;
@@ -510,14 +513,13 @@ void MetaballsView::tick(int framenum, Frame* unquantised, QuantisedFrame* quant
     g_grid.ny /= g_grid.dy;
     g_grid.nz /= g_grid.dz;
 
-    int max_coord[] = {1 << quantised->m_xquant, 1 << quantised->m_yquant, 1 << quantised->m_zquant};
+    int max_coord[] = {1 << MAX_QUANT, 1 << MAX_QUANT, 1 << MAX_QUANT};
     int z, y, x;
 #ifdef USE_GRID
     for (z = 0; z < max_coord[2]; ++z)
         for (y = 0; y < max_coord[1]; ++y)
             for (x = 0; x < max_coord[0]; ++x)
                 volumedata[z][y][x] = 0;
-    // printf("done clearing (%d, %d, %d)\n", max_coord[0], max_coord[1], max_coord[2]);
 #else
     meta_volume.clear();
     Point3f p3f;
@@ -529,18 +531,17 @@ void MetaballsView::tick(int framenum, Frame* unquantised, QuantisedFrame* quant
     int metaballs_size[] = {max_coord[0] * metaballs_ratio,
                             max_coord[1] * metaballs_ratio,
                             max_coord[2] * metaballs_ratio};
-    // printf("metaballs size: %d %d %d\n", metaballs_size[0], metaballs_size[1], metaballs_size[2]);
     int contrib = 10;
     int maxval = 255;
     int min_dataval = maxval;
     int max_dataval = 0;
     int v, c;
-    // printf("reset: %i\n", quantised->natoms());
+    QuantisedFrame meta_positions(*dequantised, MAX_QUANT, MAX_QUANT, MAX_QUANT);
     for (int i = 0; i < waters.size(); ++i)
     {
         for (c = 0; c < 3; ++c)
         {
-            v = quantised->quantised_frame[3*waters[i].OH2_index+c];
+            v = meta_positions.quantised_frame[3*waters[i].OH2_index+c];
             start_coord[c] = v - metaballs_size[c];
             if (start_coord[c] < 0) start_coord[c] = 0;
             final_coord[c] = v + metaballs_size[c];
