@@ -10,7 +10,7 @@
 #define RADIUS_SEARCH 3.0
 #define RADIUS_ERROR  0.2
 
-using std::vector;
+using namespace std;
 
 
 OxygenGraph::OxygenGraph(const QuantisedFrame & qframe,
@@ -119,7 +119,7 @@ bool OxygenGraph::create_component(Graph * graph, Graph * tree, int v) const
     if (prediction[v] != -1)
         return false;
 
-    std::queue<int> q;
+    queue<int> q;
     q.push(v);
     prediction[v] = 0;
 
@@ -159,7 +159,7 @@ Graph * OxygenGraph::create_spanning_tree(Graph * graph, int & root) const
     int * prediction = new int[nWaters];
     Graph * tree = new Graph(prediction, nWaters);
 
-    std::fill(prediction, prediction + nWaters, -1);
+    fill(prediction, prediction + nWaters, -1);
     root = 0;
     create_component(graph, tree, root);
 
@@ -188,8 +188,10 @@ void OxygenGraph::serialise(Graph * tree, int root,
     vector<int> parent(nWaters);
     parent[root] = -1;
 
-    std::queue<int> q;
+    queue<int> q;
     q.push(root);
+
+    enc.encode_int(predictions[root]);
 
     while(!q.empty()) {
         int v = q.front();
@@ -254,4 +256,64 @@ void OxygenGraph::readin(AdaptiveModelDecoder & dec,
                          const vector<WaterMolecule> & waters,
                          QuantisedFrame & qframe)
 {
+    WaterPredictor predictor(qframe);
+    PermutationReader * perm =
+        PermutationReader::get_reader(dec.decoder, waters.size());
+
+    int nWaters = waters.size();
+    int count = 0;
+
+    int root_predictor = dec.decode_int();
+
+    queue< pair<int, int> > q;
+    q.push(make_pair(-1, root_predictor));
+
+    while(!q.empty()) {
+        int parent     = q.front().first;
+        int prediction = q.front().second;
+        q.pop();
+        count++;
+
+        // Read in values from arithmetic decoder
+        int index = perm->next_index();
+        int error[3][3];
+        for (int i = 0; i < 3; i++)
+            for (int d = 0; d < 3; d++)
+                error[i][d] = dec.decode_int();
+
+        assert(0 <= index && index < nWaters);
+
+        // Get predictors for all the children and add them to the queue
+        int p;
+        while ((p = dec.decode_int()) != 3) {
+            assert(0 <= p && p < 3);
+            q.push(make_pair(index, p));
+        }
+
+        // Get prediction
+        WaterMolecule parent_mol(INT_MAX, INT_MAX, INT_MAX);
+        if (parent != -1)
+            parent_mol = waters[parent];
+        WaterPredictor::Prediction pred;
+        if (prediction == 0)
+            pred = predictor.predict_constant(parent_mol);
+        else if (prediction == 1)
+            pred = predictor.predict_along_h1(parent_mol);
+        else if (prediction == 2)
+            pred = predictor.predict_along_h2(parent_mol);
+
+        // Update qframe
+        int O  = waters[index].OH2_index;
+        int H1 = waters[index].H1_index;
+        int H2 = waters[index].H2_index;
+        for (int d = 0; d < 3; d++) {
+            qframe.at(O,  d) = pred.O[d]  - error[0][d];
+            qframe.at(H1, d) = pred.H1[d] - error[1][d];
+            qframe.at(H2, d) = pred.H2[d] - error[2][d];
+        }
+    }
+
+    assert(count == nWaters);
+
+    delete perm;
 }
