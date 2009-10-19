@@ -1,8 +1,10 @@
 #include "OxygenGraph.h"
 
 #include "ANN/ANN.h"
+#include "Permutation.h"
 
 #include <algorithm>
+#include <cassert>
 #include <queue>
 
 #define RADIUS_SEARCH 3.0
@@ -125,16 +127,16 @@ bool OxygenGraph::create_component(Graph * graph, Graph * tree, int v) const
         v = q.front();
         q.pop();
 
+        WaterPredictor::Prediction preds[3];
+        preds[0] = m_predictor.predict_constant(m_waters[v]);
+        preds[1] = m_predictor.predict_along_h1(m_waters[v]);
+        preds[2] = m_predictor.predict_along_h2(m_waters[v]);
+
         for (size_t i = 0; i < graph->adjacent[v].size(); i++) {
             int u = graph->adjacent[v][i];
 
             if (prediction[u] != -1)
                 continue;
-
-            WaterPredictor::Prediction preds[3];
-            preds[0] = m_predictor.predict_constant(m_waters[u]);
-            preds[1] = m_predictor.predict_along_h1(m_waters[u]);
-            preds[2] = m_predictor.predict_along_h2(m_waters[u]);
 
             int error = INT_MAX;
             for (int j = 0; j < 3; j++) {
@@ -176,6 +178,75 @@ Graph * OxygenGraph::create_spanning_tree(Graph * graph, int & root) const
 void OxygenGraph::serialise(Graph * tree, int root,
                             AdaptiveModelEncoder & enc) const
 {
+    int * predictions = (int *) tree->data;
+    PermutationWriter * perm =
+        PermutationWriter::get_writer(enc.encoder, m_waters.size());
+
+    int nWaters = m_waters.size();
+    int count = 0;
+
+    vector<int> parent(nWaters);
+    parent[root] = -1;
+
+    std::queue<int> q;
+    q.push(root);
+
+    while(!q.empty()) {
+        int v = q.front();
+        q.pop();
+        count++;
+
+        // Get prediction
+        WaterMolecule parent_mol(INT_MAX, INT_MAX, INT_MAX);
+        if (parent[v] != -1)
+            parent_mol = m_waters[parent[v]];
+        WaterPredictor::Prediction pred;
+        if (predictions[v] == 0)
+            pred = m_predictor.predict_constant(parent_mol);
+        else if (predictions[v] == 1)
+            pred = m_predictor.predict_along_h1(parent_mol);
+        else if (predictions[v] == 2)
+            pred = m_predictor.predict_along_h2(parent_mol);
+        else
+            assert(false);
+
+        // Calculate errors
+        int O  = m_waters[v].OH2_index;
+        int H1 = m_waters[v].H1_index;
+        int H2 = m_waters[v].H2_index;
+        int error[3][3];
+        for (int d = 0; d < 3; d++) {
+            error[0][d] = (int)m_qframe.at(O,  d) - pred.O[d];
+            error[1][d] = (int)m_qframe.at(H1, d) - pred.H1[d];
+            error[2][d] = (int)m_qframe.at(H2, d) - pred.H2[d];
+        }
+
+        // Write values to arithmetic encoder
+        perm->next_index(v);
+        for (int i = 0; i < 3; i++)
+            for (int d = 0; d < 3; d++)
+                enc.encode_int(error[i][d]);
+
+        // Write predictors for children to encoder and add them to the queue
+        for (size_t i = 0; i < tree->adjacent[v].size(); i++) {
+            int u = tree->adjacent[v][i];
+            int p = predictions[u];
+
+            assert(0 <= u && u < nWaters);
+            assert(0 <= p && p < 3);
+            
+            enc.encode_int(p);
+
+            parent[u] = v;
+            q.push(u);
+        }
+        // indicate end of children
+        enc.encode_int(3);
+    }
+
+    assert(count == nWaters);
+
+    delete perm;
 }
 
 
