@@ -1,6 +1,6 @@
 CXX=g++
-CXXFLAGS=-O3 -Wall -I../components
-CXXLIBS=-lm
+CXXFLAGS=-O3 -Wall -I../components -I../ann/include
+CXXLIBS=-lm -L../ann/lib -lANN
 
 # Just get all .o files in components 0 to 1 level deep.
 SRC  = $(wildcard *.cpp)
@@ -9,8 +9,8 @@ SRC += $(wildcard ../components/*/*.cpp)
 SRC += $(wildcard ../dcd_loader/*.cpp)
 OBJS = $(patsubst %.cpp, %.o, $(filter-out %/main.cpp, $(SRC)))
 
-watercomp: watercomp.o $(OBJS)
-	$(CXX) $(CXXFLAGS) $(CXXLIBS) -o watercomp $(OBJS)
+watercomp: $(OBJS)
+	$(CXX) $(CXXFLAGS) -o watercomp $(OBJS) $(CXXLIBS)
 
 clean:
 	rm -f watercomp $(OBJS)

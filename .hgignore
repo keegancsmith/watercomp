@@ -1,6 +1,7 @@
 syntax: glob
 
 code/dcd_loader
+code/ann
 dcd
 *.swp
 *.o
