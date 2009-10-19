@@ -2,6 +2,9 @@
 
 #include "ANN/ANN.h"
 
+#include <algorithm>
+#include <queue>
+
 #define RADIUS_SEARCH 3.0
 #define RADIUS_ERROR  0.2
 
@@ -10,7 +13,7 @@ using std::vector;
 
 OxygenGraph::OxygenGraph(const QuantisedFrame & qframe,
                          const vector<WaterMolecule> & waters)
-    : m_qframe(qframe), m_waters(waters)
+    : m_predictor(qframe), m_qframe(qframe), m_waters(waters)
 {
 }
 
@@ -20,8 +23,10 @@ void OxygenGraph::writeout(AdaptiveModelEncoder & enc) const
     int root;
     Graph * graph = create_oxygen_graph();
     Graph * tree  = create_spanning_tree(graph, root);
+    int * predictions = (int *) tree->data;
     serialise(tree, root, enc);
 
+    delete [] predictions;
     delete tree;
     delete graph;
 }
@@ -81,9 +86,86 @@ Graph * OxygenGraph::create_oxygen_graph() const
 }
 
 
+unsigned int calc_delta(unsigned int a, unsigned int b)
+{
+    if (a < b)
+        return calc_delta(b, a);
+    return a - b;
+}
+
+
+int OxygenGraph::prediction_error(int idx,
+                                  WaterPredictor::Prediction & pred) const
+{
+    int O  = m_waters[idx].OH2_index;
+    int H1 = m_waters[idx].H1_index;
+    int H2 = m_waters[idx].H2_index;
+    unsigned int error = 0;
+    for (int d = 0; d < 3; d++) {
+        error += calc_delta(pred.O[d],  m_qframe.at(O,  d));
+        error += calc_delta(pred.H1[d], m_qframe.at(H1, d));
+        error += calc_delta(pred.H2[d], m_qframe.at(H2, d));
+    }
+    return error;
+}
+
+
+bool OxygenGraph::create_component(Graph * graph, Graph * tree, int v) const
+{
+    int * prediction = (int *) tree->data;
+
+    if (prediction[v] != -1)
+        return false;
+
+    std::queue<int> q;
+    q.push(v);
+    prediction[v] = 0;
+
+    while (!q.empty()) {
+        v = q.front();
+        q.pop();
+
+        for (size_t i = 0; i < graph->adjacent[v].size(); i++) {
+            int u = graph->adjacent[v][i];
+
+            if (prediction[u] != -1)
+                continue;
+
+            WaterPredictor::Prediction preds[3];
+            preds[0] = m_predictor.predict_constant(m_waters[u]);
+            preds[1] = m_predictor.predict_along_h1(m_waters[u]);
+            preds[2] = m_predictor.predict_along_h2(m_waters[u]);
+
+            int error = INT_MAX;
+            for (int j = 0; j < 3; j++) {
+                int e = prediction_error(u, preds[j]);
+                if (e < error)
+                    prediction[u] = j;
+            }
+
+            tree->addEdge(v, u);
+            q.push(u);
+        }
+    }
+
+    return true;
+}
+
 Graph * OxygenGraph::create_spanning_tree(Graph * graph, int & root) const
 {
-    return 0;
+    int nWaters = m_waters.size();
+    int * prediction = new int[nWaters];
+    Graph * tree = new Graph(prediction, nWaters);
+
+    std::fill(prediction, prediction + nWaters, -1);
+    root = 0;
+    create_component(graph, tree, root);
+
+    for (int v = 1; v < nWaters; v++)
+        if (create_component(graph, tree, v))
+            tree->addEdge(root, v);
+
+    return tree;
 }
 
 

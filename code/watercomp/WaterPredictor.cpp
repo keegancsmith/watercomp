@@ -11,21 +11,42 @@ WaterPredictor::WaterPredictor(const QuantisedFrame & qframe)
 
 
 WaterPredictor::Prediction
-WaterPredictor::predict_along_h1(const WaterMolecule & mol)
+WaterPredictor::predict_constant(const WaterMolecule & mol) const
+{
+    WaterPredictor::Prediction pred;
+
+    if (mol.OH2_index == INT_MAX) {
+        for (int d = 0; d < 3; d++)
+            pred.O[d] = pred.H1[d] = pred.H2[d] = 0;
+        return pred;
+    }
+
+    for (int d = 0; d < 3; d++) {
+        pred.O[d]  = m_qframe.at(mol.OH2_index, d);
+        pred.H1[d] = m_qframe.at(mol.H1_index,  d);
+        pred.H2[d] = m_qframe.at(mol.H2_index,  d);
+    }
+
+    return pred;
+}
+
+
+WaterPredictor::Prediction
+WaterPredictor::predict_along_h1(const WaterMolecule & mol) const
 {
     return predict(mol, true);
 }
 
 
 WaterPredictor::Prediction
-WaterPredictor::predict_along_h2(const WaterMolecule & mol)
+WaterPredictor::predict_along_h2(const WaterMolecule & mol) const
 {
     return predict(mol, false);
 }
 
 
 WaterPredictor::Prediction
-WaterPredictor::predict(const WaterMolecule & parent, bool along_h1)
+WaterPredictor::predict(const WaterMolecule & parent, bool along_h1) const
 {
     WaterPredictor::Prediction pred;
 
@@ -83,7 +104,7 @@ WaterPredictor::predict(const WaterMolecule & parent, bool along_h1)
 }
 
 
-void WaterPredictor::dequantise(int idx, float * pos)
+void WaterPredictor::dequantise(int idx, float * pos) const
 {
     unsigned int qpos[3];
     for (int d = 0; d < 3; d++)

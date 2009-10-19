@@ -1,5 +1,7 @@
 #pragma once
 
+#include "WaterPredictor.h"
+
 #include "arithmetic/AdaptiveModelDecoder.h"
 #include "arithmetic/AdaptiveModelEncoder.h"
 #include "graph/Graph.h"
@@ -24,6 +26,11 @@ private:
     Graph * create_spanning_tree(Graph * graph, int & root) const;
     void serialise(Graph * tree, int root, AdaptiveModelEncoder & enc) const;
 
+    int prediction_error(int water_idx,
+                         WaterPredictor::Prediction & pred) const;
+    bool create_component(Graph * graph, Graph * tree, int v) const;
+
+    WaterPredictor m_predictor;
     const QuantisedFrame & m_qframe;
     const std::vector<WaterMolecule> & m_waters;
 };

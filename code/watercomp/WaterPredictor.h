@@ -14,12 +14,13 @@ public:
 
     WaterPredictor(const QuantisedFrame & qframe);
 
-    Prediction predict_along_h1(const WaterMolecule & mol);
-    Prediction predict_along_h2(const WaterMolecule & mol);
+    Prediction predict_constant(const WaterMolecule & mol) const;
+    Prediction predict_along_h1(const WaterMolecule & mol) const;
+    Prediction predict_along_h2(const WaterMolecule & mol) const;
 
 private:
-    Prediction predict(const WaterMolecule & mol, bool along_h1);
-    void dequantise(int idx, float * pos);
+    Prediction predict(const WaterMolecule & mol, bool along_h1) const;
+    void dequantise(int idx, float * pos) const;
 
     const QuantisedFrame & m_qframe;
     Quantiser m_quantiser;
