@@ -1,6 +1,7 @@
 #pragma once
 
 #include "quantiser/QuantisedFrame.h"
+#include "quantiser/Quantiser.h"
 #include "splitter/WaterMolecule.h"
 
 class WaterPredictor
@@ -19,9 +20,7 @@ public:
 private:
     Prediction predict(const WaterMolecule & mol, bool along_h1);
     void dequantise(int idx, float * pos);
-    void quantise(float * pos, unsigned int * qpos);
 
     const QuantisedFrame & m_qframe;
-    unsigned int m_buckets[3];
-    float m_range[3];
+    Quantiser m_quantiser;
 };

@@ -1,7 +1,7 @@
 CXX=g++
 CXXFLAGS=-O3 -Wall
 
-all: QuantisedFrame.o
+all: QuantisedFrame.o Quantiser.o
 
 
 check-syntax:

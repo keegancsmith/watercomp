@@ -2,16 +2,11 @@
 
 #include <cassert>
 #include <cmath>
+#include <climits>
 
 WaterPredictor::WaterPredictor(const QuantisedFrame & qframe)
-    : m_qframe(qframe)
+    : m_qframe(qframe), m_quantiser(qframe)
 {
-    m_buckets[0] = 1 << qframe.m_xquant;
-    m_buckets[1] = 1 << qframe.m_yquant;
-    m_buckets[2] = 1 << qframe.m_zquant;
-
-    for (int d = 0; d < 3; d++)
-        m_range[d] = qframe.max_coord[d] - qframe.min_coord[d];
 }
 
 
@@ -34,7 +29,7 @@ WaterPredictor::predict(const WaterMolecule & parent, bool along_h1)
 {
     WaterPredictor::Prediction pred;
 
-    if (parent.OH2_index == -1) {
+    if (parent.OH2_index == INT_MAX) {
         for (int d = 0; d < 3; d++)
             pred.O[d] = pred.H1[d] = pred.H2[d] = 0;
         return pred;
@@ -72,7 +67,7 @@ WaterPredictor::predict(const WaterMolecule & parent, bool along_h1)
         pred_O[d] = O_pos[d] + 2.976 * O_H_unit[d];
 
 
-    // TODO We can do a better prediction for H
+    // TODO We can do a better prediction for Hydrogens
     float pred_H1[3];
     float pred_H2[3];
     for (int d = 0; d < 3; d++)
@@ -80,9 +75,9 @@ WaterPredictor::predict(const WaterMolecule & parent, bool along_h1)
 
 
     // Convert back to the quantised positions
-    quantise(pred_O, pred.O);
-    quantise(pred_H1, pred.H1);
-    quantise(pred_H2, pred.H2);
+    m_quantiser.quantise(pred_O, pred.O);
+    m_quantiser.quantise(pred_H1, pred.H1);
+    m_quantiser.quantise(pred_H2, pred.H2);
 
     return pred;
 }
@@ -90,33 +85,8 @@ WaterPredictor::predict(const WaterMolecule & parent, bool along_h1)
 
 void WaterPredictor::dequantise(int idx, float * pos)
 {
-    for (int d = 0; d < 3; d++) {
-        float approx = m_qframe.at(idx, d) + 0.5;
-        float scaled = approx * m_range[d] / m_buckets[d];
-        pos[d] = scaled + m_qframe.min_coord[d];
-    }
+    unsigned int qpos[3];
+    for (int d = 0; d < 3; d++)
+        qpos[d] = m_qframe.at(idx, d);
+    return m_quantiser.dequantise(qpos, pos);
 }
-
-
-void WaterPredictor::quantise(float * pos, unsigned int * qpos)
-{
-    for(int d = 0; d < 3; ++d) {
-        float translated = pos[d] - m_qframe.min_coord[d];
-        float scaled = translated * m_buckets[d] / m_range[d];
-
-        if(scaled < 0.5)
-            scaled = 0.5;
-        else if(scaled >= m_buckets[d] - 0.5)
-            scaled = m_buckets[d] - 0.5;
-
-        qpos[d] = scaled;
-
-        assert(0 <= scaled && scaled <= m_buckets[d]);
-    }
-}
-    // if (parent.OH2_index == -1) {
-    //     for (int d = 0; d < 3; d++)
-    //         pred.p1.O[d] = pred.p1.H1[d] = pred.p1.H2[d] = 0;
-    //     pred.p2 = pred.p1;
-    //     return pred;
-    // }
