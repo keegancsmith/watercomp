@@ -1,6 +1,7 @@
 #include "WaterReader.h"
 
 #include "splitter/FrameSplitter.h"
+#include "OxygenGraph.h"
 
 #include <cassert>
 
@@ -63,13 +64,7 @@ void WaterReader::next_frame_header(QuantisedFrame & qframe)
 
 void WaterReader::next_frame_water(QuantisedFrame & qframe)
 {
-    for (size_t i = 0; i < m_water_molecules.size(); i++) {
-        WaterMolecule mol = m_water_molecules[i];
-        unsigned int idx[3] = { mol.OH2_index, mol.H1_index, mol.H2_index };
-        for (int j = 0; j < 3; j++)
-            for (int d = 0; d < 3; d++)
-                qframe.at(idx[j], d) = m_adaptive.decode_int();
-    }
+    OxygenGraph::readin(m_adaptive, m_water_molecules, qframe);
 }
 
 
