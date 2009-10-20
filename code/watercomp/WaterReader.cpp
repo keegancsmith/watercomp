@@ -8,7 +8,7 @@
 using std::vector;
 
 WaterReader::WaterReader(FILE * fin, const vector<AtomInformation> & pdb)
-    : m_adaptive(&m_decoder), m_byte(&m_decoder)
+    : m_adaptive(&m_decoder), m_adaptive_water(&m_decoder), m_byte(&m_decoder)
 {
     m_decoder.start_decode(fin);
     split_frame(pdb, m_water_molecules, m_other_atoms);
@@ -24,7 +24,7 @@ void WaterReader::start()
     m_nframes  = header_int[1];
     //int ISTART = header_int[2];
     //int NSAVC  = header_int[3];
-    
+
     //double DELTA;
     //dec.decode(&DELTA, sizeof(double), 1);
 
@@ -64,7 +64,7 @@ void WaterReader::next_frame_header(QuantisedFrame & qframe)
 
 void WaterReader::next_frame_water(QuantisedFrame & qframe)
 {
-    OxygenGraph::readin(m_adaptive, m_water_molecules, qframe);
+    OxygenGraph::readin(m_adaptive_water, m_water_molecules, qframe);
 }
 
 

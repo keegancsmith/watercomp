@@ -6,7 +6,7 @@
 using std::vector;
 
 WaterWriter::WaterWriter(FILE * fout, const vector<AtomInformation> & pdb)
-    : m_adaptive(&m_encoder), m_byte(&m_encoder)
+    : m_adaptive(&m_encoder), m_adaptive_water(&m_encoder), m_byte(&m_encoder)
 {
     m_encoder.start_encode(fout);
     split_frame(pdb, m_water_molecules, m_other_atoms);
@@ -56,7 +56,7 @@ void WaterWriter::next_frame_header(const QuantisedFrame & qframe)
 void WaterWriter::next_frame_water(const QuantisedFrame & qframe)
 {
     OxygenGraph oxygen_graph(qframe, m_water_molecules);
-    oxygen_graph.writeout(m_adaptive);
+    oxygen_graph.writeout(m_adaptive_water);
 }
 
 

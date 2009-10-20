@@ -22,6 +22,7 @@ public:
 private:
     ArithmeticDecoder m_decoder;
     AdaptiveModelDecoder m_adaptive;
+    AdaptiveModelDecoder m_adaptive_water;
     ByteDecoder m_byte;
 
     void next_frame_header(QuantisedFrame & qframe);
