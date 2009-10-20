@@ -1,0 +1,50 @@
+.. -*- mode: rst -*-
+.. vim: filetype=rst
+
+============================================
+ Minutes of Meeting Tuesday 20 October 2009
+============================================
+
+
+Julian
+======
+
+* Generated lots of test data
+* Don't need more test data
+* Starting writing this week
+* Possibly run tests on a separate machine
+* Can talk how we generated test data
+
+Keegan
+======
+
+* Wrote Gumhold compressor. Works better than Devillers and Gandoin.
+* Wrote water compressor.
+  - Predicts hydrogen to be at oxygen position.
+  - Needs to improve compression of non water atoms.
+* Going to change compressor to write every different part of the compressor
+  to separate files to get statistics.
+* Need to implement statistics on how well the predictions are working
+* Starting writing
+
+Ethics Chapter
+==============
+
+* Talk about OSS libraries
+* Talk about libraries and licences we use.
+* Quantisation degrading quality of simulations
+* Our product is not commercial, free and for academics.
+
+Quantisation
+============
+
+* We should make it so quantised cells are roughly cubes. We currently don't
+  do this, but in all our test data the bounding box is roughly a cube, so are
+  the cells.
+* Do tests on 8, 12 and 16 bit quantisation.
+
+Drafts
+======
+
+* Julian and Min-Young should hand in draft to James.
+* Keegan should hand in draft to Patrick.
