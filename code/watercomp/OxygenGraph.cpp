@@ -58,8 +58,9 @@ Graph * OxygenGraph::create_oxygen_graph() const
 
     // Stuff used per query of the kdtree
     ANNpoint query = annAllocPt(3);
+    ANNdist radius = RADIUS_SEARCH * RADIUS_SEARCH;
     ANNidxArray result = new ANNidx[oxygen_size];
-    ANNdistArray dists = 0; // Not used
+    ANNdistArray dists = new ANNdist[oxygen_size];
 
     // Create a graph where each oxygen is a vertex, and it is connected to
     // roughly all other oxygens within RADIUS_SEARCH angstroms.
@@ -70,8 +71,8 @@ Graph * OxygenGraph::create_oxygen_graph() const
         for (int d = 0; d < 3; d++)
             query[d] = frame.atom_data[O_idx_offset + d];
 
-        int neigh = kd_tree->annkFRSearch(query, RADIUS_SEARCH*RADIUS_SEARCH,
-                                          0, result, dists, RADIUS_ERROR);
+        int neigh = kd_tree->annkFRSearch(query, radius, oxygen_size,
+                                          result, dists, RADIUS_ERROR);
 
         for (int j = 0; j < neigh; j++)
             if (result[j] != i)
@@ -82,6 +83,7 @@ Graph * OxygenGraph::create_oxygen_graph() const
     annDeallocPts(oxygen_points);
     annDeallocPt(query);
     delete [] result;
+    delete [] dists;
     delete kd_tree;
 
     return graph;
@@ -307,9 +309,9 @@ void OxygenGraph::readin(AdaptiveModelDecoder & dec,
         int H1 = waters[index].H1_index;
         int H2 = waters[index].H2_index;
         for (int d = 0; d < 3; d++) {
-            qframe.at(O,  d) = pred.O[d]  - error[0][d];
-            qframe.at(H1, d) = pred.H1[d] - error[1][d];
-            qframe.at(H2, d) = pred.H2[d] - error[2][d];
+            qframe.at(O,  d) = pred.O[d]  + error[0][d];
+            qframe.at(H1, d) = pred.H1[d] + error[1][d];
+            qframe.at(H2, d) = pred.H2[d] + error[2][d];
         }
     }
 

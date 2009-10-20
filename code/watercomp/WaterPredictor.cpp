@@ -78,6 +78,9 @@ WaterPredictor::predict(const WaterMolecule & parent, bool along_h1) const
     O_H_len = sqrtf(O_H_len);
     for (int d = 0; d < 3; d++)
         O_H_unit[d] = O_H_vec[d] / O_H_len;
+    for (int d = 0; d < 3; d++)
+        if (isnan(O_H_unit[d]))
+            O_H_unit[d] = 0;
 
 
     // In the model the angle between O-H to the predicted Oxygen is 6+-20
