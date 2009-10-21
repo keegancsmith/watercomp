@@ -38,7 +38,7 @@ void AdaptiveModelEncoder::encode(string symbol)
     }
 }
 
-void AdaptiveModelEncoder::encode_bytes(void* symbol, int len)
+void AdaptiveModelEncoder::encode_bytes(const void* symbol, int len)
 {
     if(!symbol_table.find_text((char*)symbol, len))
     {

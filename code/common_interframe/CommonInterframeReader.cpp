@@ -43,16 +43,17 @@ bool CommonInterframeReader::next_frame(QuantisedFrame& qframe)
     
     /// Read frame header: Quantisation and bounding box
     AdaptiveModelDecoder initial(&decoder);
+    initial.decode_bytes(&qframe.m_xquant);
+    initial.decode_bytes(&qframe.m_yquant);
+    initial.decode_bytes(&qframe.m_zquant);
     
-    sscanf(initial.decode().c_str(), "%u", &qframe.m_xquant);
-    sscanf(initial.decode().c_str(), "%u", &qframe.m_yquant);
-    sscanf(initial.decode().c_str(), "%u", &qframe.m_zquant);
-    
-    for(int i = 0; i < 3; ++i)
-        sscanf(initial.decode().c_str(), "%f", qframe.min_coord+i);
+    int box[3] = {1<<qframe.m_xquant, 1<<qframe.m_yquant, 1<<qframe.m_zquant};
     
     for(int i = 0; i < 3; ++i)
-        sscanf(initial.decode().c_str(), "%f", qframe.max_coord+i);
+        initial.decode_bytes(qframe.min_coord+i);
+
+    for(int i = 0; i < 3; ++i)
+        initial.decode_bytes(qframe.max_coord+i);
 
     if(frames.size() == K)
     {        
@@ -70,8 +71,8 @@ bool CommonInterframeReader::next_frame(QuantisedFrame& qframe)
             int best = 0;
             long long error = 0;
             
-            sscanf(index_decoder.decode().c_str(), "%d", &best);
-            sscanf(error_decoder.decode().c_str(), "%lld", &error);
+            index_decoder.decode_bytes(&best);
+            error_decoder.decode_bytes(&error);
 
             qframe.quantised_frame[i] = frames[errors[best].second].quantised_frame[i] + error;
             
@@ -84,11 +85,10 @@ bool CommonInterframeReader::next_frame(QuantisedFrame& qframe)
     }
     else
     {
-        AdaptiveModelDecoder model(&decoder);
+        AdaptiveModelDecoder window_model(&decoder);
         
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
-            sscanf(model.decode().c_str(), "%u", &qframe.quantised_frame[i]);
-        
+            window_model.decode_bytes(&qframe.quantised_frame[i]);
     }
     
     frames.push_back(qframe);

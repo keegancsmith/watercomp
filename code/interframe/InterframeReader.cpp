@@ -80,33 +80,34 @@ bool InterframeReader::next_frame(QuantisedFrame& qframe)
     
     /// Read frame header: Quantisation and bounding box
     AdaptiveModelDecoder initial(&decoder);
-    sscanf(initial.decode().c_str(), "%u", &qframe.m_xquant);
-    sscanf(initial.decode().c_str(), "%u", &qframe.m_yquant);
-    sscanf(initial.decode().c_str(), "%u", &qframe.m_zquant);
+    initial.decode_bytes(&qframe.m_xquant);
+    initial.decode_bytes(&qframe.m_yquant);
+    initial.decode_bytes(&qframe.m_zquant);
+    
+    int box[3] = {1<<qframe.m_xquant, 1<<qframe.m_yquant, 1<<qframe.m_zquant};
     
     for(int i = 0; i < 3; ++i)
-        sscanf(initial.decode().c_str(), "%f", qframe.min_coord+i);
-    
+        initial.decode_bytes(qframe.min_coord+i);
+
     for(int i = 0; i < 3; ++i)
-        sscanf(initial.decode().c_str(), "%f", qframe.max_coord+i);
+        initial.decode_bytes(qframe.max_coord+i);
 
     if(frames.size() == K)
     {
-        
-        
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
         {
             int input;
-            sscanf(model.decode().c_str(), "%d", &input);
-            
             double estimated = 0;
+            
+            model.decode_bytes(&input);
             
             for(int j = 0; j < K; ++j)
             {
                 double l_j = (factorial/(K - j))/weights[j];
                 estimated += l_j*frames[j].quantised_frame[i];
             }
-            int guess = int(estimated + 0.5);
+            
+            int guess = max(0, min(box[i%3], int(estimated + 0.5)));
             
             qframe.quantised_frame[i] = guess - input;
         }
@@ -116,13 +117,10 @@ bool InterframeReader::next_frame(QuantisedFrame& qframe)
     }
     else
     {
-        AdaptiveModelDecoder model(&decoder);
+        AdaptiveModelDecoder window_model(&decoder);
         
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
-        {
-//             sscanf(model.decode().c_str(), "%d", &qframe.quantised_frame[i
-            model.decode_bytes(&qframe.quantised_frame[i]);
-        }
+            window_model.decode_bytes(&qframe.quantised_frame[i]);
     }
     
     frames.push_back(qframe);

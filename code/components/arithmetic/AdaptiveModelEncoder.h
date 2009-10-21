@@ -28,7 +28,7 @@ class AdaptiveModelEncoder
         ~AdaptiveModelEncoder();
 
         void encode(std::string symbol);
-        void encode_bytes(void* symbol, int len);
+        void encode_bytes(const void* symbol, int len);
         void encode_int(int symbol);
         void end_encode();
 

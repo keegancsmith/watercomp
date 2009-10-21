@@ -38,30 +38,19 @@ void CommonInterframeWriter::start(int atoms, int frames, int ISTART, int NSAVC,
 /* Writes a frame */
 void CommonInterframeWriter::next_frame(const QuantisedFrame& qframe)
 {
-    char buffer[100];
-    
     /// Write frame header: Quantisation and bounding box
     AdaptiveModelEncoder initial(&encoder);
-    sprintf(buffer, "%u", qframe.m_xquant);
-    initial.encode(buffer);
+    initial.encode_bytes(&qframe.m_xquant, sizeof(qframe.m_xquant));
+    initial.encode_bytes(&qframe.m_yquant, sizeof(qframe.m_yquant));
+    initial.encode_bytes(&qframe.m_zquant, sizeof(qframe.m_zquant));
     
-    sprintf(buffer, "%u", qframe.m_yquant);
-    initial.encode(buffer);
-    
-    sprintf(buffer, "%u", qframe.m_zquant);
-    initial.encode(buffer);
+    int box[3] = {1<<qframe.m_xquant, 1<<qframe.m_yquant, 1<<qframe.m_zquant};
     
     for(int i = 0; i < 3; ++i)
-    {
-        sprintf(buffer, "%f", qframe.min_coord[i]);
-        initial.encode(buffer);
-    }
+        initial.encode_bytes(&qframe.min_coord[i], sizeof(qframe.min_coord[i]));
     
     for(int i = 0; i < 3; ++i)
-    {
-        sprintf(buffer, "%f", qframe.max_coord[i]);
-        initial.encode(buffer);
-    }
+        initial.encode_bytes(&qframe.max_coord[i], sizeof(qframe.max_coord[i]));
     
     if(frames.size() == K)
     {        
@@ -85,11 +74,12 @@ void CommonInterframeWriter::next_frame(const QuantisedFrame& qframe)
                     best = j;
                     best_freq = (1+error_frequencies[errors[j].first])*(1+index_frequencies[j]);
                 }
+                
+            int output1 = best;
+            long long output2 = errors[best].first;
             
-            sprintf(buffer, "%d", best);
-            index_model.encode(buffer);
-            sprintf(buffer, "%lld", errors[best].first);
-            error_model.encode(buffer);
+            index_model.encode_bytes(&output1, sizeof(output1));
+            error_model.encode_bytes(&output2, sizeof(output2));
             
             error_frequencies[errors[best].first]++;
             index_frequencies[best]++;
@@ -100,13 +90,10 @@ void CommonInterframeWriter::next_frame(const QuantisedFrame& qframe)
     }
     else
     {
-        AdaptiveModelEncoder model(&encoder);
+        AdaptiveModelEncoder window_model(&encoder);
         
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
-        {
-            sprintf(buffer, "%d", qframe.quantised_frame[i]);
-            model.encode(buffer);
-        }
+            window_model.encode_bytes(&qframe.quantised_frame[i], sizeof(qframe.quantised_frame[i]));
         
     }
     
