@@ -105,8 +105,9 @@ void InterframeWriter::next_frame(const QuantisedFrame& qframe)
         
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
         {
-            sprintf(buffer, "%d", qframe.quantised_frame[i]);
-            model.encode(buffer);
+//             sprintf(buffer, "%d", qframe.quantised_frame[i]);
+//             model.encode(buffer);
+            model.encode_bytes((char*)(&qframe.quantised_frame[i]), 4);
         }
         
     }

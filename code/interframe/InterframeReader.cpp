@@ -119,7 +119,10 @@ bool InterframeReader::next_frame(QuantisedFrame& qframe)
         AdaptiveModelDecoder model(&decoder);
         
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
-            sscanf(model.decode().c_str(), "%d", &qframe.quantised_frame[i]);
+        {
+//             sscanf(model.decode().c_str(), "%d", &qframe.quantised_frame[i
+            model.decode_bytes(&qframe.quantised_frame[i]);
+        }
     }
     
     frames.push_back(qframe);

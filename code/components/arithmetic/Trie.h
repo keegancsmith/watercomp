@@ -17,7 +17,7 @@ class Trie
         /// Any data that was stored at a word, only valid at 'end' nodes.
         T payload;
 
-        void map_text_to_data(const char* text, size_t length, T& data)
+        void map_text_to_data(const unsigned char* text, size_t length, T& data)
         {
             /// Reached the end, set the payload
             if(length == 0)
@@ -43,7 +43,7 @@ class Trie
             return;
         }
         
-        std::pair<bool, T*> contains_text(const char* text, size_t length)
+        std::pair<bool, T*> contains_text(const unsigned char* text, size_t length)
         {
             /// Reached the end of the text
             if(length == 0)
@@ -65,7 +65,7 @@ class Trie
             return cur->contains_text(text + 1, length - 1);
         }
         
-        void delete_string(const char* text, size_t length)
+        void delete_string(const unsigned char* text, size_t length)
         {
             /// Reached mapping to delete
             if(length == 0)
@@ -99,32 +99,31 @@ class Trie
                 links[i] = NULL;
         }
         
-        void insert(std::string word, T data)
+        void insert(const char* word, int length, T data)
         {
             T temp = data;
-            map_text_to_data(word.c_str(), word.size(), temp);
+            map_text_to_data((const unsigned char*)word, length, temp);
         }
         
-        bool find_text(std::string word)
+        bool find_text(const char* word, int length)
         {
-            return contains_text(word.c_str(), word.size()).first;
+            return contains_text((const unsigned char*)word, length).first;
         }
         
-        T& find_data(std::string word)
+        T& find_data(const char* word, int length)
         {
-            return *contains_text(word.c_str(), word.size()).second;
+            return *contains_text((const unsigned char*)word, length).second;
         }
         
-        std::pair<bool, T&> find(std::string word)
+        std::pair<bool, T&> find(const char* word, int length)
         {
-            std::pair<bool, T*> tmp = contains_text(word.c_str(), word.size());
-            
+            std::pair<bool, T*> tmp = contains_text((const unsigned char*)word, length);
             return std::pair<bool, T&>(tmp.first, *(tmp.second));
         }
         
-        void erase(std::string word)
+        void erase(const char* word, int length)
         {
-            delete_string(word.c_str(), word.size());
+            delete_string((const unsigned char*)word, length);
         }
         
         void destroy()
