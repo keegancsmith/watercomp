@@ -94,7 +94,8 @@ void SplineInterframeWriter::next_frame(const QuantisedFrame& qframe)
                 decreasing_t /= mt;
             }
             
-            int output = int(qframe.quantised_frame[i]) - int(guess + 0.5);
+            int out_guess = max(0, min(box[i%3], int(guess + 0.5)));
+            int output = int(qframe.quantised_frame[i]) - out_guess;
             error_model.encode_bytes(&output, sizeof(output));
         }
         

@@ -98,9 +98,10 @@ bool SplineInterframeReader::next_frame(QuantisedFrame& qframe)
                 decreasing_t /= mt;
             }
             
+            int int_guess = max(0, min(box[i%3], int(guess + 0.5)));
             int error = 0;
             error_model.decode_bytes(&error);
-            qframe.quantised_frame[i] = int(guess + 0.5) + error;
+            qframe.quantised_frame[i] = int_guess + error;
         }
         
         if(frames.size() == K)
