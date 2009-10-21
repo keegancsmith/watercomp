@@ -58,20 +58,20 @@ bool CommonInterframeReader::next_frame(QuantisedFrame& qframe)
     {        
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
         {
-            vector< pair<double, unsigned int> > errors;
+            vector< pair<long long, unsigned int> > errors;
             
             for(int j = 0; j < frames.size(); ++j)
             {
-                pair<double, unsigned int> p = make_pair((long long)qframe.quantised_frame[i] - (long long)frames[j].quantised_frame[i], j);
+                pair<long long, unsigned int> p = make_pair((long long)qframe.quantised_frame[i] - (long long)frames[j].quantised_frame[i], j);
                 errors.push_back(p);
             }
             sort(errors.begin(), errors.end());
             
             int best = 0;
-            double error = 0;
+            long long error = 0;
             
             sscanf(index_decoder.decode().c_str(), "%d", &best);
-            sscanf(error_decoder.decode().c_str(), "%lf", &error);
+            sscanf(error_decoder.decode().c_str(), "%lld", &error);
 
             qframe.quantised_frame[i] = frames[errors[best].second].quantised_frame[i] + error;
             

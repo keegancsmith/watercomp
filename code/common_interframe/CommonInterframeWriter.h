@@ -40,6 +40,6 @@ class CommonInterframeWriter : public FrameWriter
         AdaptiveModelEncoder index_model;
         AdaptiveModelEncoder error_model;
         
-        std::map<double, unsigned int> error_frequencies;
+        std::map<long long, unsigned int> error_frequencies;
         std::map<unsigned int, unsigned int> index_frequencies;
 };

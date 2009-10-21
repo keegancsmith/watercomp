@@ -90,7 +90,7 @@ void NNInterframeWriter::next_frame(const QuantisedFrame& qframe)
                 }
             }
             
-            sprintf(buffer, "%lf", double(frames[nearest_index + V].quantised_frame[i] - qframe.quantised_frame[i]));
+            sprintf(buffer, "%d", int(frames[nearest_index + V].quantised_frame[i]) - int(qframe.quantised_frame[i]));
             error_model.encode(buffer);
         }
         

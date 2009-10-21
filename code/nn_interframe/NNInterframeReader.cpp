@@ -80,8 +80,8 @@ bool NNInterframeReader::next_frame(QuantisedFrame& qframe)
                     distance = this_distance;
                 }
             }
-            double error = 0;
-            sscanf(error_model.decode().c_str(), "%lf", &error);
+            int error = 0;
+            sscanf(error_model.decode().c_str(), "%d", &error);
             qframe.quantised_frame[i] = frames[nearest_index + V].quantised_frame[i] - error;
         }
         

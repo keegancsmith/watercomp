@@ -67,11 +67,11 @@ void CommonInterframeWriter::next_frame(const QuantisedFrame& qframe)
     {        
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
         {
-            vector< pair<double, unsigned int> > errors;
+            vector< pair<long long, unsigned int> > errors;
             
             for(int j = 0; j < frames.size(); ++j)
             {
-                pair<double, unsigned int> p = make_pair((long long)qframe.quantised_frame[i] - (long long)frames[j].quantised_frame[i], j);
+                pair<long long, unsigned int> p = make_pair((long long)qframe.quantised_frame[i] - (long long)frames[j].quantised_frame[i], j);
                 errors.push_back(p);
             }
             
@@ -88,7 +88,7 @@ void CommonInterframeWriter::next_frame(const QuantisedFrame& qframe)
             
             sprintf(buffer, "%d", best);
             index_model.encode(buffer);
-            sprintf(buffer, "%lf", errors[best].first);
+            sprintf(buffer, "%lld", errors[best].first);
             error_model.encode(buffer);
             
             error_frequencies[errors[best].first]++;

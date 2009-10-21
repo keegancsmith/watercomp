@@ -99,7 +99,7 @@ bool InterframeReader::next_frame(QuantisedFrame& qframe)
             int input;
             sscanf(model.decode().c_str(), "%d", &input);
             
-            double estimated = 0; //-double(input);
+            double estimated = 0;
             
             for(int j = 0; j < K; ++j)
             {
