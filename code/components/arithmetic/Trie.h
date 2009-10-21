@@ -9,7 +9,6 @@ class Trie
 {
     private:
         /// Maps the first letter of a string to a TrieLink
-//         std::map<char, Trie<T>*> links;
         Trie<T>* links[256];
         
         /// Denotes that this link is a valid ending
@@ -17,7 +16,7 @@ class Trie
         
         /// Any data that was stored at a word, only valid at 'end' nodes.
         T payload;
-        
+
         void map_text_to_data(const char* text, size_t length, T& data)
         {
             /// Reached the end, set the payload

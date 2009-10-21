@@ -96,18 +96,19 @@ bool InterframeReader::next_frame(QuantisedFrame& qframe)
         
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
         {
-            double input;
-            sscanf(model.decode().c_str(), "%lf", &input);
+            int input;
+            sscanf(model.decode().c_str(), "%d", &input);
             
-            double estimated = -double(input);
+            double estimated = 0; //-double(input);
             
             for(int j = 0; j < K; ++j)
             {
                 double l_j = (factorial/(K - j))/weights[j];
                 estimated += l_j*frames[j].quantised_frame[i];
             }
+            int guess = int(estimated + 0.5);
             
-            qframe.quantised_frame[i] = int(estimated + 0.5);
+            qframe.quantised_frame[i] = guess - input;
         }
         
         if(!frames.empty())

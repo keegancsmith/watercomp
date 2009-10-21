@@ -82,15 +82,17 @@ void InterframeWriter::next_frame(const QuantisedFrame& qframe)
     {
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
         {
-            double estimated = -double(qframe.quantised_frame[i]);
+            double estimated = 0;//-double(qframe.quantised_frame[i]);
             
             for(int j = 0; j < K; ++j)
             {
                 double l_j = (factorial/(K - j))/weights[j];
                 estimated += l_j*frames[j].quantised_frame[i];
             }
+
+            int guess = int(estimated+0.5);
             
-            sprintf(buffer, "%lf", estimated);
+            sprintf(buffer, "%d", guess - qframe.quantised_frame[i]);
             model.encode(buffer);
         }
         
