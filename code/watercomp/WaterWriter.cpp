@@ -64,7 +64,9 @@ void WaterWriter::next_frame_other(const QuantisedFrame & qframe)
 {
     for (size_t i = 0; i < m_other_atoms.size(); i++) {
         int idx = m_other_atoms[i];
-        for (int d = 0; d < 3; d++)
-            m_adaptive.encode_int(qframe.at(idx, d));
+        for (int d = 0; d < 3; d++) {
+            unsigned int v = qframe.at(idx, d);
+            m_adaptive.encode_bytes(&v, sizeof(unsigned int));
+        }
     }
 }

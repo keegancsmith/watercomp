@@ -72,7 +72,10 @@ void WaterReader::next_frame_other(QuantisedFrame & qframe)
 {
     for (size_t i = 0; i < m_other_atoms.size(); i++) {
         int idx = m_other_atoms[i];
-        for (int d = 0; d < 3; d++)
-            qframe.at(idx, d) = m_adaptive.decode_int();
+        for (int d = 0; d < 3; d++) {
+            unsigned int v = 0;
+            m_adaptive.decode_bytes(&v);
+            qframe.at(idx, d) = v;
+        }
     }
 }
