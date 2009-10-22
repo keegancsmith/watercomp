@@ -46,7 +46,7 @@ int main(int argc, char** argv)
         else if(strncmp(argv[i], "-z", 2) == 0)
             sscanf(argv[i+1], "%d", &z_quant);
         else if(strncmp(argv[i], "-k", 2) == 0)
-            sscanf(argv[i+1], "%d", &z_quant);
+            sscanf(argv[i+1], "%d", &k);
 
     if(argv[1][0] == 'c')
     {

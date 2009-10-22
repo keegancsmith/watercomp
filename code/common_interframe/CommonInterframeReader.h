@@ -65,6 +65,6 @@ class CommonInterframeReader : public FrameReader
         AdaptiveModelDecoder index_decoder;
         AdaptiveModelDecoder error_decoder;
         
-        std::map<double, unsigned int> error_frequencies;
+        std::map<long long, unsigned int> error_frequencies;
         std::map<unsigned int, unsigned int> index_frequencies;
 };

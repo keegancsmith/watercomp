@@ -1,4 +1,12 @@
 syntax: glob
+
+code/dcd_loader
+code/ann
+dcd
+*.swp
+*.o
+
+# Tex output
 *.aux
 *.lof
 *.log
@@ -10,9 +18,15 @@ syntax: glob
 *.nav
 *.out
 *.snm
-code/dcd_loader
-test_point_compression
-test_transformation
-*dcd
-*.swp
-*.o
+
+# Binaries
+driver
+code/devillersgandoin/dgcomp
+code/devillersgandoin/test_point_compression
+code/devillersgandoin/test_transformation
+code/gumhold/gumhold
+code/quantcomp/quantcomp
+code/verifiers/atomextract
+code/verifiers/checkdcd
+code/verifiers/frameextract
+code/watercomp/watercomp

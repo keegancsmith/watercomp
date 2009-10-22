@@ -3,6 +3,8 @@
 #include "arithmetic/ArithmeticEncoder.h"
 #include "arithmetic/AdaptiveModelEncoder.h"
 
+using namespace std;
+
 InterframeWriter::InterframeWriter(FILE* output_file, int predict_on)
  : out_file(output_file), K(predict_on), model(&encoder)
 {
@@ -57,32 +59,23 @@ void InterframeWriter::next_frame(const QuantisedFrame& qframe)
     
     /// Write frame header: Quantisation and bounding box
     AdaptiveModelEncoder initial(&encoder);
-    sprintf(buffer, "%u", qframe.m_xquant);
-    initial.encode(buffer);
+    initial.encode_bytes(&qframe.m_xquant, sizeof(qframe.m_xquant));
+    initial.encode_bytes(&qframe.m_yquant, sizeof(qframe.m_yquant));
+    initial.encode_bytes(&qframe.m_zquant, sizeof(qframe.m_zquant));
     
-    sprintf(buffer, "%u", qframe.m_yquant);
-    initial.encode(buffer);
-    
-    sprintf(buffer, "%u", qframe.m_zquant);
-    initial.encode(buffer);
+    int box[3] = {1<<qframe.m_xquant, 1<<qframe.m_yquant, 1<<qframe.m_zquant};
     
     for(int i = 0; i < 3; ++i)
-    {
-        sprintf(buffer, "%f", qframe.min_coord[i]);
-        initial.encode(buffer);
-    }
+        initial.encode_bytes(&qframe.min_coord[i], sizeof(qframe.min_coord[i]));
     
     for(int i = 0; i < 3; ++i)
-    {
-        sprintf(buffer, "%f", qframe.max_coord[i]);
-        initial.encode(buffer);
-    }
+        initial.encode_bytes(&qframe.max_coord[i], sizeof(qframe.max_coord[i]));
     
     if(frames.size() == K)
     {
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
         {
-            double estimated = -double(qframe.quantised_frame[i]);
+            double estimated = 0;
             
             for(int j = 0; j < K; ++j)
             {
@@ -90,8 +83,10 @@ void InterframeWriter::next_frame(const QuantisedFrame& qframe)
                 estimated += l_j*frames[j].quantised_frame[i];
             }
             
-            sprintf(buffer, "%lf", estimated);
-            model.encode(buffer);
+            int guess = max(0, min(box[i%3], int(estimated + 0.5)));
+            int output = guess - int(qframe.quantised_frame[i]);
+            
+            model.encode_bytes(&output, sizeof(output));
         }
         
         if(!frames.empty())
@@ -99,14 +94,10 @@ void InterframeWriter::next_frame(const QuantisedFrame& qframe)
     }
     else
     {
-        AdaptiveModelEncoder model(&encoder);
+        AdaptiveModelEncoder window_model(&encoder);
         
         for(int i = 0; i < qframe.quantised_frame.size(); ++i)
-        {
-            sprintf(buffer, "%d", qframe.quantised_frame[i]);
-            model.encode(buffer);
-        }
-        
+            window_model.encode_bytes(&qframe.quantised_frame[i], sizeof(qframe.quantised_frame[i]));
     }
     
     frames.push_back(qframe);

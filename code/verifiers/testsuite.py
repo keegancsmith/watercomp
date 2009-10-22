@@ -73,6 +73,13 @@ TESTS = {
         'dcds'   : DCDS,
         'author' : 'keegan',
     },
+
+    'watercomp': {
+        'bin'    : './watercomp/watercomp',
+        'dcds'   : 'smallwater mscl'.split(),
+        'perms'  : PERMUTATIONS,
+        'author' : 'keegan',
+    },
 }
 
 
@@ -159,17 +166,25 @@ if __name__ == '__main__':
 
             print '\n', dcd
 
+            pdb_path = '../dcd/%s.pdb' % dcd
             dcd_path = '../dcd/%s.dcd' % dcd
             cmp_path = os.path.join(OUTPUT_DIR, '%s_%s.cmp' % (dcd, name))
             dec_path = os.path.join(OUTPUT_DIR, '%s_%s.dcd' % (dcd, name))
 
-            cmp_cmd = '%s %s %s %s' % (test['bin'], cflag, dcd_path, cmp_path)
+            flags = []
+            if os.path.exists(pdb_path):
+                flags.append('--pdb ' + pdb_path)
+            flags = ' '.join(flags)
+
+            cmp_cmd = '%s %s %s %s %s' % (test['bin'], cflag, flags,
+                                          dcd_path, cmp_path)
             os.system(quiet(cmp_cmd))
 
             if not verify:
                 continue
 
-            dec_cmd = '%s %s %s %s' % (test['bin'], dflag, cmp_path, dec_path)
+            dec_cmd = '%s %s %s %s %s' % (test['bin'], dflag, flags,
+                                          cmp_path, dec_path)
             os.system(quiet(dec_cmd))
 
             check_cmd = './verifiers/checkdcd %s %s' % (dcd_path, dec_path)

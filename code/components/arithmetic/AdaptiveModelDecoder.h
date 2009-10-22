@@ -23,11 +23,14 @@ class AdaptiveModelDecoder
         
         ArithmeticDecoder* decoder;
 
-        std::vector<std::string> symbol_table;
+        std::vector<char*> symbol_table;
+        std::vector<unsigned int> symbol_table_sizes;
         bool is_eof;
         
         AdaptiveModelDecoder(ArithmeticDecoder* arithmetic_decoder);
+        ~AdaptiveModelDecoder();
         
         std::string decode();
         int decode_int();
+        void decode_bytes(void* buffer);
 };

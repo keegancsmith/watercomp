@@ -74,3 +74,15 @@ Frame QuantisedFrame::toFrame() const {
 
     return frame;
 }
+
+
+const unsigned int & QuantisedFrame::at(size_t atom_idx, size_t d) const
+{
+    return quantised_frame[3*atom_idx + d];
+}
+
+
+unsigned int & QuantisedFrame::at(size_t atom_idx, size_t d)
+{
+    return quantised_frame[3*atom_idx + d];
+}
