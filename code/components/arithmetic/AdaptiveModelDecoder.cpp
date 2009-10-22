@@ -82,9 +82,9 @@ string AdaptiveModelDecoder::decode()
 
 int AdaptiveModelDecoder::decode_int()
 {
-    string val = decode();
-    assert(val.size() < 12);
-    return atoi(val.c_str());
+    int i;
+    decode_bytes(&i);
+    return i;
 }
 
 void AdaptiveModelDecoder::decode_bytes(void* buffer)

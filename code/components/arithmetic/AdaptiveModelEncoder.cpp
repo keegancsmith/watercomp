@@ -62,9 +62,7 @@ void AdaptiveModelEncoder::encode_bytes(const void* symbol, int len)
 
 void AdaptiveModelEncoder::encode_int(int i)
 {
-    char buf[12]; // Ints can only be 10 digits + sign + null
-    sprintf(buf, "%d", i);
-    encode(buf);
+    encode_bytes(&i, sizeof(int));
 }
 
 
