@@ -770,7 +770,6 @@ void MetaballsView::render()
         if (meta_data == 0) return;
     }//if
     else if (dequantised == 0) return;
-    // if (parent) glTranslatef(-parent->volume_middle[0], -parent->volume_middle[1], -parent->volume_middle[2]);
 
     float l0_pos[] = {-1.0f, 1.0f, 2.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, l0_pos);
@@ -778,6 +777,7 @@ void MetaballsView::render()
     float l1_pos[] = {0.0f, 0.0f, -1.0f, 0.0f};
     glLightfv(GL_LIGHT1, GL_POSITION, l1_pos);
 
+    if (parent) glTranslatef(parent->volume_middle[0], parent->volume_middle[1], parent->volume_middle[2]);
     glTranslatef(-128, -128, -350);
 
     glColor4fv(_metaballsColor);

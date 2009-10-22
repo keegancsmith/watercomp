@@ -35,6 +35,8 @@
 
 #define MAX_QUANTISATION 10
 
+#define TESTING_SETUP
+
 MainWindow::MainWindow()
 {
     QCoreApplication::setOrganizationName("Honours");
@@ -89,10 +91,12 @@ MainWindow::MainWindow()
     speedLayout->addWidget(speedLabel);
     extraLayout->addLayout(speedLayout);
 
+#ifndef TESTING_SETUP
     centralLayout->addLayout(extraLayout);
+#endif
 
     setCentralWidget(centralWidget);
-    resize(600, 480);
+    resize(800, 600);
 
     dcdreader = new DCDReader();
     atoms = NULL;
@@ -125,7 +129,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::doOpenFile()
 {
+#ifndef TESTING_SETUP
     lastLocation = QFileDialog::getOpenFileName(this, tr("Open data"), lastLocation, tr("PDB files (*.pdb)"));
+#endif
     if (lastLocation.isEmpty())
         return;
     // recentFiles.push_back(lastLocation);

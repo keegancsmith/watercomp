@@ -330,6 +330,9 @@ void Renderer::mouseReleaseEvent(QMouseEvent* event)
             break;
         case Qt::MidButton:
             dragging[1] = false;
+            delete rot;
+            rot = new Quaternion();
+            rot->update_matrix();
             break;
         case Qt::RightButton:
             dragging[2] = false;
