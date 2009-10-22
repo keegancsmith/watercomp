@@ -1,5 +1,7 @@
 #pragma once
 
+#include "OxygenGraph.h"
+
 #include "FrameWriter.h"
 #include "arithmetic/AdaptiveModelEncoder.h"
 #include "arithmetic/ArithmeticEncoder.h"
@@ -28,7 +30,7 @@ private:
 
     ArithmeticEncoder m_encoder;
     AdaptiveModelEncoder m_adaptive;
-    AdaptiveModelEncoder m_adaptive_water;
+    SerialiseEncoder * m_adaptive_water;
     ByteEncoder m_byte;
 
     std::vector<WaterMolecule> m_water_molecules;

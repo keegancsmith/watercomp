@@ -23,16 +23,16 @@ using namespace std;
 class DGReader : public FrameReader
 {
 public:
-    DGReader(FILE * fin) : m_fin(fin) {}
+    DGReader(FILE * fin) 
+        : m_fin(fin), m_dec(&m_decoder), m_byte(&m_decoder) {}
     ~DGReader() {}
 
     void start() {
         m_decoder.start_decode(m_fin);
-        ByteDecoder dec(&m_decoder);
 
         // Read file header
         int header_int[2];
-        dec.decode(header_int, sizeof(int), 2);
+        m_byte.decode(header_int, sizeof(int), 2);
         m_natoms   = header_int[0];
         m_nframes  = header_int[1];
         // Commented out values which are not used
@@ -44,18 +44,18 @@ public:
     }
 
     bool next_frame(QuantisedFrame & qframe) {
-        AdaptiveModelDecoder dec(&m_decoder);
-        ByteDecoder bdec(&m_decoder);
-        PermutationReader * perm_reader =
-            PermutationReader::get_reader(&m_decoder, natoms());
+        if (m_perm == 0)
+            m_perm = PermutationReader::get_reader(&m_decoder, natoms());
+        else
+            m_perm->reset();
 
         assert(qframe.natoms() == natoms());
 
         // Frame header
         unsigned int header_quant[3];
-        bdec.decode(header_quant, sizeof(int), 3);
-        bdec.decode(qframe.min_coord, sizeof(float), 3);
-        bdec.decode(qframe.max_coord, sizeof(float), 3);
+        m_byte.decode(header_quant, sizeof(int), 3);
+        m_byte.decode(qframe.min_coord, sizeof(float), 3);
+        m_byte.decode(qframe.max_coord, sizeof(float), 3);
 
         qframe.m_xquant = header_quant[0];
         qframe.m_yquant = header_quant[1];
@@ -63,19 +63,19 @@ public:
 
         // Get size of list
         unsigned int size;
-        bdec.decode(&size, sizeof(unsigned int), 1);
+        m_byte.decode(&size, sizeof(unsigned int), 1);
 
         // Read in data
         vector<coord_t> encoded;
         encoded.resize(size);
         for (size_t i = 0; i < size; i++)
-            encoded[i] = dec.decode_int();
+            encoded[i] = m_dec.decode_int();
 
         // Read in permutation
         vector<int> perm;
         perm.resize(natoms());
         for (int i = 0; i < natoms(); i++)
-            perm[i] = perm_reader->next_index();
+            perm[i] = m_perm->next_index();
 
         // Do the reverse devillers and gandoin transformation
         unsigned int bits = *max_element(header_quant, header_quant+3);
@@ -88,22 +88,27 @@ public:
                 qframe.quantised_frame[idx*3+d] = decoded[i].coords[d];
         }
 
-        delete perm_reader;
         return true;
     }
 
-    void end() {}
+    void end() {
+        delete m_perm;
+    }
 
 private:
     FILE * m_fin;
     ArithmeticDecoder m_decoder;
+    AdaptiveModelDecoder m_dec;
+    ByteDecoder m_byte;
+    PermutationReader * m_perm;
 };
 
 
 class DGWriter : public FrameWriter
 {
 public:
-    DGWriter(FILE * fout) : m_fout(fout) {}
+    DGWriter(FILE * fout)
+        : m_fout(fout), m_enc(&m_encoder), m_byte(&m_encoder) {}
     ~DGWriter() {}
 
     void start(int atoms, int frames, int ISTART = 0,
@@ -118,18 +123,19 @@ public:
     }
 
     void next_frame(const QuantisedFrame & qframe) {
-        AdaptiveModelEncoder enc(&m_encoder);
-        ByteEncoder benc(&m_encoder);
-        PermutationWriter * perm_writer =
-            PermutationWriter::get_writer(&m_encoder, qframe.natoms());
+        if (m_perm == 0)
+            m_perm = PermutationWriter::get_writer(&m_encoder,
+                                                   qframe.natoms());
+        else
+            m_perm->reset();
         
         // Frame header
         unsigned int header_quant[3] = {
             qframe.m_xquant, qframe.m_yquant, qframe.m_zquant
         };
-        benc.encode(header_quant, sizeof(unsigned int), 3);
-        benc.encode(qframe.min_coord, sizeof(float), 3);
-        benc.encode(qframe.max_coord, sizeof(float), 3);
+        m_byte.encode(header_quant, sizeof(unsigned int), 3);
+        m_byte.encode(qframe.min_coord, sizeof(float), 3);
+        m_byte.encode(qframe.max_coord, sizeof(float), 3);
 
 
         // Get data needed for transform
@@ -150,22 +156,24 @@ public:
         assert(perm.size() == qframe.natoms());
 
         // Write out data
-        benc.encode(&size, sizeof(unsigned int), 1);
+        m_byte.encode(&size, sizeof(unsigned int), 1);
         for (size_t i = 0; i < size; i++)
-            enc.encode_int(encoded[i]);
+            m_enc.encode_int(encoded[i]);
         for (size_t i = 0; i < qframe.natoms(); i++)
-            perm_writer->next_index(perm[i]);
-
-        delete perm_writer;
+            m_perm->next_index(perm[i]);
     }
 
     void end() {
+        delete m_perm;
         m_encoder.end_encode();
     }
 
 private:
     FILE * m_fout;
     ArithmeticEncoder m_encoder;
+    AdaptiveModelEncoder m_enc;
+    ByteEncoder m_byte;
+    PermutationWriter * m_perm;
 };
 
 

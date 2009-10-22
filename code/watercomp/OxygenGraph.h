@@ -5,26 +5,53 @@
 #include "arithmetic/AdaptiveModelDecoder.h"
 #include "arithmetic/AdaptiveModelEncoder.h"
 #include "graph/Graph.h"
+#include "Permutation.h"
 #include "quantiser/QuantisedFrame.h"
 #include "splitter/WaterMolecule.h"
 
 #include <vector>
+
+
+struct SerialiseEncoder
+{
+    SerialiseEncoder(ArithmeticEncoder * ae, int natoms)
+        : tree_encoder(ae), err_encoder(ae) {
+        perm = PermutationWriter::get_writer(ae, natoms);
+    }
+    ~SerialiseEncoder() { delete perm; }
+    AdaptiveModelEncoder tree_encoder;
+    AdaptiveModelEncoder err_encoder;
+    PermutationWriter * perm;
+};
+
+struct SerialiseDecoder
+{
+    SerialiseDecoder(ArithmeticDecoder * ad, int natoms)
+        : tree_decoder(ad), err_decoder(ad) {
+        perm = PermutationReader::get_reader(ad, natoms);
+    }
+    ~SerialiseDecoder() { delete perm; }
+    AdaptiveModelDecoder tree_decoder;
+    AdaptiveModelDecoder err_decoder;
+    PermutationReader * perm;
+};
+
 
 class OxygenGraph {
 public:
     OxygenGraph(const QuantisedFrame & qframe,
                 const std::vector<WaterMolecule> & waters);
 
-    void writeout(AdaptiveModelEncoder & enc) const;
+    void writeout(SerialiseEncoder & enc) const;
 
-    static void readin(AdaptiveModelDecoder & dec,
+    static void readin(SerialiseDecoder & dec,
                        const std::vector<WaterMolecule> & waters,
                        QuantisedFrame & qframe);
 
 private:
     Graph * create_oxygen_graph() const;
     Graph * create_spanning_tree(Graph * graph, int & root) const;
-    void serialise(Graph * tree, int root, AdaptiveModelEncoder & enc) const;
+    void serialise(Graph * tree, int root, SerialiseEncoder & enc) const;
 
     int prediction_error(int water_idx,
                          WaterPredictor::Prediction & pred) const;

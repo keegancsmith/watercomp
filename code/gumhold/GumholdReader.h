@@ -19,5 +19,6 @@ public:
 private:
     FILE * m_fin;
     ArithmeticDecoder m_decoder;
+    SerialiseDecoder * m_dec;
     gumhold_predictor * m_pred;
 };

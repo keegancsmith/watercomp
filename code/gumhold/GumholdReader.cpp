@@ -22,7 +22,9 @@ void GumholdReader::start()
     m_nframes  = header_int[1];
     //int ISTART = header_int[2];
     //int NSAVC  = header_int[3];
-    
+
+    m_dec = new SerialiseDecoder(&m_decoder, m_natoms);
+
     //double DELTA;
     //dec.decode(&DELTA, sizeof(double), 1);
 
@@ -46,7 +48,7 @@ bool GumholdReader::next_frame(QuantisedFrame & qframe)
     qframe.m_yquant = header_quant[1];
     qframe.m_zquant = header_quant[2];
 
-    deserialise_tree(m_decoder, qframe, m_pred);
+    deserialise_tree(*m_dec, qframe, m_pred);
 
     return true;
 }
@@ -54,4 +56,5 @@ bool GumholdReader::next_frame(QuantisedFrame & qframe)
 
 void GumholdReader::end()
 {
+    delete m_dec;
 }

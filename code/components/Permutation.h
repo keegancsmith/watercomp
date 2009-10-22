@@ -17,6 +17,7 @@ class PermutationWriter
 public:
     virtual ~PermutationWriter() {}
     virtual void next_index(int index) = 0;
+    virtual void reset() {}
 
     static PermutationWriter * get_writer(ArithmeticEncoder * enc,
                                           int size);
@@ -27,6 +28,7 @@ class PermutationReader
 public:
     virtual ~PermutationReader() {}
     virtual int next_index() = 0;
+    virtual void reset() {}
 
     static PermutationReader * get_reader(ArithmeticDecoder * dec,
                                           int size);
@@ -45,6 +47,7 @@ class NullPermutationReader : public PermutationReader
 public:
     NullPermutationReader() : m_index(0) {}
     int next_index() { return m_index++; }
+    void reset() { m_index = 0; }
 private:
     int m_index;
 };
@@ -76,6 +79,7 @@ class DeltaPermutationWriter : public PermutationWriter
 public:
     DeltaPermutationWriter(ArithmeticEncoder * enc);
     void next_index(int index);
+    void reset() { m_last = 0; }
 private:
     AdaptiveModelEncoder m_enc;
     int m_last;
@@ -86,6 +90,7 @@ class DeltaPermutationReader : public PermutationReader
 public:
     DeltaPermutationReader(ArithmeticDecoder * dec);
     int next_index();
+    void reset() { m_last = 0; }
 private:
     AdaptiveModelDecoder m_dec;
     int m_last;
@@ -102,8 +107,9 @@ public:
     int pop_index(int index);
     int pop_symbol(int symbol);
     int size() const;
+    void reset();
 private:
-    int m_size;
+    int m_size, m_size_orig;
     std::vector<int> m_indicies;
     std::vector<int> m_symbols;
 };
@@ -113,6 +119,7 @@ class BestPermutationWriter : public PermutationWriter
 public:
     BestPermutationWriter(ArithmeticEncoder * enc, int size);
     void next_index(int index);
+    void reset() { m_indicies.reset(); }
 private:
     ArithmeticEncoder * m_enc;
     IndexToSymbol m_indicies;
@@ -123,6 +130,7 @@ class BestPermutationReader : public PermutationReader
 public:
     BestPermutationReader(ArithmeticDecoder * dec, int size);
     int next_index();
+    void reset() { m_indicies.reset(); }
 private:
     ArithmeticDecoder * m_dec;
     IndexToSymbol m_indicies;
@@ -130,19 +138,15 @@ private:
 
 
 // InterframePermutation encodes each index as the delta of the previous
-// index. Depends on a global variable, so not to safe to use more than once!
+// index.
 class InterframePermutationWriter : public PermutationWriter
 {
 public:
     InterframePermutationWriter(ArithmeticEncoder * enc, int size);
     void next_index(int index);
-    static void reset_last(int size) {
-        m_last.resize(size);
-        for (int i = 0; i < size; i++)
-            m_last[i] = i;
-    }
+    void reset() { m_pos = 0; }
 private:
-    static std::vector<int> m_last;
+    std::vector<int> m_last;
     AdaptiveModelEncoder m_enc;
     int m_pos;
 };
@@ -152,13 +156,9 @@ class InterframePermutationReader : public PermutationReader
 public:
     InterframePermutationReader(ArithmeticDecoder * dec, int size);
     int next_index();
-    static void reset_last(int size) {
-        m_last.resize(size);
-        for (int i = 0; i < size; i++)
-            m_last[i] = i;
-    }
+    void reset() { m_pos = 0; }
 private:
-    static std::vector<int> m_last;
+    std::vector<int> m_last;
     AdaptiveModelDecoder m_dec;
     int m_pos;
 };

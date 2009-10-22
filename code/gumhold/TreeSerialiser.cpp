@@ -1,10 +1,5 @@
 #include "TreeSerialiser.h"
 
-#include "arithmetic/AdaptiveModelEncoder.h"
-#include "arithmetic/AdaptiveModelDecoder.h"
-#include "quantiser/QuantisedFrame.h"
-#include "Permutation.h"
-
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
@@ -15,15 +10,11 @@ using namespace std;
 
 
 // Serialises the tree in a BFS order
-void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root,
+void serialise_tree(SerialiseEncoder & se, Graph * g, int root,
                     gumhold_predictor * pred)
 {
     QuantisedFrame * frame = (QuantisedFrame *)g->data;
-
-    AdaptiveModelEncoder tree_encoder(&ae);
-    AdaptiveModelEncoder err_encoder(&ae);
-    PermutationWriter * perm =
-        PermutationWriter::get_writer(&ae, frame->natoms());
+    se.perm->reset();
 
     int atoms = frame->natoms();
     int count = 0;
@@ -54,10 +45,10 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root,
         assert(0 <= index && index < atoms);
 
         // Write values to arithmetic encoder
-        tree_encoder.encode_int(size);
-        perm->next_index(index);
+        se.tree_encoder.encode_int(size);
+        se.perm->next_index(index);
         for (int i = 0; i < 3; i++)
-            err_encoder.encode_int(error[i]);
+            se.err_encoder.encode_int(error[i]);
 
         // Calculate prediction for children
         unsigned int p[3];
@@ -75,21 +66,14 @@ void serialise_tree(ArithmeticEncoder & ae, Graph * g, int root,
 
     assert(count == atoms);
     assert(g->nVerticies == atoms);
-
-    delete perm;
 }
 
 
 // Deserialise the tree in a BFS order
-void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame,
+void deserialise_tree(SerialiseDecoder & sd, QuantisedFrame & frame,
                       gumhold_predictor * pred)
 {
-    AdaptiveModelDecoder tree_decoder(&ad);
-    AdaptiveModelDecoder err_decoder(&ad);
-
-    PermutationReader * perm =
-        PermutationReader::get_reader(&ad, frame.natoms());
-
+    sd.perm->reset();
     int atoms = frame.natoms();
     int count = 0;
 
@@ -108,11 +92,11 @@ void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame,
         pred(&frame, v, v_parent, p);
 
         // Read in values from file
-        int size  = tree_decoder.decode_int();
-        int index = perm->next_index();
+        int size  = sd.tree_decoder.decode_int();
+        int index = sd.perm->next_index();
         int error[3];
         for (int i = 0; i < 3; i++)
-            error[i] = err_decoder.decode_int();
+            error[i] = sd.err_decoder.decode_int();
 
         // Check if they are sane
         assert(0 <= size && size < atoms);
@@ -130,6 +114,4 @@ void deserialise_tree(ArithmeticDecoder & ad, QuantisedFrame & frame,
     }
 
     assert(count == atoms);
-
-    delete perm;
 }

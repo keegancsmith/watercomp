@@ -121,12 +121,9 @@ int DeltaPermutationReader::next_index()
 //
 
 IndexToSymbol::IndexToSymbol(int size)
-    : m_size(size)
+    : m_size(size), m_size_orig(size)
 {
-    m_indicies.resize(size);
-    m_symbols.resize(size);
-    for (int i = 0; i < size; i++)
-        m_indicies[i] = m_symbols[i] = i;
+    reset();
 }
 
 
@@ -156,6 +153,16 @@ int IndexToSymbol::pop_symbol(int symbol)
 int IndexToSymbol::size() const
 {
     return m_size;
+}
+
+
+void IndexToSymbol::reset()
+{
+    m_size = m_size_orig;
+    m_indicies.resize(m_size);
+    m_symbols.resize(m_size);
+    for (int i = 0; i < m_size; i++)
+        m_indicies[i] = m_symbols[i] = i;
 }
 
 
@@ -193,14 +200,12 @@ int BestPermutationReader::next_index()
 // InterframePermutation
 //
 
-std::vector<int> InterframePermutationWriter::m_last;
-std::vector<int> InterframePermutationReader::m_last;
-
 InterframePermutationWriter::InterframePermutationWriter(ArithmeticEncoder * enc, int size)
     : m_enc(enc), m_pos(0)
 {
-    if (m_last.size() == 0)
-        reset_last(size);
+    m_last.resize(size);
+    for (int i = 0; i < size; i++)
+        m_last[i] = i;
 }
 
 void InterframePermutationWriter::next_index(int index)
@@ -215,8 +220,9 @@ void InterframePermutationWriter::next_index(int index)
 InterframePermutationReader::InterframePermutationReader(ArithmeticDecoder * dec, int size)
     : m_dec(dec), m_pos(0)
 {
-    if (m_last.size() == 0)
-        reset_last(size);
+    m_last.resize(size);
+    for (int i = 0; i < size; i++)
+        m_last[i] = i;
 }
 
 

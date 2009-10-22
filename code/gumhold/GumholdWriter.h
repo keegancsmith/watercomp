@@ -21,5 +21,6 @@ public:
 private:
     FILE * m_fout;
     ArithmeticEncoder m_encoder;
+    SerialiseEncoder * m_enc;
     gumhold_predictor * m_pred;
 };

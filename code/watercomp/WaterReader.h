@@ -1,5 +1,7 @@
 #pragma once
 
+#include "OxygenGraph.h"
+
 #include "FrameReader.h"
 #include "arithmetic/AdaptiveModelDecoder.h"
 #include "arithmetic/ArithmeticDecoder.h"
@@ -22,7 +24,7 @@ public:
 private:
     ArithmeticDecoder m_decoder;
     AdaptiveModelDecoder m_adaptive;
-    AdaptiveModelDecoder m_adaptive_water;
+    SerialiseDecoder * m_adaptive_water;
     ByteDecoder m_byte;
 
     void next_frame_header(QuantisedFrame & qframe);

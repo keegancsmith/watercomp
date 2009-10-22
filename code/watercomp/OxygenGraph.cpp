@@ -1,7 +1,6 @@
 #include "OxygenGraph.h"
 
 #include "ANN/ANN.h"
-#include "Permutation.h"
 
 #include <algorithm>
 #include <cassert>
@@ -20,7 +19,7 @@ OxygenGraph::OxygenGraph(const QuantisedFrame & qframe,
 }
 
 
-void OxygenGraph::writeout(AdaptiveModelEncoder & enc) const
+void OxygenGraph::writeout(SerialiseEncoder & enc) const
 {
     int root;
     Graph * graph = create_oxygen_graph();
@@ -178,12 +177,10 @@ Graph * OxygenGraph::create_spanning_tree(Graph * graph, int & root) const
 //
 
 void OxygenGraph::serialise(Graph * tree, int root,
-                            AdaptiveModelEncoder & enc) const
+                            SerialiseEncoder & enc) const
 {
     int * predictions = (int *) tree->data;
-    AdaptiveModelEncoder tree_enc = AdaptiveModelEncoder(enc.encoder);
-    PermutationWriter * perm =
-        PermutationWriter::get_writer(enc.encoder, m_waters.size());
+    enc.perm->reset();
 
     int nWaters = m_waters.size();
     int count = 0;
@@ -194,7 +191,7 @@ void OxygenGraph::serialise(Graph * tree, int root,
     queue<int> q;
     q.push(root);
 
-    enc.encode_int(predictions[root]);
+    enc.err_encoder.encode_int(predictions[root]);
 
     while(!q.empty()) {
         int v = q.front();
@@ -227,10 +224,10 @@ void OxygenGraph::serialise(Graph * tree, int root,
         }
 
         // Write values to arithmetic encoder
-        perm->next_index(v);
+        enc.perm->next_index(v);
         for (int i = 0; i < 3; i++)
             for (int d = 0; d < 3; d++)
-                enc.encode_int(error[i][d]);
+                enc.err_encoder.encode_int(error[i][d]);
 
         // Write predictors for children to encoder and add them to the queue
         for (size_t i = 0; i < tree->adjacent[v].size(); i++) {
@@ -240,34 +237,30 @@ void OxygenGraph::serialise(Graph * tree, int root,
             assert(0 <= u && u < nWaters);
             assert(0 <= p && p < 3);
             
-            tree_enc.encode_int(p);
+            enc.tree_encoder.encode_int(p);
 
             parent[u] = v;
             q.push(u);
         }
         // indicate end of children
-        tree_enc.encode_int(3);
+        enc.tree_encoder.encode_int(3);
     }
 
     assert(count == nWaters);
-
-    delete perm;
 }
 
 
-void OxygenGraph::readin(AdaptiveModelDecoder & dec,
+void OxygenGraph::readin(SerialiseDecoder & dec,
                          const vector<WaterMolecule> & waters,
                          QuantisedFrame & qframe)
 {
     WaterPredictor predictor(qframe);
-    AdaptiveModelDecoder tree_dec = AdaptiveModelDecoder(dec.decoder);
-    PermutationReader * perm =
-        PermutationReader::get_reader(dec.decoder, waters.size());
+    dec.perm->reset();
 
     int nWaters = waters.size();
     int count = 0;
 
-    int root_predictor = dec.decode_int();
+    int root_predictor = dec.err_decoder.decode_int();
 
     queue< pair<int, int> > q;
     q.push(make_pair(-1, root_predictor));
@@ -279,17 +272,17 @@ void OxygenGraph::readin(AdaptiveModelDecoder & dec,
         count++;
 
         // Read in values from arithmetic decoder
-        int index = perm->next_index();
+        int index = dec.perm->next_index();
         int error[3][3];
         for (int i = 0; i < 3; i++)
             for (int d = 0; d < 3; d++)
-                error[i][d] = dec.decode_int();
+                error[i][d] = dec.err_decoder.decode_int();
 
         assert(0 <= index && index < nWaters);
 
         // Get predictors for all the children and add them to the queue
         int p;
-        while ((p = tree_dec.decode_int()) != 3) {
+        while ((p = dec.tree_decoder.decode_int()) != 3) {
             assert(0 <= p && p < 3);
             q.push(make_pair(index, p));
         }
@@ -318,6 +311,4 @@ void OxygenGraph::readin(AdaptiveModelDecoder & dec,
     }
 
     assert(count == nWaters);
-
-    delete perm;
 }
