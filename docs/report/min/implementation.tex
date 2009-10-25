@@ -1,6 +1,260 @@
+\graphicspath{{./implementation/}}
+
 \chapter{Implementation}
 % {{{
-\label{chap:Implementation}
+\label{cha:implementation}
+
+The implementation details of the program is discussed in this chapter.
+
+Section \ref{sec:implementation_details} details the platform, language and
+libraries choices of the program.
+
+Section \ref{sec:implementation_techniques} provides implementation details on
+each of the visualisation techniques.
+
+Section \ref{sec:implementation_limitations} identifies limitations and
+short-comings of the program.
+
+\section{Details}
+% {{{
+\label{sec:implementation_details}
+
+\paragraph{Linux}
+% {{{
+
+Due to the large number of freely available libraries for Linux, Linux was the
+preferred platform for development.
+
+% }}}
+
+\paragraph{C++}
+% {{{
+
+To ensure easy interoperability between the different components of the system,
+it was decided that the same language is to be used for all the components. The
+compression aspect of the system requires efficient access to memory and usage
+of the CPU, therefore C++ was the logical choice of programming language. As
+such, C++ is the programming language used throughout the system.
+
+% }}}
+
+\paragraph{OpenGL}
+% {{{
+
+To visualise the molecular data in real time, hardware accelerated graphics is
+needed.  Thus, OpenGL \citep{OpenGL} was needed to produce the graphics for the
+visualisation. A software renderer would not be able to produce the scenes as
+fast as a graphics processor would.
+
+% }}}
+
+\paragraph{Qt}
+% {{{
+
+The cross platform Qt widget library \citep{Qt} was used to produce the user
+interface to the visualisation program. While there are numerous other
+alternatives to Qt, GTK+ being the next best alternative, Qt provides the
+richest development framework, hence making it the easiest to use.
+
+% }}}
+
+\paragraph{GTS}
+% {{{
+
+Due to difficulties encountered in decimating the surfaces generated for the
+metaballs view, a library is used to decimate the surface instead of
+reproducing a decimation algorithm. The library used is the GNU Triangulated
+Surface Library \citep{GTS}. This library seemed to be the easiest library to
+use.
+
+% }}}
+
+% }}}
+
+\section{Visualisation Techniques}
+% {{{
+\label{sec:implementation_techniques}
+
+% Each of the visualisation techniques have various settings, an example would
+% be the size and opacity of the points used in the water point visualisation.
+% These values can be changed within the program and will be saved to disk.
+
+\subsection{Water point}
+% {{{
+\label{sub:implementation_point}
+
+The water point visualisation technique draws a single point for each of the
+water molecules. All the points drawn have a very low alpha value; the colour
+at a point will become more intense as more points overlap. Lighting is
+disabled for this visualiation technique. See figure
+\ref{fig:implementation_waterpoint} for an example molecular data being rendered using
+the water point visualisation technique.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=100mm]{waterpoint}
+  \end{center}
+  \caption{Water point visualisation, each point represents a water molecule}
+  \label{fig:implementation_waterpoint}
+\end{figure}
+
+% }}}
+
+\subsection{Metaballs}
+% {{{
+\label{sub:implementation_metaballs}
+
+For the metaballs visualisation technique, the isosurface is extracted using
+the marching cubes algorithm. Both the marching cubes and marching tetrahedron
+algorithms were implemented and tested. The marching cubes algorithm is used
+and not marching tetrahedrons as it produced fewer triangles. The surface
+quality and computational cost between marching cubes and marching tetrahedrons
+are comparable and thus the algorithm that produces fewer triangles is used
+(marching cubes).
+
+As was mentioned in Section \ref{sec:implementation_details}, the GTS library
+is used to perform the surface decimation. Due to unforeseen difficulties and
+time constraints, using a library was the fastest way to achieve decimation.
+
+The computational cost for a single frame for the metaballs visualisation
+technique is quite high. A frame can be generated in real time for small
+volumes only. Performing decimation on the extracted surface will only make the
+time delay worse. Therefore, a preprocessing option is available for the
+metaballs visualisation technique. All the frames can be preprocessed and saved
+to file. This file can then be used to render the surface without the
+processing overhead.
+
+When rendering the surface, one side of the surface is coloured blue, while the
+other is coloured green. This is to allow differentiating the different sides
+of the surface. The blue side of the surface is facing the non-water area of
+the volume, while the green side of the surface is facing towards the water
+area. The volume used for Figure \ref{fig:implementation_metaballs} is the same
+as that used for Figure \ref{fig:implementation_waterpoint}. Figure
+\ref{fig:implementation_metaballs} clearly shows the boundary between the water
+and non-water parts of the volume.
+
+To help see the surface detail, lighting can be enabled.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=100mm]{metaballs}
+  \end{center}
+  \caption{Metaballs visualisation, where the surface is easily visible}
+  \label{fig:implementation_metaballs}
+\end{figure}
+
+% }}}
+
+\subsection{Water cluster}
+% {{{
+\label{sub:implementation_cluster}
+
+The water molecules in the water clusters are joined by cylinders, spheres are
+then drawn at the end points. Lighting can be enabled for this visualisation
+technique so that the shape and orientation of the cylinders can be more easily
+seen. See figure \ref{fig:implementation_watercluster} for an image showing a
+few water clusters.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=100mm]{watercluster}
+  \end{center}
+  \caption{Water cluster visualisation, each water cluster is visible}
+  \label{fig:implementation_watercluster}
+\end{figure}
+
+% }}}
+
+\subsection{Quantisation error}
+% {{{
+\label{sub:implementation_quantisation}
+
+The distance between the unquantised and dequantised positions of the water
+molecules is the error introduced by quantisation. Visualising the error is
+accomplished by either rendering a point for the water molecule, or a line
+between unquantised and dequantised positions. The colour of the point/line is
+proportional to the error.
+
+As the errors are uniformly distributed, having the colour linearly
+proportional to the error value produces poor results: the large error values
+do not stand out clearly. Instead, the colour scale is stepped so that the
+large error values are clearly visible.
+
+The colour scale is determined using two error thresholds. If the error value
+is less than the lower threshold, then the error is ignored and nothing is
+rendered. If the error value is between the two threshold values, then the
+colour is determined linearly up until the midpoint value, where the colour is
+set to the final error colour. See figure \ref{fig:implementation_quantgraph}
+for a graph illustrating how the colour is decided.
+
+Figure \ref{fig:implementation_quanterror} shows the quantisation errors for an
+example volume.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=100mm]{quant_colour_graph}
+  \end{center}
+  \caption{Graph illustrating stepped colour assignment for quantisation error}
+  \label{fig:implementation_quantgraph}
+\end{figure}
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=100mm]{quanterror}
+  \end{center}
+  \caption{Quantisation error visualisation, highlights large quantisation
+  errors}
+  \label{fig:implementation_quanterror}
+\end{figure}
+
+% }}}
+
+\subsection{Balls and stick}
+% {{{
+\label{sub:implementation_ballstick}
+
+For the ball and stick visualisation technique, the oxygen and hydrogen atoms
+are represented by spheres. The spheres are rendered using different colours,
+and at different sizes. Lighting can be enabled to better see the spheres. See
+figure \ref{fig:implementation_ballstick} where only a few water molecules are
+rendered.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=100mm]{ballstick}
+  \end{center}
+  \caption{Ball and stick visualisation, clearly showing each of the atoms}
+  \label{fig:implementation_ballstick}
+\end{figure}
+
+% }}}
+
+% }}}
+
+\section{Limitations}
+% {{{
+\label{sec:implementation_limitations}
+
+As the data can and are very different, some adjustments to various
+configuration values will need to be made to most effectively visualise the
+data. An example of such a change that needs to be made is changing the alpha
+value and point size for the water point visualisation technique. For small
+volumes, a higher alpha value and point size will be needed to effectively
+visualise the volume. Other changes will need to be made for all the other
+visualisation techniques. These changes are unfortunately unavoidable.
+
+The water point visualisation technique is only useful for volumes where there
+are large amounts of water, and there is also a large area where there is no
+water. If the volume is small or uniformly filled with water molecules, the
+alpha effects will not be significant.
+
+The metaballs visualisation technique requires much processing to be done for
+each frame (surface extraction and decimation), hence real time rendering is
+only possible for small volumes. There is an option to preprocess the volume
+and save the surfaces to file, however, the generated files are generally
+considerably larger than the DCD file.
+
+% }}}
 
 % }}}
 

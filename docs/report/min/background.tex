@@ -10,15 +10,15 @@ Information visualisation techniques are very domain specific; one type of
 visualisation may work well for a specific scenario, but will work quite poorly
 when applied to another domain. The problem domain applicable to this project
 is the effective visualisation of point cloud data, more specifically, water
-molecules from molecular simulations. Some of the important issues that will be
-need to be investigated will be presenting an appropriate level of detail and
+molecules from molecular simulations. Some of the important issues that need to
+be investigated are the presentation of appropriate levels of detail and
 clutter control.
 
-Section \ref{sec:background_molecular} will identify and briefly introduce
+Section \ref{sec:background_molecular} identifies and briefly introduces
 several molecular visualisation techniques. While Section
-\ref{sec:background_general} will focus on more general visualisation
-techniques. Section \ref{sec:background_end} will then provide a short
-conclusion on the different visualisation techniques.
+\ref{sec:background_general} focuses on more general visualisation techniques.
+Section \ref{sec:background_end} provides a short conclusion on the different
+visualisation techniques.
 
 % }}}
 
@@ -31,14 +31,14 @@ conclusion on the different visualisation techniques.
 
 The most significant problem for visualising molecular data is the amount of
 data available and how to represent them so as not to clutter up the display.
-Some of the molecular visualisation techniques focuses on simplifying the
-models, by analysing the data to identify structures; while some exclude
-certain data from the visualisation. Either way, a more simplified image is
-presented so as to make it easier and quicker to understand.
+Some of the molecular visualisation techniques focus on simplifying the models,
+by analysing the data to identify structures; while some exclude certain data
+from the visualisation. Either way, a simplified image is presented so as to
+make the molecular data easier and quicker to understand.
 
-The more specific visualisation techniques (ribbon, paper chain and twister) are
-designed for very specific molecular objects, thus they will not be easily
-extendable to point cloud data. They can however be used to see what kind of
+Specific visualisation techniques (ribbon, paper chain and twister) are
+designed for very specific molecular data, and are thus not easily extensible
+to point cloud data. They can, however, be used to determine what kind of
 analysis can be done on data to simplify and help identify structures.
 
 It is worth mentioning the Visual Molecular Dynamics (VMD) \citep{humphrey96}
@@ -63,15 +63,15 @@ approaches to molecular visualisation and is also used when all the detail is
 required, typically for looking at bond information and reaction sites.
 
 The problem with this model is that it does not handle large numbers of atoms
-and bonds very well. By having all the atoms and bonds visible, the image
-quickly becomes crowded and overall structure is obscured. Occlusion of other
-atoms often occurs which may hide important information. Ball-and-stick diagrams
-are typically not used for large or many molecules as it typically produces the
-most cluttered diagrams, making it very difficult to understand and analyse.
+and bonds very well. Since the atoms and bonds are visible, the image quickly
+becomes crowded and overall structure is obscured. Occlusion of other atoms
+often occurs and may hide important information. Ball-and-stick diagrams are
+typically not used for large or many molecules as it often produces cluttered
+diagrams, making it very difficult to understand and analyse the data.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=70mm]{BallStick}
+    \includegraphics[width=100mm]{BallStick}
   \end{center}
   \caption{A typical ball-and-stick model}
   \label{fig:background_ballstick}
@@ -103,7 +103,7 @@ may hide important information and make it hard to analyse an entire system.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=70mm]{CPK-big}
+    \includegraphics[width=100mm]{CPK-big}
   \end{center}
   \caption{CPK representation}
   \label{fig:background_cpk}
@@ -128,7 +128,7 @@ used for carbohydrate and lipid molecules.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=70mm]{ribbon}
+    \includegraphics[width=100mm]{ribbon}
   \end{center}
   \caption{Ribbon model of a protein}
   \label{fig:background_ribbon}
@@ -142,7 +142,7 @@ used for carbohydrate and lipid molecules.
 
 The paper chain visualisation technique \citep{kuttel06} focuses on
 highlighting ring structures in carbohydrate molecules. Ring structures are
-first identified and then are displayed using a ring polyhedron (see figure
+first identified and are then displayed using a ring polyhedron (see figure
 \ref{fig:background_paperchain}).
 
 This significantly simplifies the carbohydrate molecules by only showing the
@@ -152,7 +152,7 @@ overlayed on the paper chain diagram to provide detailed information if needed.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=70mm]{paper_chain}
+    \includegraphics[width=100mm]{paper_chain}
   \end{center}
   \caption{Paper chain model of a carbohydrate}
   \label{fig:background_paperchain}
@@ -172,7 +172,7 @@ carbohydrates for the twister technique.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=70mm]{twister}
+    \includegraphics[width=100mm]{twister}
   \end{center}
   \caption{Twister model with ball-and-stick model overlayed on top}
   \label{fig:background_twister}
@@ -193,40 +193,37 @@ cloud data are: surface extraction, volume rendering and general clutter
 control. Mesh decimation and metaballs is also relevant, but they have more
 specific uses.
 
-This paper will only discuss the basic techniques and will not provide detail
-on each of the individual techniques. The recent and significant advances in
-each of the techniques will not be discussed either.
-
 % }}}
 
 \subsection{Surface extraction}
 % {{{
 \label{sub:background_surface}
 
-Surface extraction is used to determine the surfaces of volume data. The
+Surface extraction is used to determine the isosurfaces of volume data. The
 marching cubes algorithm \citep{lorensen87} is the classical approach for
 surface extraction. The algorithm works by examining each cell in the data (a
 cube) and determining whether it is inside the volume or not. A surface can
 then be determined by combining all the cells which intersect with the volume
 boundary (see figure \ref{fig:background_mesh}).
 
-Surface extraction allows for the shape of the volume to be extracted and be
-easily seen, this is somewhat analogous to the CPK model in that regard.
+Surface extraction allows for the shape of the volume to be extracted and
+visualised, and is somewhat analogous to the CPK model in that regard.
 Surface extraction can be adapted to molecular data to provide a simpler and
 smoothed view of the molecule, so that the shape and contours can be more
-plainly seen; which may of otherwise been obscured by the individual atoms.
+plainly seen; which may otherwise be obscured by the individual atoms.
+GRAMMAR
 Alternatively, this technique can also be used to identify volumes of space
 where the points are missing, thus highlighting these areas instead.
 
 The granularity of the sampling grid has a large impact on the quality of the
 extracted surface. A grid where each individual cell is quite small will
 produce a detailed surface, but will correspondingly produce a large number of
-polygons. Section \ref{sub:background_decimation} will provide more detail on
+polygons. Section \ref{sub:background_decimation} providesmore detail on
 reducing the number of polygons used to represent a surface.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=70mm]{triangulated_mesh}
+    \includegraphics[width=100mm]{triangulated_mesh}
   \end{center}
   \caption{Triangulated mesh of a volume}
   \label{fig:background_mesh}
@@ -238,23 +235,24 @@ reducing the number of polygons used to represent a surface.
 % {{{
 \label{sub:background_volume}
 
-Volume rendering aims to visualise the entire volume instead of a subset. This
-is done by modelling the data as a translucent gel so that you are able to see
-through the volume, while still being able to see what is in the volume at the
-same time (see figure \ref{fig:background_head}).
+Volume rendering aims to visualise the entire volume instead of an object
+surface. This is done by modelling the data as a translucent gel so that you
+are able to see through the volume, while still being able to see what is in
+the volume at the same time (see figure \ref{fig:background_head}).
 
-There are two main approaches to volume rendering; the first is working from the
-image plane to the volume, this is called image order processing. Ray casting is
-the classical approach to this as proposed by \citet{levoy88}. Object order
-processing is working from the volume to the image plane. The classical approach
-to this is splatting \citep{westover89}. Hybrid methods have been developed to
-take advantage of both approaches.
+There are two main approaches to volume rendering. The first works from the
+image plane to the volume, and is called image order processing. Ray casting is
+the classical approach to this as proposed by \citet{levoy88}. The second
+approach, object order processing is working from the volume to the image
+plane. The classical approach to this is splatting \citep{westover89}. Hybrid
+methods have been developed to take advantage of both approaches.
 
-The advantage of volume rendering is being able to visualise the entire volume
-at once, but does come at the cost of increased complexity and computation.
-While volume rendering will not be directly applicable to molecular data as the
+The main advantage of volume rendering is the ability to visualise the entire
+volume at once, but this demands increased complexity and computation.  While
+volume rendering will not be directly applicable to molecular data as the
 requirement is often to see the individual atoms or structures, rather than an
 aggregated view of the entire volume data.
+GRAMMAR
 
 However, volume rendering could be useful for seeing what a volume looks like
 or behaves at a glance. For simulations where large parts of the volume are
@@ -263,7 +261,7 @@ visualising these homogenous volumes.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=70mm]{head_volume}
+    \includegraphics[width=100mm]{head_volume}
   \end{center}
   \caption{Ray casted image of a head}
   \label{fig:background_head}
@@ -277,53 +275,52 @@ visualising these homogenous volumes.
 
 Shneiderman provides a visual information-seeking mantra \citep{shneiderman96}:
 ``overview first, zoom and filter, then details on demand'', in which clutter
-reduction techniques fit in quite well. The mantra provides a general hierarchy
+reduction techniques fit in quite well. The methodology provides a general hierarchy
 of tasks that is to be applied to information visualisation, in which clutter
 reduction plays an important role.
 
-\citet{ellis07} provides a taxonomy containing many clutter reduction techniques
-against many criteria. With clutter reduction, a balance between removing too
+\citet{ellis07} provide a taxonomy containing many clutter reduction techniques
+against many criteria. With clutter reduction, a trade-off between removing too
 much and too little information must be made. Removing too much or too little
-data will make the visualisation of little use.
+data will produce a visualisation that is of little use.
 
 With regards to visualising point cloud data, filtering, opacity and topological
 distortion may be the most useful clutter reduction techniques.
 
-Filtering is only displaying certain items fulfilling a criteria. This can be
-used to only show items in a certain area or locus of interest, irrelevant items
-can be removed and not clutter up the display. This may be useful for removing
-uninterested in occluding objects and only show points at important areas, such
-at where there is interaction occurring.
+\emph{Filtering} displays only certain items fulfilling certain criteria. This can be
+used to only show items in a certain area or locus of interest; irrelevant
+items can be removed and will not clutter up the display. This may be useful
+for removing uninterestnig occluding objects to show points at important areas,
+such at where there is interaction occurring.
 
 Another approach to filtering is to highlight the important features of the
-data with colour, but leave the rest of the data visible as is. This adds the
-advantage of keeping context data. Figure \ref{fig:background_highlight} is an
+data with colour, but leave the rest of the data visible unchanged. This adds
+the advantage of keeping context. Figure \ref{fig:background_highlight} is an
 example application of highlighting in a graph structure.
 
-Opacity is changing the translucency of items to highlight or hide things. This
-is similar to filtering in that irrelevant items are partially or entirely
-hidden, highlighting only the important parts. The advantage of opacity over
-filtering is that the other information is not entirely removed, it is still
-available if needed and can be used to hint at contextual information. Opacity
-can also be adapted to show temporal information, where the previous frame is
-rendered along with the current frame, but at a lower opacity; creating an
-effect similar to motion blur.
+\emph{Opacity} is changing the translucency of items to highlight or hide
+things. This is similar to filtering in that irrelevant items are partially or
+entirely hidden, highlighting only the important parts. The advantage of
+opacity over filtering is that the other information is not entirely removed,
+it is still available if needed and can be used to hint at contextual
+information. Opacity can also be adapted to show temporal information, where
+the previous frame is rendered along with the current frame, but at a lower
+opacity; creating an effect similar to motion blur.
 
-Topological distortion is changing the view so that certain areas are larger.
-Thus highlighting and bringing to focus the relevant area, while de-emphasising
-the other areas. The distortion can either be uniform (zooming), or can be
-non-uniform (fish-eye effect).
+\emph{Topological distortion} is changing the representation so that certain
+areas are larger.  Thus highlighting and bringing to focus the relevant area,
+while de-emphasising the other areas. The distortion can either be uniform
+(zooming), or can be non-uniform (fish-eye effect).
 
-Clutter reduction techniques has the most potential for point cloud
+Clutter reduction techniques have the most potential for point cloud
 visualisation as there is a need to be able to visualise many objects in 3D
-space, however care must be taken to not remove important and relevant
-information. It should be noted that the clutter reduction techniques are not
-all mutually exclusive, many of the techniques can be used to complement and be
-layered on top of one another.
+space. However, care must be taken to not remove important and relevant
+information. It should be noted that clutter reduction techniques are not all
+mutually exclusive: many of the techniques complement one another.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=70mm]{graph_highlight}
+    \includegraphics[width=100mm]{graph_highlight}
   \end{center}
   \caption{Highlighting certain structures in a graph}
   \label{fig:background_highlight}
@@ -335,16 +332,16 @@ layered on top of one another.
 % {{{
 \label{sub:background_decimation}
 
-The amount of time taken to render a model is dependant on the number of
-polygons of the model, more polygons will require more time to be rendered.
-There is thus a trade-off between detail and render time; more polygons will
-increase the amount of detail present, but will also increase render time.
-Mesh decimation is a technique aimed at reducing the number of polygons used to
-represent a mesh, typically a triangular mesh.
+The amount of time taken to render a model is proportional to the number of
+polygons in the model.  There is thus a trade-off between detail and render
+time: more polygons will increase the amount of detail present, but will also
+increase render time.  Mesh decimation is a technique aimed at reducing the
+number of polygons used to represent a mesh while preserving as much detail as
+possible.
 
-Mesh decimation can be broadly divided into 2 main categories: geometric
+Mesh decimation can be broadly divided into two main categories: geometric
 decimation and vertex clustering. A more complete comparison between mesh
-simplification algorithms has been done by \citet{cignoni98}.
+simplification algorithms can be found in \citet{cignoni98}.
 
 \paragraph{Geometric decimation}
 % {{{
@@ -385,13 +382,13 @@ of points where the force function is equal to some constant threshold value
 techniques.
 
 The advantage of metaballs is that volume data is grouped together, making it
-easy to see the different volumes in an area. The disadvantage of this
-technique is the computation cost required to determine and extract the surface
-from the force calculations.
+easy to see the different volumes in a region. The disadvantage of this
+technique is the computational cost required to determine and extract the
+surface from the force calculations.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=70mm]{metaballs}
+    \includegraphics[width=100mm]{metaballs}
   \end{center}
   \caption{Rendering of a number of metaballs}
   \label{fig:background_metaballs}
@@ -405,7 +402,7 @@ by determining the surface where the solvent (modelled with spheres) cannot fit
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=70mm]{sas_ms}
+    \includegraphics[width=100mm]{sas_ms}
   \end{center}
   \caption{Schematic diagram illustrating solvent accessible surfaces}
   \label{fig:background_sas}
@@ -419,33 +416,31 @@ by determining the surface where the solvent (modelled with spheres) cannot fit
 % {{{
 \label{sec:background_end}
 
-This chapter has gone through some visualisation techniques, each with their own
-advantages and disadvantages. Visualisation techniques are all quite specific
-and are designed for their respective scenarios, fulfilling their respective
-requirements and taking advantage of specific domain knowledge; as a result,
-they are not easily generalisable into other areas.
+This chapter has presented some visualisation techniques, each with their own
+advantages and disadvantages. Visualisation techniques are designed to take
+advantage of specific domain knowledge. As a result, they are not easily
+generalisable into other areas.
 
 Molecular modelling is a specific instance of the information visualisation
 problem, where the requirement is to be able to easily identify certain
-structures. Different types of molecules will each have their own specific
-characteristics and structures, this knowledge can be taken advantage of in the
+structures. Different types of molecules each have their own specific
+characteristics and structures. This knowledge can be exploited in the
 different visualisation techniques: ribbon diagrams are useful for proteins,
 paper chain and twister for carbohydrates, while ball-and-stick and CPK for
 general molecular visualisations.
 
-General visualisation techniques address a slightly different problem; the
-problem being solved is how to be able to visualise the data effectively and
-not necessarily to identify and highlight certain structures. Identifying the
-structures is often domain specific and thus approaches are not easily
-extendable to their domains, thus the main concern is how to enable easy
-exploration of the data.
+General visualisation techniques address a slightly different problem: how to
+visualise the data effectively and not necessarily to identify and highlight
+certain structures. Identifying the structures is often domain specific and
+thus approaches are not easily extensible to their domains. Thus the main
+concern is how to enable easy exploration of the data.
 
-None of the techniques touched on, handle a temporal aspect explicitly. If a
-temporal dimension were to be added, all the techniques would just treat each
-frame separately and regenerate the visualisation given the new set of data.
-This approach would not be ideal if some inter-frame visualisation coherence is
-desired. This aspect in information visualisation is quite lacking and thus ways
-of visualising temporal information will need to be developed.
+None of the techniques touched on, handle time explicitly. If a temporal
+dimension were to be added, all the techniques would just treat each frame
+separately and regenerate the visualisation given the new set of data.  This
+approach would not be ideal if some inter-frame visualisation coherence is
+desired. This aspect in information visualisation is quite lacking and thus
+ways of visualising temporal information will need to be developed.
 
 There is no single solution for all visualisation needs, however approaches and
 ideas can be taken from different visualisation areas. While the problems may
@@ -457,33 +452,3 @@ domain specific, with their own requirements and concerns.
 
 % }}}
 
-
-% {{{
-
-\newpage
-\section{My questions (NOT TO BE INCLUDED IN FINAL REPORT)}
-
-\begin{enumerate}
-
-  \item
-  Should a background chapter be like a literature review, in that it
-  identifies what other people have done. Or should the background chapter be
-  about the algorithms and techniques used in the project?
-
-  \item
-  My thinking is that the implementation chapter will be about the algorithms
-  and techniques used, while this background chapter is like a literature
-  review, identifying what other people have done in similar areas of work?
-
-  \item
-  If the background chapter is to be about the algorithms and techniques used
-  in the project then almost half of this chapter needs to be removed (most of
-  the molecular stuff).
-
-  \item
-  I wasn't too sure how to group the mesh decimation and metaballs sections, it
-  seems a bit misplaced in the "General visualisation" section?
-
-\end{enumerate}
-
-% }}}

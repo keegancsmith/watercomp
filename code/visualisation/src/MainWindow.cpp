@@ -35,7 +35,7 @@
 
 #define MAX_QUANTISATION 10
 
-#define TESTING_SETUP
+// #define TESTING_SETUP
 
 MainWindow::MainWindow()
 {
