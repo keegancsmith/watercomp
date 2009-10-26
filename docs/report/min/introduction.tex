@@ -2,35 +2,72 @@
 % {{{
 \label{cha:introduction}
 
-Molecular data is composed of many interconnected atoms and interacting
-molecules, this poses a problem for visualisation: how do you effectively
-visualise a large number of objects in 3D space? The complex diagrams that arise
-from basic visualisation techniques will be hard to analyse and identify
-structures due to the large number of objects and extraneous data.
+% Molecular data is composed of many interconnected atoms and interacting
+% molecules, this poses a problem for visualisation: how do you effectively
+% visualise a large number of objects in 3D space? The complex diagrams that arise
+% from basic visualisation techniques will be hard to analyse and identify
+% structures due to the large number of objects and extraneous data.
 
-Although there are several different visualisation techniques that have been
-developed, how they cope with many objects in 3D space will need to be
-evaluated. Another aspect that is often neglected is the temporal aspect, data
-changes over time and this should also be reflected in the visualisation.
+% Although there are several different visualisation techniques that have been
+% developed, how they cope with many objects in 3D space will need to be
+% evaluated. Another aspect that is often neglected is the temporal aspect, data
+% changes over time and this should also be reflected in the visualisation.
 
-In order to get some perspective on what some of the existing visualisation
-techniques are, this paper will look at some of the molecular modelling and
-visualisation techniques, as well as some general visualisation techniques
-applicable to molecular data.
+% In order to get some perspective on what some of the existing visualisation
+% techniques are, this paper will look at some of the molecular modelling and
+% visualisation techniques, as well as some general visualisation techniques
+% applicable to molecular data.
 
-Chapter \ref{cha:background} will provide background on relevant existing
-visualisation techniques.
+Molecular simulations can and do generates lots of data. A large simulation can
+comprise of hundreds of thousands of atoms, with thousands of frames.
+Multiplying the two dimensions together yields many gigabytes of data. Due to
+the computational costs and time required in performing the simulations, the
+simulations are often run on clusters, which means that the generated data needs
+to be transferred from the cluster to the researchers. Compressing the molecular
+data is thus advantageous as it will make the transferring the data faster, as
+well as decreasing the storage costs of the molecular simulation data.
 
-Chapter \ref{cha:design} will detail why the visualisation program was designed
-as it was.
+A large proportion of the volume in molecular simulations is water, which has
+certain characteristics that can be exploited to achieve good compression. The
+water compression project thus targets molecular simulations with large amounts
+of water, aiming to achieve high compression ratios by exploiting certain
+characteristics of the data.
 
-Chapter \ref{cha:implementation} will provide implementation details of the
-visualisation program.
+The water compression project is split into three main parts:
 
-Chapter \ref{cha:experiment} will provide details and the results of the
-experiment that was carried out.
+\begin{itemize}
+  \item Interframe compression
+  \item Intraframe compression
+  \item Visualisation
+\end{itemize}
 
-Chapter \ref{cha:conclusion} will finally conclude and summarise this report.
+This report will focus on the visualisation aspect of the water compression
+project. The interframe compression is completed by Julian Kenwood, while the
+intraframe compression is completed by Keegan Smith.
+
+The visualisation supports the compression aspect of the system by visualising
+specific areas of the molecular data.  However, the visualisation also provides
+more general visualisation uses, not specific to the compression of the
+molecular data.
+
+Chapter \ref{cha:background} provides background on the relevant existing
+visualisation techniques that influenced the development of the visualisation.
+
+A number of visualisation approaches has been identified, and is detailed in
+Chapter \ref{cha:design}. The chapter details why the approaches are chosen and
+the design behind them. A few of the visualisation approaches is aimed at
+supporting the compressors.
+
+Chapter \ref{cha:implementation} provides implementation details on each of the
+visualisation components.
+
+Returning back to supporting the compression aspect of the system, the
+compression technique used is lossless, except for the quantisation step. An
+experiment was thus carried out to determine the perceptual impact of different
+quantisation leveles. Chapter \ref{cha:experiment} provides the details and
+results from the quantisation experiment.
+
+Chapter \ref{cha:conclusion} finally concludes and summarises this project.
 
 % }}}
 
