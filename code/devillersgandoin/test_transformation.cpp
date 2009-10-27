@@ -47,5 +47,12 @@ int main() {
     for (int i = 0; i < 7; i++)
         assert(has_point(decoded[i]));
 
+    for (int i = 0; i < 7; i++)
+        cout << '(' << raw_points[i][0] << ", " << raw_points[i][1] << ") ";
+    cout << endl;
+    for (int i = 0; i < 7; i++)
+        cout << '(' << decoded[i].coords[0] << ", " << decoded[i].coords[1] << ") ";
+    cout << endl;
+
     return 0;
 }

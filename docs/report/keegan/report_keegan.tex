@@ -12,6 +12,8 @@
 \usepackage{natbib}
 \bibliographystyle{abbrvnat}
 
+\newcommand{\degree}{\ensuremath{^\circ}}
+
 \title{Literature Review of Point Cloud Compression}
 \author{Keegan Smith\\ksmith@cs.uct.ac.za}
 
@@ -29,7 +31,7 @@ Honours Project Report\\
 \ \\}
 
 {\huge \bfseries
-TODO Insert title here!
+Intraframe Compression of Molecular Dynamics Simulations of Water
 \\}
 \ \\
 \ \\
@@ -57,7 +59,8 @@ This report surveys techniques used in point cloud compression. A point cloud
 is a collection of points in 3D space. It then investigates the structure of
 water. We then present a method for compressing MD data using connectivity
 based point cloud compression with predictors tailored towards the structure
-of water.
+of water. We compare this method to more generic point cloud and data
+compressors.
 
 \textbf{TODO} Talk about results etc once they have been produced!
 
@@ -73,9 +76,9 @@ being saved \citep{omeltchenko2000sls}. Generating this much data makes good
 compression very desirable.
 
 We have developed a method which compresses MD simulations. It targets
-simulations which have a large amount of water in them. It uses connectivity
-based point cloud techniques, but with predictors which based on the structure
-of water.
+simulations which have a large amount of water in them. It uses a connectivity
+based point cloud technique, but with predictors which are based on models of
+the structure of water.
 
 \textbf{TODO} Flesh out introduction
 
@@ -123,9 +126,9 @@ better compression rates. This reduction of precision is called
 that uses quantisation, quantises the vertex positions for each coordinate
 separately and uniformly in Cartesian space. This can be visualized as
 creating an evenly-spaced grid over the dimensions of the space, and snapping
-the point to the closest grid point. This is the most na\"{\i}ve method, but
+the points to the closest grid point. This is the most na\"{\i}ve method, but
 there are more complex methods reviewed by \citet{ag-racm-03}. These lie
-outside the scope of this survey. \citet{chen2005lcp} get around quantisation
+outside the scope of this survey. \citet{chen2005lcp} gets around quantisation
 by treating the 32-bit floating point numbers as 32-bit integers.
 
 
@@ -149,12 +152,11 @@ Both papers discussed depend on a spanning tree of the points. This will be
 explained in the next subsection, but for now let $v'$ be the parent of the
 point $v$, and $v''$ be the point's grandparent in the tree.
 
-\citet{gumholdcomp} lets the user choose between two na\"{\i}ve
-predictors. The first is a \emph{constant} predictor where $v$ is predicted to
-be at $v'$. The second is a \emph{linear} predictor where $v$ is predicted to
-be at $v' + (v' - v'')$. So either $v$ is in the same place as its parent, or
-it is along the straight line $(v', v'')$ with distance $|v'-v''|$ away from
-its parent.
+\citet{gumholdcomp} lets the user choose between two predictors. The first is
+a \emph{constant} predictor where $v$ is predicted to be at $v'$. The second
+is a \emph{linear} predictor where $v$ is predicted to be at $v' + (v' -
+v'')$. So either $v$ is in the same place as its parent, or it is along the
+straight line $(v', v'')$ with distance $|v'-v''|$ away from its parent.
 
 \citet{merrycomp} use the same predictors as \citeauthor{gumholdcomp} but with
 two additional predictors, the \emph{left} and \emph{right} predictors. The
@@ -173,24 +175,25 @@ predictor used at each point to be encoded, which is discussed next.
 Unlike meshes, point clouds have no connectivity information. So there is no
 obvious order to serialize the vertices' information (generally residuals).
 
-\citet{gumholdcomp} create a rooted spanning tree of the points. The tree is
-greedily created by randomnly picking a root and adding each successive point
-to the vertex which minimises the residual. The tree is then serialized by
-entropy encoding the out degree of each vertex in breadth-first order.
+\citet{gumholdcomp} create a rooted spanning tree of the points. The points
+are first sorted along the $x, y$ or $z$ axis. The tree is then greedily
+created by picking the first point as a root and then adding each successive
+point to the vertex which minimises the residual. The tree is then serialized
+by entropy encoding the out degree of each vertex in breadth-first order.
 
 \citet{merrycomp} also create a rooted spanning tree of the points, but in a
 way that favours ``long runs'' of the forward predictor. They need to encode
-the predictor used at each point, so encoding the tree as Gumhold et al.\ did
-will not work. Instead the tree is serialized by entropy coding the predictor
-used in depth-first order. By favouring long runs of the forward predictor
-they get better compression ratios of the encoding of the tree. To create the
-spanning tree, they first create a graph of the points where every edge with
-length less than $L$ is added. $L$ is the length of the longest edge in the
-minimum spanning tree of the complete graph of the points. The spanning tree
-is then created similarly to Prim's algorithm \citep[p.\ 457]{sedgewick}, but
-instead using a metric\footnote{A metric is a way to calculate the distance
-  between vertices.} that favours recently considered vertices and ones
-predicted well by the forward predictor.
+the predictor used at each point, so encoding the tree as \citet{gumholdcomp}
+did will not work. Instead the tree is serialized by entropy coding the
+predictor used in depth-first order. By favouring long runs of the forward
+predictor they get better compression ratios of the encoding of the tree. To
+create the spanning tree, they first create a graph of the points where every
+edge with length less than $L$ is added. $L$ is the length of the longest edge
+in the minimum spanning tree of the complete graph of the points. The spanning
+tree is then created similarly to Prim's algorithm \citep[p.\ 457]{sedgewick},
+but instead using a metric\footnote{A metric is a way to calculate the
+  distance between vertices.} that favours recently considered vertices and
+ones predicted well by the forward predictor.
 
 \citet{chen2005lcp} uses a spanning tree with differential coding on the
 weights. So the point cloud is encoded as a tree, with edge weights being the
@@ -234,29 +237,56 @@ before the data can be decompressed. \citet{omeltchenko2000sls},
 \citet{gumholdcomp} and \citet{merrycomp} are all single-rate encoders.
 
 
-\section{Water Heuristics}
+\section{Water Model}
 
-\textbf{TODO}
-%% Point clouds of water molecules are a collection of hydrogen and oxygen atoms
-%% (two hydrogens for every oxygen) and their locations. Due to the way the
-%% molecules interact, we have very good knowledge on how the molecules will be
-%% laid out relatively to each other.
+A water dimer is two water molecules loosely bonded by a hydrogen atom. This
+is the simplest model for hydrogen bonding in water, and as such has been
+extensively studied.
 
-%% Omeltchenko et al.'s~\cite{omeltchenko2000sls} method only exploits the fact
-%% that we have many dense clusters in MD simulations. It is more general than
-%% water compression, and modifying it to use the relative layouts of the water
-%% molecules is not clear.
+The oxygen which is loosely bonded to the hydrogen is expected to be
+$2.976\AA$ away from the other oxygen. It is also expected that the vector
+created by the O-H bond to be roughly in line with the vector of the loose O-H
+bond. See Figure \ref{fig:dimer} and Figure \ref{fig:dimr-angle}.
 
-%% Merry et al.'s~\cite{merrycomp} and Gumhold et al.'s~\cite{gumholdcomp}
-%% predictors do not exploit the layout of water molecules, but using predictors
-%% is a very salient idea. Using the knowledge we have about water molecules, we
-%% can predict where a water molecule will occur relative to another one. The
-%% spanning tree would be different, but similiar ideas will carry over.
+\textbf{TODO} references
 
-%% Single-rate encoders usually have higher compression ratios than progressive
-%% encoders. This survey covered progressive coders, but these are not as
-%% applicable to MD compression since the application of the MD data requires the
-%% whole file. So we will not discuss them further.
+\begin{figure}[h]
+\centering
+\resizebox{0.75\textwidth}{!}{
+  \includegraphics{images/h402}
+}
+\caption{The most energetically favourable water dimer calculated from first
+  principles.}
+\label{fig:dimer}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\resizebox{0.5\textwidth}{!}{
+  \includegraphics{images/dimr}
+}
+\caption{Water dimer angles. $R = 2.976\AA, \alpha = 6 \pm 20\degree, \beta =
+  57 \pm 10\degree$}
+\label{fig:dimr-angle}
+\end{figure}
+
+\subsection{Application of the Water Model in Point Cloud Compressors}
+
+\citet{omeltchenko2000sls} method only exploits the fact that we have many
+dense clusters in MD simulations. It is more general than water compression,
+and modifying it to use the relative layouts of the water molecules is not
+clear.
+
+\citet{merrycomp} and \citet{gumholdcomp} predictors do not exploit the layout
+of water molecules, but using predictors is a very salient idea. Using the
+models we have about water molecules, we can predict where a water molecule
+will occur relative to another one. The spanning tree would be different, but
+similiar ideas will carry over.
+
+Single-rate encoders usually have higher compression ratios than progressive
+encoders. This survey covered progressive coders, but these are not as
+applicable to MD compression since the application of the MD data requires the
+whole file. So we will not discuss them further.
 
 
 \section{Summary}
@@ -277,11 +307,10 @@ slightly more since it uses a predictor to predict the location based on other
 points location. \citet{chen2005lcp} just tries to choose the best possible
 spanning tree, so they exploit connectivity of points.
 
-For the compression of water molecules we have a lot of local heuristics. From
-these we have good geometric and connectivity information. So the best
-matching approach would come from something similiar to the predictive
-single-rate compression algorithms of \citet{merrycomp} and
-\citet{gumholdcomp}.
+For the compression of water molecules we have local heuristics. From these we
+have good geometric and connectivity information. So the best matching
+approach would come from something similiar to the predictive single-rate
+compression algorithms of \citet{merrycomp} and \citet{gumholdcomp}.
 
 \begin{figure*}
 \centering
@@ -336,7 +365,7 @@ single-rate compression algorithms of \citet{merrycomp} and
 
   \emph{Structure} & Surface & \\
 
-  \emph{Progressive} & Single-rate & \\  
+  \emph{Progressive} & Single-rate & \\
 
   \emph{Quantisation} & Yes & \\
 
@@ -358,10 +387,12 @@ single-rate compression algorithms of \citet{merrycomp} and
 \chapter{Design}
 
 This section outlines the design for our compressor and decompressor. The
-compression techniques I investigate only cover single frame compression, but
-our final product handles multiframe compression and visualisation as well. As
-such the design needs to take into account these uses, but I will only cover
-the design aspects relevant to single frame compression.
+compression techniques I investigate only cover intra-frame
+compression\footnote{intra-frame compression is where we compress each frame
+  independently of the other frames.}, but our final product handles
+multiframe compression and visualisation as well. As such the design needs to
+take into account these uses, but I will only cover the design aspects
+relevant to single frame compression.
 
 I worked closely with Julian Kenwood on the compressor and decompressor, and
 areas designated to him are more thoroughly explained in his report. I will
@@ -372,16 +403,14 @@ indicate such areas.
 We target the PDB format, which is a format for storing MD simulations. PDB is
 readable by VMD. \textbf{TODO} improve and references.
 
-A high-level overview of how our compressor works is illustrated by the
+A high-level overview of how our compressors work is illustrated by the
 following: \textbf{TODO} replace with pretty picture
 
-\[ DCDFile \to Atoms \to QuantisedAtoms \to Graph \to SpanningTree \to SymbolStream \to
-BitStream \]
+\[ DCDFile \to Atoms \to QuantisedAtoms \to Compressor \]
 
 The decompressor works in the reverse direction
 
-\[ BitStream \to SymbolStream \to SpanningTree \to QuantisedAtoms \to
-DCDFile \]
+\[ Decompressor \to QuantisedAtoms \to DCDFile \]
 
 The decompressed DCD files have been quantised. Excluding the quantisation
 step, our scheme is lossless. Notice that each step in the compression phase
@@ -410,8 +439,9 @@ The different components are the following:
 
 The compressor component is the driver program. It utilises the other
 components listed below to do compression and decompression. There is our
-compressor and two reference compressors. The reference compressors are the
-\citet{omeltchenko2000sls} scheme and the \citet{devillers2000gci} scheme.
+compressor and three reference compressors. The reference compressors are the
+\citet{omeltchenko2000sls} scheme, \cite{gumholdcomp} scheme and the
+\citet{devillers2000gci} scheme.
 
 
 \subsection{Simulation I/O}
@@ -420,23 +450,13 @@ These components handle I/O to and from the files we are compressing. We are
 compressing DCD files. DCD files come with accompanying PDB file, which
 contains info about what each atom is in the DCD file.
 
-\textbf{TODO} Maybe list this info at a higher level.
-
-\paragraph{DCDReader} (DCDFile file, int n) $\to$ Frame \\
-Returns the $n^{th}$ frame of the DCDFile \emph{file}.
-
-\paragraph{DCDWriter} (DCDFile file, int n, Frame frame) \\
-Writes \emph{frame} as the $n^{th}$ frame in the DCDFile \emph{file}.
-
-\paragraph{PDBReader} (String pdb\_path) $\to$ AtomInformation* \\
-Returns a list of atom information in the file \emph{pdb\_path}.
-
-
 \subsection{Core Transformation}
 
 These components implement the core algorithms for each different
 compressor. There are components for each reference implementation and our own
 compressor.
+
+\textbf{TODO} do this in a section about our compressor
 
 \begin{verbatim}
 Transform(Atoms *atoms, ArithmeticEncoder output):
@@ -463,6 +483,75 @@ the \emph{writer} converting a bit stream to a symbol stream.
 The scheme by \citet{omeltchenko2000sls} does not make use of an Arithmetic
 Coder, instead it uses its own coder. The implementation of the coders is
 handled by Julian.
+
+
+\section{Random sections to be integrated properly}
+
+\subsection{Compressing Permutations}
+
+Every compression algorithm explored in this report does not necessarily
+preserve the order of the points when decompressed. For example in
+\cite{devillers2000gci}
+\[ (1, 2), (1, 3), (0, 0), (2, 3), (2, 2), (0, 2), (1, 1) \]
+when decompressed becomes
+\[ (0, 0), (1, 1), (0, 2), (1, 2), (1, 3), (2, 2), (2, 3) \]
+
+When decompressing we need to recover the original order the points, since the
+index of a point indicates which atom it is in the DCD file format.
+
+We experimented with five different types of permutation compressors. Each
+permutation compressor takes in a permutation of $[0,1,\dots,N-1]$ and writes
+it to the file. Let the permutation be $[P_0, P_1, \dots P_{N-1}]$.  The
+decompressor then recovers the permutation.
+
+\paragraph{Null} does not write anything to the file. The decompressor just 
+outputs the order permutation $[0,1,\dots,N-1]$. A compressor which uses the
+null compressor does not preserve the order. Every permutation compressor
+ratios are compared to this method, since \textbf{TODO} somehow explain why we
+use this and why it is used to compare against other compressors.
+
+\paragraph{Na\"{\i}ve} writes the permutation list straight to the file. Each index
+is stored as a $32$-bit integer.
+
+\paragraph{Delta} transforms the permutation into a list $L$, where $L_0 =
+P_0$ and $L_i = P_i - P_{i-1}$ for $0 < i < N$. We then use arithmetic
+encoding on $L$ and write that to the file. When we decompress we get the list
+$L$. To get the permutation back we use the fact that $P_0 = L_0$ and $P_i =
+L_i + P_{i-1}$ for $0 < i < N$. If we calculate $P_{i-1}$ before $P_{i}$, the
+we can successfully recover $P_{i}$.
+
+\paragraph{Interframe} transforms the permutation $P$ into a list $L$. Let
+$P'$ be the permutation from the previous frame. If it is the first frame, let
+$P' = [0,1,\dots,N-1]$. Then $L_i = P_i - P'_i$ for $0 \le i < N$. We then use
+arithmetic encoding on $L$ and write that to the file. When we decompress we
+get the list $L$. To get the permutation back we use the fact that $P_i = L_i
++ P'_i$. Note that this method requires us to decompress the frames in order.
+
+\paragraph{Optimal} uses a static arithmetic coder with a frequency of $1$ for
+each $P_i$. Since each $P_i$ occurs only once, this gives the best possible
+compression.
+
+A static arithmetic encoder model takes roughly $O(\log(N))$ to update the
+symbol table for each encoding. In the optimal permutation compressor we can
+get this down to $O(1)$ by using the fact that we only ever encode each $P_i$
+once. To encode a symbol $i$ the arithmetic encoder requires $S_{tot}$, $S_i$
+and $S_{i-1}$. $S_{tot}$ is the sum of all the frequencies. $S_i$ is the sum
+of the frequencies for all the symbols less than or equal to
+$i$. \textbf{TODO} explain algorithm
+
+\subsubsection{Water Predictors}
+
+There are three predictors used, the constant predictor and the two hydrogen
+predictors. Let $O, H_1, H_2$ be the predictions for where the water molecule
+will be and let $O', H'_1, H'_2$ be the water molecules parent.
+
+\paragraph{Constant Predictor} predicts $O, H_1, H_2$ to be at $O'$.
+
+\paragraph{Hydrogen Predictor} predicts along $O'-H'_1$ or $O'-H'_2$. We
+simplify the model in Figure \ref{fig:dimer-angle} and assume $\alpha$ is
+$0\degree$. We predict $O$ to be at $O' + 2.976\frac{O'-H'_i}{|O'-H'_i|}$. Due
+to the large variability of $\beta$ in Figure \ref{fig:dimer-angle} we predict
+$H_1$ and $H_2$ to be at $O$ in both predictors.
 
 
 \nocite{*}
