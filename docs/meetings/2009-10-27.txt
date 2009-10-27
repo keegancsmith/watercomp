@@ -1,0 +1,41 @@
+.. -*- mode: rst -*-
+.. vim: filetype=rst
+
+============================================
+ Minutes of Meeting Tuesday 27 October 2009
+============================================
+
+
+General
+=======
+* Print 2 copies of the final report, for the 1st reader and 2nd reader
+* Research question has refined, interframe and intraframe compression
+  - better split of work
+* Brainstorm with Michelle after project for future ideas/prediction schemes
+  - perform a mini simulation
+* Next meeting on Wednesday 11:00 instead of Tuesday
+
+
+Min
+===
+
+* Look at Jason Brownbridge and Duncan Clough's reports
+* Meet with James on Friday, 14:00
+
+
+Julian
+======
+
+* Large amounts of data, just show the best (rest in appendices)
+* Important to **interpret** the results
+* Have one or two pages on overall results
+* Meet with James on Friday, 14:00
+
+
+Keegan
+======
+
+* Handin to Patrick
+* Have one or two pages on overall results
+* Meet with Patrick for feedback
+
