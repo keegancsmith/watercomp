@@ -6,26 +6,15 @@
 
 % {{{
 
-A very modular approach to the design of the system was taken. A number of
-required components was identified and categorised. The main component
-categories of the system are:
+The goal of the visualisation aspect of the system is to provide a way to
+easily interpret the molecular data. The visualisation techniques chosen either
+support the compression aspect of the water compression system, or allows for
+general interpretation of data. The main challenge to the effective
+visualisation of the data is the large amounts of visible clutter.
 
-\begin{itemize}
-  \item Simulation I/O - handles input and output of data
-  \item Coders - encodes and decodes symbols
-  \item Compressors - drivers behind the compression
-  \item Visualisation - displays the simulation data
-  \item General components - general transformations
-  \item Method specific components - components specific to a particular
-  compression scheme
-  \item Verification components - verify and record various aspects of the
-  system
-\end{itemize}
-
-A brief overview of the different components and how they are used is provided
-for in Section \ref{sec:design_overview}, while Section
-\ref{sec:design_visualisation} will provide more detail into the
-visualisation components of the system.
+A brief overview of the entire system is provided in Section
+\ref{sec:design_overview}, while Section \ref{sec:design_visualisation} provides
+more detail into the visualisation components of the system.
 
 % }}}
 
@@ -33,23 +22,33 @@ visualisation components of the system.
 % {{{
 \label{sec:design_overview}
 
-The executables of the system are within the Compressors and Visualisation
-component categories, there are multiple executables so that
-compression/decompression does not require a GUI being available.
+The design of the system has been broken down into a number of components. The
+most notable components are:
 
-The compression program (within Compressors or Visualisation), will use the
-Simulation I/O components to read the molecular data, which will then be
-transformed using the General components, the output of which will be used by
-the Coders and Visualisation components. The Coders may have their own specific
-components (Method specific components), which will be used to perform the
-encoding/decoding of symbols. The Verification component will connect to the
-various other components that it is measuring.
+\begin{itemize}
+  \item Quantiser - quantises and dequantises the data
+  \item I/O - handles input and output of data
+  \item Water cluster extractor - extracts the water clusters
+  \item Verifiers - verify and record various aspects of the compression system
+  \item Arithmetic coders - encodes and decodes symbols
+  \item Visualisation - displays the simulation data
+  \item Compressors - drivers behind the compression system
+\end{itemize}
 
-See figure TODO for a schematic diagram of all the components of the system,
-and how they relate to each other.
+See Figure \ref{fig:design_overview} for a schematic diagram of the components
+listed above. Julian Kenwood has completed the green areas, Keegan Smith has
+completed the cyan areas, while I have completed the red areas. The Quantiser,
+I/O and Water cluster extractor components are used by both the compressors and
+the visualisation. The Verifiers and Arithmetic coder components are used by the
+compressors only.
 
-% TODO: add diagram of components, and how they link up
-[provide a schematic diagram of all the components and how they link up].
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=100mm]{breakdown}
+  \end{center}
+  \caption{Overview of components within the system}
+  \label{fig:design_overview}
+\end{figure}
 
 % }}}
 
@@ -59,16 +58,15 @@ and how they relate to each other.
 
 % {{{
 
-With regards to the visualisation category, there are a number of components
-within it, each of which will be responsible for presenting the molecular data
-in a different manner.
+The visualisation component is divided into a number of sub-components, which
+are the different visualisation techniques chosen:
 
 \begin{itemize}
   \item Water point visualisation
+  \item Ball and Stick visualisation
   \item Metaballs visualisation
   \item Water cluster visualisation
   \item Quantisation error visualisation
-  \item Ball and Stick visualisation
 \end{itemize}
 
 % }}}
@@ -77,15 +75,30 @@ in a different manner.
 % {{{
 \label{sub:design_waterpoint}
 
-This rendering technique is the simplest of all the visualisation techniques in
-the system. A very transparent point will be drawn for each of the water
-molecules. The points will be almost transparent so that a sense of the size
-and depth of the volume can be seen; the colour at a particular point will
-become more pronounced as more water molecules overlap there.
+This visualisation technique is the simplest of all the visualisation
+techniques in the system. A single point will be rendered per water molecule,
+non-water molecules will be filtered out. Filtering out the non-water molecules
+is the first step in reducing visible clutter. Using a low alpha value per
+point further reduces clutter by causing areas with few overlapping points to
+be more less visible, in comparison to areas with many overlapping points;
+hence emphasising the areas with many overlapping points.
 
-The advantage of this rendering technique is that it easily identifies and
-highlights the larger bodies of water in the molecular data. The non-water
-molecules has been filtered out so as to avoid obscuring the water molecules.
+The advantage of this visualisation technique is that it allows for the larger
+areas of water to be easily identified, however, the details are hidden.
+
+% }}}
+
+\subsection{Ball and stick visualisation}
+% {{{
+\label{sub:design_ballstick}
+
+The ball and stick visualisation technique is used to provide more visual
+information about the water molecules, the individual atoms of the water
+molecules are visible. Rendering the individual atoms allows for the
+orientation the water molecules to be seen.
+
+As rendering all the water molecules will cause much clutter, the number of
+molecules to render can be limited.
 
 % }}}
 
@@ -93,32 +106,22 @@ molecules has been filtered out so as to avoid obscuring the water molecules.
 % {{{
 \label{sub:design_metaballs}
 
-The metaballs technique (Section \ref{sub:background_metaballs}) was chosen as
-an alternative way to visualise the water volume in the molecular simulation as
-it will group the water molecules together, hence providing some clutter
-reduction. The boundary of the water volume can be clearly seen with metaballs,
-with water point visualisation the boundary is not as clearly visible.
+The metaballs technique is an alternative way to visualise the water volume in
+the molecular simulation. The aim of the metaballs technique is to clearly
+separate the areas of water, from the non-water areas. A surface is rendered
+between the water and non-water areas of the volume.
 
-% TODO: implement and compare marching tetrahedrons and marching cubes
-[TODO: implement marching cubes, compare to marching tetrahedra, say which was
-chosen as final implementation and why]
+To decrease the rendering cost of the surface, the surface is decimated.
+Decimating the surface will simplify the surface, hence decrease the time
+required to render it, and allow the volume to be more easily explored.
 
-To determine the surface of the volume, the marching tetrahedrons algorithm was
-used. Marching tetrahedrons was chosen over marching cubes for surface
-extraction as it was easier to implement due to there is no ambiguity handling,
-nor are lookup tables needed for the algorithm.
+An alternative to decimating the surface in order to decrease the surface
+complexity, is to decrease the amount of sampling done. Sampling the volume
+less results in fewer triangles, but the surface quality will also decrease.
 
-As the molecular data will need to be explored and displayed in real time, the
-mesh obtained from the surface extraction will need to be simplified. This can
-be accomplished by either increasing the grid size when sampling the volume to
-determine the surface, or by mesh decimation. As mesh decimation provides more
-control over what the final surface will look like, a mesh decimation algorithm
-has been implemented.
-
-Mesh decimation will be accomplished using the vertex clustering approach.
-Vertex clustering was used instead of geometric decimation as it is more
-computationally efficient and it integrates well with the surface extraction
-part of the rendering process.
+Decimation is preferred to decreasing the sampling amount as the surface
+quality can be maintained. The render cost is decreased in exchange for
+computation cost, where the computation is performed once for every frame.
 
 % }}}
 
@@ -127,34 +130,23 @@ part of the rendering process.
 \label{sub:design_watercluster}
 
 The water molecules in a body of water is not completely uniform in all
-directions, instead the water molecules form clusters. To visualise these water
-clusters,
+directions, instead the water molecules form clusters. The compressors use this
+knowledge to perform prediction, and thus it is useful to visualise these water
+clusters.
 
-a ribbon will be used to connect and show these clusters. This is
-be similar to the ribbon model for protens (\citep{richardson81},
-\citep{carson87}) and the twister visualisation technique \citep{kuttel06}.
+To cope with the large number of water clusters that are present, the number of
+clusters to render can be limited. Specific water clusters can also be rendered.
 
-Using a ribbon to connect the water molecules within the cluster allows for
-clusters to be easily identified, as well as the orientation of the cluster.
-See figure \ref{fig:design_watercluster} for an image of a single water cluster.
-
-To cope with the large number of water clusters that will be present, a level
-of detail scheme has been implemented. The user is able to zoom in and focus on
-a specific area of the volume, all the water clusters outside of this area has
-been faded out so as to provide context, but not clutter the display.  The user
-is also able to focus on and follow a specific water cluster. See figure TODO
-for an image where an area has been focused on.
-
-A few water clusters are drawn.
+This visualisation technique is primarily useful in supporting the compression
+aspect of the system. There has not been much emphasis on water clusters in
+chemistry, thus it is unlikely that this visualisation technique will be of
+interest to chemists.
 
 % }}}
 
 \subsection{Quantisation error visualisation}
 % {{{
 \label{sub:design_quanterror}
-
-This component is not strictly a visualisation component, but is more a
-verification component that visually displays some data.
 
 Quantisation is the only lossy step of the compression, thus it is important to
 measure the amount of error that is introduced. To visually depict the
@@ -163,13 +155,8 @@ gradient. Water molecules with high quantisation errors are coloured so that
 they are more visible and stand out, while water molecules with low
 quantisation errors will be less visible.
 
-% }}}
-
-\subsection{Ball and Stick visualisation}
-% {{{
-\label{sub:design_ballstick}
-
-To cope with large number, only a few water molecules are drawn.
+This visualisation technique is only useful in supporting the compression aspect
+of the system.
 
 % }}}
 

@@ -12,8 +12,8 @@ libraries choices of the program.
 Section \ref{sec:implementation_techniques} provides implementation details on
 each of the visualisation techniques.
 
-Section \ref{sec:implementation_limitations} identifies limitations and
-short-comings of the program.
+Section \ref{sec:implementation_limitations} identifies the limitations and
+short-comings of the visualisation techniques.
 
 \section{Details}
 % {{{
@@ -86,9 +86,9 @@ use.
 The water point visualisation technique draws a single point for each of the
 water molecules. All the points drawn have a very low alpha value; the colour
 at a point will become more intense as more points overlap. Lighting is
-disabled for this visualiation technique. See figure
-\ref{fig:implementation_waterpoint} for an example molecular data being rendered using
-the water point visualisation technique.
+disabled for this visualisation technique. See figure
+\ref{fig:implementation_waterpoint} for an example molecular data being
+rendered using the water point visualisation technique.
 
 \begin{figure}[h!]
   \begin{center}
@@ -96,6 +96,26 @@ the water point visualisation technique.
   \end{center}
   \caption{Water point visualisation, each point represents a water molecule}
   \label{fig:implementation_waterpoint}
+\end{figure}
+
+% }}}
+
+\subsection{Balls and stick}
+% {{{
+\label{sub:implementation_ballstick}
+
+For the ball and stick visualisation technique, the oxygen and hydrogen atoms
+are represented by spheres. The spheres are rendered using different colours,
+and at different sizes. Lighting can be enabled to better see the spheres. See
+figure \ref{fig:implementation_ballstick} where only a few water molecules are
+rendered.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=100mm]{ballstick}
+  \end{center}
+  \caption{Ball and stick visualisation, clearly showing each of the atoms}
+  \label{fig:implementation_ballstick}
 \end{figure}
 
 % }}}
@@ -209,26 +229,6 @@ example volume.
 
 % }}}
 
-\subsection{Balls and stick}
-% {{{
-\label{sub:implementation_ballstick}
-
-For the ball and stick visualisation technique, the oxygen and hydrogen atoms
-are represented by spheres. The spheres are rendered using different colours,
-and at different sizes. Lighting can be enabled to better see the spheres. See
-figure \ref{fig:implementation_ballstick} where only a few water molecules are
-rendered.
-
-\begin{figure}[h!]
-  \begin{center}
-    \includegraphics[width=100mm]{ballstick}
-  \end{center}
-  \caption{Ball and stick visualisation, clearly showing each of the atoms}
-  \label{fig:implementation_ballstick}
-\end{figure}
-
-% }}}
-
 % }}}
 
 \section{Limitations}
@@ -250,7 +250,7 @@ alpha effects will not be significant.
 
 The metaballs visualisation technique requires much processing to be done for
 each frame (surface extraction and decimation), hence real time rendering is
-only possible for small volumes. There is an option to preprocess the volume
+only possible for small volumes. There is an option to pre-process the volume
 and save the surfaces to file, however, the generated files are generally
 considerably larger than the DCD file.
 

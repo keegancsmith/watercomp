@@ -22,7 +22,6 @@ visualisation techniques.
 
 % }}}
 
-
 \section{Molecular visualisation}
 % {{{
 \label{sec:background_molecular}
@@ -56,7 +55,7 @@ visualisation techniques that will be mentioned later in this section.
 
 The ball-and-stick model is the classical approach to displaying molecular
 structure. Colour coded spheres are used to represent the atoms, while
-cylinders are used to represent the bonds between them (see figure
+cylinders are used to represent the bonds between them (see Figure
 \ref{fig:background_ballstick} for an example image). This model is used to
 emphasise the molecular connectivity of the atoms. This is the simplest of
 approaches to molecular visualisation and is also used when all the detail is
@@ -71,7 +70,7 @@ diagrams, making it very difficult to understand and analyse the data.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=100mm]{BallStick}
+    \includegraphics[width=60mm]{BallStick}
   \end{center}
   \caption{A typical ball-and-stick model}
   \label{fig:background_ballstick}
@@ -86,7 +85,7 @@ diagrams, making it very difficult to understand and analyse the data.
 The CPK (Corey-Pauling-Koltun) \citep{corey53} representation simplifies the
 ball-and-stick model by doing away with cylinders for bonds; instead, the
 spheres used for the atoms are enlarged to encompass the bonds. The atoms now
-overlaps with one another, covering up where the bonds would be (see figure
+overlaps with one another, covering up where the bonds would be (see Figure
 \ref{fig:background_cpk}).
 
 Removing the bonds from the model representation simplifies the display and
@@ -103,7 +102,7 @@ may hide important information and make it hard to analyse an entire system.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=100mm]{CPK-big}
+    \includegraphics[width=70mm]{CPK-big}
   \end{center}
   \caption{CPK representation}
   \label{fig:background_cpk}
@@ -118,7 +117,7 @@ may hide important information and make it hard to analyse an entire system.
 The ribbon model (\citep{richardson81}, \citep{carson87}) was designed to
 highlight the structure of protein molecules by fitting a curved surface to the
 backbone of the molecule. This allows for the shape of the protein molecule to
-be easily seen and followed (see figure \ref{fig:background_ribbon}).
+be easily seen and followed (see Figure \ref{fig:background_ribbon}).
 
 This proved to be highly effective at highlighting the structure of proteins;
 unfortunately this approach is not as effective when applied to non-protein
@@ -128,7 +127,7 @@ used for carbohydrate and lipid molecules.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=100mm]{ribbon}
+    \includegraphics[width=70mm]{ribbon}
   \end{center}
   \caption{Ribbon model of a protein}
   \label{fig:background_ribbon}
@@ -142,7 +141,7 @@ used for carbohydrate and lipid molecules.
 
 The paper chain visualisation technique \citep{kuttel06} focuses on
 highlighting ring structures in carbohydrate molecules. Ring structures are
-first identified and are then displayed using a ring polyhedron (see figure
+first identified and are then displayed using a ring polyhedron (see Figure
 \ref{fig:background_paperchain}).
 
 This significantly simplifies the carbohydrate molecules by only showing the
@@ -152,7 +151,7 @@ overlayed on the paper chain diagram to provide detailed information if needed.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=100mm]{paper_chain}
+    \includegraphics[width=70mm]{paper_chain}
   \end{center}
   \caption{Paper chain model of a carbohydrate}
   \label{fig:background_paperchain}
@@ -163,16 +162,15 @@ technique by highlighting the relative orientations of the identified
 carbohydrate rings. Each carbohydrate ring is represented by a disc, which is
 then connected to another disc with a ribbon. The ribbon will follow the
 orientation from one ring to another, thus showing how the rings are connected
-to one another (see figure \ref{fig:background_twister}).
+to one another (see Figure \ref{fig:background_twister}).
 
 This is similar to the ribbon model for proteins in that it shows the overall
 shape of the molecule quite effectively. However, like the ribbon model, this
-visualisation technique is designed for a specific type of molecule;
-carbohydrates for the twister technique.
+visualisation technique is designed for a specific type of molecule.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=100mm]{twister}
+    \includegraphics[width=70mm]{twister}
   \end{center}
   \caption{Twister model with ball-and-stick model overlayed on top}
   \label{fig:background_twister}
@@ -204,26 +202,23 @@ marching cubes algorithm \citep{lorensen87} is the classical approach for
 surface extraction. The algorithm works by examining each cell in the data (a
 cube) and determining whether it is inside the volume or not. A surface can
 then be determined by combining all the cells which intersect with the volume
-boundary (see figure \ref{fig:background_mesh}).
+boundary (see Figure \ref{fig:background_mesh}).
 
 Surface extraction allows for the shape of the volume to be extracted and
-visualised, and is somewhat analogous to the CPK model in that regard.
-Surface extraction can be adapted to molecular data to provide a simpler and
-smoothed view of the molecule, so that the shape and contours can be more
-plainly seen; which may otherwise be obscured by the individual atoms.
-GRAMMAR
-Alternatively, this technique can also be used to identify volumes of space
-where the points are missing, thus highlighting these areas instead.
+visualised, and is somewhat analogous to the CPK model in that regard. Surface
+extraction can be adapted to molecular data to provide a simpler and smoothed
+view of the molecule. Allowing for the shape and contours can be more easily
+seen; which may have otherwise been obscured by the details of the atoms.
 
 The granularity of the sampling grid has a large impact on the quality of the
 extracted surface. A grid where each individual cell is quite small will
 produce a detailed surface, but will correspondingly produce a large number of
-polygons. Section \ref{sub:background_decimation} providesmore detail on
+polygons. Section \ref{sec:background_decimation} provides more detail on
 reducing the number of polygons used to represent a surface.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=100mm]{triangulated_mesh}
+    \includegraphics[width=70mm]{triangulated_mesh}
   \end{center}
   \caption{Triangulated mesh of a volume}
   \label{fig:background_mesh}
@@ -238,7 +233,7 @@ reducing the number of polygons used to represent a surface.
 Volume rendering aims to visualise the entire volume instead of an object
 surface. This is done by modelling the data as a translucent gel so that you
 are able to see through the volume, while still being able to see what is in
-the volume at the same time (see figure \ref{fig:background_head}).
+the volume at the same time (see Figure \ref{fig:background_head}).
 
 There are two main approaches to volume rendering. The first works from the
 image plane to the volume, and is called image order processing. Ray casting is
@@ -248,20 +243,13 @@ plane. The classical approach to this is splatting \citep{westover89}. Hybrid
 methods have been developed to take advantage of both approaches.
 
 The main advantage of volume rendering is the ability to visualise the entire
-volume at once, but this demands increased complexity and computation.  While
-volume rendering will not be directly applicable to molecular data as the
-requirement is often to see the individual atoms or structures, rather than an
-aggregated view of the entire volume data.
-GRAMMAR
-
-However, volume rendering could be useful for seeing what a volume looks like
-or behaves at a glance. For simulations where large parts of the volume are
-homogenous (e.g. filled with water), volume rendering could be useful for
-visualising these homogenous volumes.
+volume at once, but this demands increased complexity and computation. Volume
+rendering is not directly applicable to molecular data, but it can provide an
+aggregated view of the entire volume.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=100mm]{head_volume}
+    \includegraphics[width=70mm]{head_volume}
   \end{center}
   \caption{Ray casted image of a head}
   \label{fig:background_head}
@@ -287,40 +275,40 @@ data will produce a visualisation that is of little use.
 With regards to visualising point cloud data, filtering, opacity and topological
 distortion may be the most useful clutter reduction techniques.
 
-\emph{Filtering} displays only certain items fulfilling certain criteria. This can be
-used to only show items in a certain area or locus of interest; irrelevant
-items can be removed and will not clutter up the display. This may be useful
-for removing uninterestnig occluding objects to show points at important areas,
-such at where there is interaction occurring.
+\paragraph{Filtering} Only certain items fulfilling certain criteria is
+displayed to reduce clutter. The criteria can be certain characteristics or
+items in a certain area or locus of interest; irrelevant items can be removed
+to not clutter up the display. Uninteresting occluding objects is removed to
+show items at important areas or with important characteristics.
 
 Another approach to filtering is to highlight the important features of the
-data with colour, but leave the rest of the data visible unchanged. This adds
+data with colour, but leave the rest of the data visibly unchanged. This adds
 the advantage of keeping context. Figure \ref{fig:background_highlight} is an
 example application of highlighting in a graph structure.
 
-\emph{Opacity} is changing the translucency of items to highlight or hide
-things. This is similar to filtering in that irrelevant items are partially or
-entirely hidden, highlighting only the important parts. The advantage of
-opacity over filtering is that the other information is not entirely removed,
-it is still available if needed and can be used to hint at contextual
+\paragraph{Opacity} The translucency of items can be changed to highlight or
+hide things. This is similar to filtering in that irrelevant items are
+partially or entirely hidden, highlighting only the important parts. The
+advantage of opacity over filtering is that other information is not entirely
+removed, it is still available if needed and can be used to hint at contextual
 information. Opacity can also be adapted to show temporal information, where
 the previous frame is rendered along with the current frame, but at a lower
 opacity; creating an effect similar to motion blur.
 
-\emph{Topological distortion} is changing the representation so that certain
-areas are larger.  Thus highlighting and bringing to focus the relevant area,
-while de-emphasising the other areas. The distortion can either be uniform
-(zooming), or can be non-uniform (fish-eye effect).
+\paragraph{Topological distortion} The representation of the data can be
+changed so that certain areas are larger.  This highlights and focuses on the
+relevant areas, while de-emphasising the other areas. The distortion can either
+be uniform (zooming), or can be non-uniform (fish-eye effect).
 
 Clutter reduction techniques have the most potential for point cloud
 visualisation as there is a need to be able to visualise many objects in 3D
 space. However, care must be taken to not remove important and relevant
 information. It should be noted that clutter reduction techniques are not all
-mutually exclusive: many of the techniques complement one another.
+mutually exclusive, many of the techniques complement one another.
 
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=100mm]{graph_highlight}
+    \includegraphics[width=70mm]{graph_highlight}
   \end{center}
   \caption{Highlighting certain structures in a graph}
   \label{fig:background_highlight}
@@ -328,9 +316,51 @@ mutually exclusive: many of the techniques complement one another.
 
 % }}}
 
-\subsection{Mesh decimation}
+\subsection{Metaballs}
 % {{{
-\label{sub:background_decimation}
+\label{sub:background_metaballs}
+
+Metaballs is a technique for producing organic-looking objects (see Figure
+\ref{fig:background_metaballs}). A metaball is modelled after a number of
+points which exerts a force around it, the surface of the metaball is the set
+of points where the force function is equal to some constant threshold value
+\citep{blinn82}. The surface is usually determined using surface extraction
+techniques.
+
+The advantage of metaballs is that volume data is grouped together, making it
+easy to see the different volumes in a region. The disadvantage of this
+technique is the computational cost required to determine and extract the
+surface from the force calculations.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=70mm]{metaballs}
+  \end{center}
+  \caption{Rendering of a number of metaballs}
+  \label{fig:background_metaballs}
+\end{figure}
+
+Solvent accessible surface rendering for molecular modelling produces a similar
+effect to metaballs. The difference is the approach taken to produce the
+surface of the volume. Solvent accessible surface rendering creates a surface
+by determining the surface where the solvent (modelled with spheres) cannot fit
+\citep{connolly83}. See Figure \ref{fig:background_sas}.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[width=50mm]{sas_ms}
+  \end{center}
+  \caption{Schematic diagram illustrating solvent accessible surfaces}
+  \label{fig:background_sas}
+\end{figure}
+
+% }}}
+
+% }}}
+
+\section{Mesh decimation}
+% {{{
+\label{sec:background_decimation}
 
 The amount of time taken to render a model is proportional to the number of
 polygons in the model.  There is thus a trade-off between detail and render
@@ -346,9 +376,8 @@ simplification algorithms can be found in \citet{cignoni98}.
 \paragraph{Geometric decimation}
 % {{{
 
-% TODO: citation needed for geometric decimation
 Geometric decimation iteratively eliminates components of the mesh; vertices,
-edges or faces [citation needed]. The component to be removed is chosen using
+edges or faces \citep{schroeder92}. The component to be removed is chosen using
 local geometric optimality criteria. After eliminating the component, a local
 re-triangulation process is used to fill in any resulting holes.
 
@@ -357,56 +386,10 @@ re-triangulation process is used to fill in any resulting holes.
 \paragraph{Vertex clustering}
 % {{{
 
-% TODO: citation needed for vertex clustering
-
 Vertex clustering groups a number of geometrically close vertices together
-[citation needed], the group of vertices is then replaced by a new
+\citep{rossignac93}, the group of vertices is then replaced by a new
 representative vertex.  Due to the simplicity of the test, vertex clustering
 can be implemented very efficiently.
-
-% }}}
-
-% }}}
-
-\subsection{Metaballs}
-% {{{
-\label{sub:background_metaballs}
-
-%TODO: citation needed for metaballs and solvent accessible surfaces
-
-Metaballs is a technique for producing organic-looking objects (see figure
-\ref{fig:background_metaballs}). A metaball is modelled after a number of
-points which exerts a force around it, the surface of the metaball is the set
-of points where the force function is equal to some constant threshold value
-[citation needed]. The surface is usually determined using surface extraction
-techniques.
-
-The advantage of metaballs is that volume data is grouped together, making it
-easy to see the different volumes in a region. The disadvantage of this
-technique is the computational cost required to determine and extract the
-surface from the force calculations.
-
-\begin{figure}[h!]
-  \begin{center}
-    \includegraphics[width=100mm]{metaballs}
-  \end{center}
-  \caption{Rendering of a number of metaballs}
-  \label{fig:background_metaballs}
-\end{figure}
-
-Solvent accessible surface rendering for molecular modelling produces a similar
-effect to metaballs. The difference is the approach taken to produce the
-surface of the volume. Solvent accessible surface rendering creates a surface
-by determining the surface where the solvent (modelled with spheres) cannot fit
-[citation needed]. See figure \ref{fig:background_sas}.
-
-\begin{figure}[h!]
-  \begin{center}
-    \includegraphics[width=100mm]{sas_ms}
-  \end{center}
-  \caption{Schematic diagram illustrating solvent accessible surfaces}
-  \label{fig:background_sas}
-\end{figure}
 
 % }}}
 
