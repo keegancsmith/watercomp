@@ -46,14 +46,14 @@ void OmelWriter::next_frame(const QuantisedFrame & qframe)
     OmelEncoder order_encoder(out_file, &buffer);
     
     
-    unsigned int last_octree_index = 0;
+    unsigned long long last_octree_index = 0;
     
     for(int i = 0; i < sqframe.sorted_frame.size(); ++i)
     {
-        int this_octree_index = sqframe.sorted_frame[i].first;
+        unsigned long long this_octree_index = sqframe.sorted_frame[i].first;
         
-        index_encoder.write_uint32(this_octree_index - last_octree_index);
-        order_encoder.write_uint32(sqframe.sorted_frame[i].second);
+        index_encoder.write_uint64(this_octree_index - last_octree_index);
+        order_encoder.write_uint64(sqframe.sorted_frame[i].second);
         
         last_octree_index = this_octree_index;
     }

@@ -36,10 +36,10 @@ OmelDecoder::~OmelDecoder()
     bit_buffer = NULL;
 }
 
-unsigned int OmelDecoder::read_uint32()
+unsigned long long OmelDecoder::read_uint64()
 {
-    unsigned int result = 0;
-    int bits_read = 0;
+    unsigned long long result = 0;
+    long long bits_read = 0;
     bool status;
     int alloc = initial_l;
     
@@ -113,18 +113,7 @@ unsigned int OmelDecoder::read_uint32()
     return result;
 }
 
-int OmelDecoder::read_int32()
-{
-    bool negative = get_bit();
-    unsigned int tmp = read_uint32();
-    
-    if(negative)
-        return -tmp;
-    else
-        return tmp;
-}
-
-bool OmelDecoder::get_bit()
+unsigned long long OmelDecoder::get_bit()
 {
     if(bit_buffer->size() == 0)
     {
@@ -141,14 +130,14 @@ bool OmelDecoder::get_bit()
     return ret_val;
 }
 
-int OmelDecoder::num_bits(unsigned int num)
+int OmelDecoder::num_bits(unsigned long long num)
 {
     int ans = 1; // 0 needs 1 bit to store
     
     while(num > 1)
     {
         ++ans;
-        num>>=1;
+        num>>=1ULL;
     }
     
     return ans;

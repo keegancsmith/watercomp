@@ -12,16 +12,13 @@ class OmelEncoder
          thing using the file. Otherwise, shared buffer should
          be used
         */
-        OmelEncoder(FILE* out, std::queue<bool>* buffer, int in_initial_l = 3, int in_delta_l = 2, int in_max_adapt_initial_l = 32, int in_max_adapt_delta_l = 32);
+        OmelEncoder(FILE* out, std::queue<bool>* buffer, int in_initial_l = 3, int in_delta_l = 2, int in_max_adapt_initial_l = 64, int in_max_adapt_delta_l = 64);
         
         /* Destructor */
         ~OmelEncoder();
         
-        /* Writes an compressed unsigned 32-bit integer */
-        void write_uint32(unsigned int num);
-        
-        /* Writes an compressed signed 32-bit integer */
-        void write_int32(int num);
+        /* Writes an compressed unsigned 64-bit integer */
+        void write_uint64(unsigned long long num);
         
     private:
         /* File for saving data to. */
@@ -58,5 +55,5 @@ class OmelEncoder
         void flush();
         
         /* Gets the number of bits required to represent the unsigned 32-bit integer */
-        int num_bits(unsigned int num);
+        int num_bits(unsigned long long num);
 };

@@ -5,15 +5,12 @@
 class OmelDecoder
 {
     public:
-        OmelDecoder(FILE* out, std::queue<bool>* buffer, int in_initial_l = 3, int in_delta_l = 2, int in_max_adapt_initial_l = 32, int in_max_adapt_delta_l = 32);
+        OmelDecoder(FILE* out, std::queue<bool>* buffer, int in_initial_l = 3, int in_delta_l = 2, int in_max_adapt_initial_l = 64, int in_max_adapt_delta_l = 64);
         
         ~OmelDecoder();
         
-        /* Reads a compressed unsigned 32-bit integer */
-        unsigned int read_uint32();
-        
-        /* Reads a compressed signed 32-bit integer */
-        int read_int32();
+        /* Reads a compressed unsigned 64-bit integer */
+        unsigned long long read_uint64();
         
     private:
         
@@ -45,8 +42,8 @@ class OmelDecoder
         int max_adapt_delta_l;
         
         /* Writes a bit to the stream */
-        bool get_bit();
+        unsigned long long get_bit();
         
         /* Gets the number of bits required to represent the unsigned 32-bit integer */
-        int num_bits(unsigned int num);
+        int num_bits(unsigned long long num);
 };
