@@ -1,18 +1,31 @@
 \documentclass{report}
 
-
+% Better font
 \usepackage[protrusion=true,expansion=true]{microtype}
 \usepackage[T1]{fontenc}
 \usepackage{pxfonts}
+
+% Misc packages
 \usepackage{graphicx}
-%\usepackage{pslatex}
-%\usepackage[margin=2.25cm]{geometry}
 \usepackage{multirow}
 
+% Clickable links
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
+% bibtex stuff
 \usepackage{natbib}
 \bibliographystyle{abbrvnat}
 
+% Custom Commands
 \newcommand{\degree}{\ensuremath{^\circ}}
+\newcommand{\todo}{\textbf{TODO} }
 
 \title{Literature Review of Point Cloud Compression}
 \author{Keegan Smith\\ksmith@cs.uct.ac.za}
@@ -31,7 +44,7 @@ Honours Project Report\\
 \ \\}
 
 {\huge \bfseries
-Intraframe Compression of Molecular Dynamics Simulations of Water
+Intra-frame Compression of Molecular Dynamics Simulations of Water
 \\}
 \ \\
 \ \\
@@ -62,7 +75,7 @@ based point cloud compression with predictors tailored towards the structure
 of water. We compare this method to more generic point cloud and data
 compressors.
 
-\textbf{TODO} Talk about results etc once they have been produced!
+\todo Talk about results etc once they have been produced!
 
 \tableofcontents
 
@@ -80,7 +93,7 @@ simulations which have a large amount of water in them. It uses a connectivity
 based point cloud technique, but with predictors which are based on models of
 the structure of water.
 
-\textbf{TODO} Flesh out introduction
+\todo Flesh out introduction
 
 \chapter{Background}
 
@@ -246,9 +259,9 @@ extensively studied.
 The oxygen which is loosely bonded to the hydrogen is expected to be
 $2.976\AA$ away from the other oxygen. It is also expected that the vector
 created by the O-H bond to be roughly in line with the vector of the loose O-H
-bond. See Figure \ref{fig:dimer} and Figure \ref{fig:dimr-angle}.
+bond. See Figure \ref{fig:dimer} and Figure \ref{fig:dimer-angle}.
 
-\textbf{TODO} references
+\todo references
 
 \begin{figure}[h]
 \centering
@@ -267,10 +280,10 @@ bond. See Figure \ref{fig:dimer} and Figure \ref{fig:dimr-angle}.
 }
 \caption{Water dimer angles. $R = 2.976\AA, \alpha = 6 \pm 20\degree, \beta =
   57 \pm 10\degree$}
-\label{fig:dimr-angle}
+\label{fig:dimer-angle}
 \end{figure}
 
-\subsection{Application of the Water Model in Point Cloud Compressors}
+\subsection{Application in Point Cloud Compressors}
 
 \citet{omeltchenko2000sls} method only exploits the fact that we have many
 dense clusters in MD simulations. It is more general than water compression,
@@ -384,64 +397,80 @@ compression algorithms of \citet{merrycomp} and \citet{gumholdcomp}.
 \end{figure*}
 
 
-\chapter{Design}
+\chapter{Design and Implementation}
 
 This section outlines the design for our compressor and decompressor. The
-compression techniques I investigate only cover intra-frame
-compression\footnote{intra-frame compression is where we compress each frame
+compression techniques investigated only cover intra-frame
+compression\footnote{Intra-frame compression is where we compress each frame
   independently of the other frames.}, but our final product handles
 multiframe compression and visualisation as well. As such the design needs to
-take into account these uses, but I will only cover the design aspects
-relevant to single frame compression.
+take into account these uses, but components outside of the scope of
+intra-frame compression will not be covered.
 
-I worked closely with Julian Kenwood on the compressor and decompressor, and
-areas designated to him are more thoroughly explained in his report. I will
-indicate such areas.
+Reference implementations of \citet{devillers2000gci}, \citet{gumholdcomp} and
+\citet{omeltchenko2000sls} where also created. These use the DCD I/O to read
+in the MD simulation files. \citet{omeltchenko2000sls} was implemented by
+Julian Kenwood, while \cite{devillers2000gci} and \cite{gumholdcomp} where
+implemented by Keegan Carruthers-Smith.
 
 \section{Overview}
 
-We target the PDB format, which is a format for storing MD simulations. PDB is
-readable by VMD. \textbf{TODO} improve and references.
+Compression is done on the DCD/PDB format, which is a format for storing MD
+simulations. DCD files are readable by VMD. \todo references.
 
-A high-level overview of how our compressors work is illustrated by the
-following: \textbf{TODO} replace with pretty picture
+A high-level overview of how data flows in the compressors is illustrated by
+the following: \todo replace with pretty picture similiar to the FBI
+fingerprint compression paper
 
 \[ DCDFile \to Atoms \to QuantisedAtoms \to Compressor \]
 
-The decompressor works in the reverse direction
+The decompressor works in the reverse direction:
 
 \[ Decompressor \to QuantisedAtoms \to DCDFile \]
 
 The decompressed DCD files have been quantised. Excluding the quantisation
-step, our scheme is lossless. Notice that each step in the compression phase
-has auxillary information. The auxillary information is required to
-reconstruct reverse the process.
+step, the scheme is lossless. Note that each step in the compression phase has
+auxillary information. The auxillary information is required to reconstruct
+reverse the process.
+
+
+\subsection{Dependencies}
+
+All development was done on Linux, but no Linux or POSIX specific APIs where
+used. So the implementation should be cross platform barring library
+dependencies which are not.
+
+\todo References
+
+\paragraph{C++}
+C++ fits the requirements of this project since compressors need to be fast
+and all the authors are competent with it. Development was done with GNU gcc
+4.x.
+
+\paragraph{ANN}
+ANN is a library for approximate nearest neighbor searching. It is used to
+speed up graph creation where locality of points is important.
+
+\paragraph{VMD DCD Loader Plugin}
+This plugin is used to read and write DCD files.
 
 
 \section{Components}
 
-We took a component-based approach to the design of the compressor. This is
-because our algorithm naturally breaks down into different components. Our
-reference implementations of other algorithms also make use of these
-components.
+A component-based approach was used to design the compressor and
+decompressor. This is because the algorithm can be broken up into distinct
+steps.
 
 The different components are the following:
 \begin{itemize}
-\item Compressors
 \item Simulation I/O
-\item Core Transformations
 \item Arithmetic Coders
-\item Miscellaneous Components
-\item Verification Components
+\item Quantiser
+\item Permutation
+\item Compressors
 \end{itemize}
 
-\subsection{Compressors}
-
-The compressor component is the driver program. It utilises the other
-components listed below to do compression and decompression. There is our
-compressor and three reference compressors. The reference compressors are the
-\citet{omeltchenko2000sls} scheme, \cite{gumholdcomp} scheme and the
-\citet{devillers2000gci} scheme.
+\todo picture showing components and who did what
 
 
 \subsection{Simulation I/O}
@@ -450,25 +479,8 @@ These components handle I/O to and from the files we are compressing. We are
 compressing DCD files. DCD files come with accompanying PDB file, which
 contains info about what each atom is in the DCD file.
 
-\subsection{Core Transformation}
 
-These components implement the core algorithms for each different
-compressor. There are components for each reference implementation and our own
-compressor.
-
-\textbf{TODO} do this in a section about our compressor
-
-\begin{verbatim}
-Transform(Atoms *atoms, ArithmeticEncoder output):
-  Atoms *water_atoms, *other_atoms = FindWater(atoms)
-  Graph water_graph = CreateGraph(water_atoms)
-  Tree spanning_tree = CreateSpanningTree(water_graph)
-  TreeSerialise(output, tree)
-\end{verbatim}
-
-\textbf{TODO} detail the steps
-
-\section{Arithmetic Coder}
+\subsection{Arithmetic Coder}
 
 The ``meat'' of all the compression schemes convert the input into a symbol
 stream (where the symbols are from a fixed alphabet). These symbols are then
@@ -481,11 +493,58 @@ other, with the \emph{reader} converting a symbol stream to a bit stream and
 the \emph{writer} converting a bit stream to a symbol stream.
 
 The scheme by \citet{omeltchenko2000sls} does not make use of an Arithmetic
-Coder, instead it uses its own coder. The implementation of the coders is
-handled by Julian.
+Coder, instead it uses its own coder. Every other scheme uses the arithmetic
+encoder though.
 
 
-\section{Random sections to be integrated properly}
+\subsection{Quantiser}
+
+The quantiser is responsible for quantising and dequantising a frame. A frame
+is a collection of points in three dimensional space. Each coordinate of the
+point is specified as a floating point value. The quantiser takes in as input
+a number $b$. It then converts each floating point value to a $b$-bit integer
+using the following algorithm:
+
+\todo is this algorithm really necessary? explanation should do
+\begin{verbatim}
+quantise(Frame frame, int b):
+  buckets = (1 << b)
+  offset[3]
+  range[3]
+  for d in 0, 1, 2:
+    offset[d] = smallest coordinate in dimension d of frame
+    range[d] = largest coordinate in dimension d of frame - offset[d]
+  
+  for point in frame:
+    for d in 0, 1, 2:  # d is the dimension
+      translated = pos[d] - offset[d]
+      scaled = translated * buckets / range[d]
+  
+      if scaled < 0.5:
+        scaled = 0.5
+      elif scaled >= buckets - 0.5:
+        scaled = buckets - 0.5
+  
+      qframe[point.index][d] = scaled
+\end{verbatim}
+
+\noindent Dequantisation is the reverse process:
+
+\begin{verbatim}
+dequantise(QFrame qframe, int b):
+  buckets = (1 << b)
+  for qpoint in qframe:
+    for d in 0, 1, 2:  # d is the dimension
+      approx = qpos[d] + 0.5
+      scaled = approx * range[d] / buckets
+      frame[qpoint.index][d] = scaled + m_offset[d]
+\end{verbatim}
+
+Quantisation can be seen as snapping points to a grid. The number of cells in
+the grid is $2^{3b}$. The grid has a bounding box determined by the frames
+points. The above algorithms snap the points into the middle of a cell.
+
+\todo picture
 
 \subsection{Compressing Permutations}
 
@@ -496,39 +555,47 @@ preserve the order of the points when decompressed. For example in
 when decompressed becomes
 \[ (0, 0), (1, 1), (0, 2), (1, 2), (1, 3), (2, 2), (2, 3) \]
 
-When decompressing we need to recover the original order the points, since the
-index of a point indicates which atom it is in the DCD file format.
+When decompressing we need to recover the original order of the points, since
+the index of a point indicates which atom it is in the DCD file format.
 
 We experimented with five different types of permutation compressors. Each
 permutation compressor takes in a permutation of $[0,1,\dots,N-1]$ and writes
 it to the file. Let the permutation be $[P_0, P_1, \dots P_{N-1}]$.  The
 decompressor then recovers the permutation.
 
-\paragraph{Null} does not write anything to the file. The decompressor just 
-outputs the order permutation $[0,1,\dots,N-1]$. A compressor which uses the
-null compressor does not preserve the order. Every permutation compressor
-ratios are compared to this method, since \textbf{TODO} somehow explain why we
-use this and why it is used to compare against other compressors.
+\paragraph{Null}
+Null does not write anything to the file. The decompressor just outputs the
+order permutation $[0,1,\dots,N-1]$. A compressor which uses the null
+compressor does not preserve the order. Every other permutation compressor
+should do worse than this.
 
-\paragraph{Na\"{\i}ve} writes the permutation list straight to the file. Each index
-is stored as a $32$-bit integer.
+\paragraph{Na\"{\i}ve}
+Na\"{\i}ve writes the permutation list straight to the file. Each index is
+stored as a $32$-bit integer. Every other permutation compressor should do
+better than this.
 
-\paragraph{Delta} transforms the permutation into a list $L$, where $L_0 =
-P_0$ and $L_i = P_i - P_{i-1}$ for $0 < i < N$. We then use arithmetic
-encoding on $L$ and write that to the file. When we decompress we get the list
-$L$. To get the permutation back we use the fact that $P_0 = L_0$ and $P_i =
-L_i + P_{i-1}$ for $0 < i < N$. If we calculate $P_{i-1}$ before $P_{i}$, the
-we can successfully recover $P_{i}$.
+\paragraph{Delta}
+Delta transforms the permutation into a list $L$, where $L_0 = P_0$ and $L_i =
+P_i - P_{i-1}$ for $0 < i < N$. Arithmetic encoding is then done on $L$. $L$
+is then written to file.
 
-\paragraph{Interframe} transforms the permutation $P$ into a list $L$. Let
-$P'$ be the permutation from the previous frame. If it is the first frame, let
-$P' = [0,1,\dots,N-1]$. Then $L_i = P_i - P'_i$ for $0 \le i < N$. We then use
-arithmetic encoding on $L$ and write that to the file. When we decompress we
-get the list $L$. To get the permutation back we use the fact that $P_i = L_i
-+ P'_i$. Note that this method requires us to decompress the frames in order.
+Decompression gets back the list $L$. Since $P_0 = L_0$ and $P_i = L_i +
+P_{i-1}$ for $0 < i < N$ we can recover the original permutation. Since each
+$P_i$ depends only on previous $i$'s, calculating $P_i$ in increasing order of
+$i$ will recover $P$.
 
-\paragraph{Optimal} uses a static arithmetic coder with a frequency of $1$ for
-each $P_i$. Since each $P_i$ occurs only once, this gives the best possible
+\paragraph{Interframe}
+Interframe transforms the permutation $P$ into a list $L$. Let $P'$ be the
+permutation from the previous frame. If it is the first frame, let $P' =
+[0,1,\dots,N-1]$. Then $L_i = P_i - P'_i$ for $0 \le i < N$. Use arithmetic
+encoding on $L$ and then write $L$ to file.
+
+Decompression recovers the list $L$. Since $P_i = L_i + P'_i$, $P$ can be
+recovered. Note that this method requires frames to be decompressed in order.
+
+\paragraph{Optimal}
+Optimal uses a static arithmetic coder with a frequency of $1$ for each
+$P_i$. Since each $P_i$ occurs only once, this gives the best possible
 compression.
 
 A static arithmetic encoder model takes roughly $O(\log(N))$ to update the
@@ -536,23 +603,160 @@ symbol table for each encoding. In the optimal permutation compressor we can
 get this down to $O(1)$ by using the fact that we only ever encode each $P_i$
 once. To encode a symbol $i$ the arithmetic encoder requires $S_{tot}$, $S_i$
 and $S_{i-1}$. $S_{tot}$ is the sum of all the frequencies. $S_i$ is the sum
-of the frequencies for all the symbols less than or equal to
-$i$. \textbf{TODO} explain algorithm
+of the frequencies for all the symbols less than or equal to $i$. \todo
+explain algorithm
 
-\subsubsection{Water Predictors}
 
-There are three predictors used, the constant predictor and the two hydrogen
-predictors. Let $O, H_1, H_2$ be the predictions for where the water molecule
-will be and let $O', H'_1, H'_2$ be the water molecules parent.
+\subsection{Compressors}
 
-\paragraph{Constant Predictor} predicts $O, H_1, H_2$ to be at $O'$.
+The compressor component is different for each compressor. There is the
+compressor presented in this report and the three reference compressors:
+\citet{omeltchenko2000sls}, \citet{gumholdcomp} and \citet{devillers2000gci}.
 
-\paragraph{Hydrogen Predictor} predicts along $O'-H'_1$ or $O'-H'_2$. We
-simplify the model in Figure \ref{fig:dimer-angle} and assume $\alpha$ is
-$0\degree$. We predict $O$ to be at $O' + 2.976\frac{O'-H'_i}{|O'-H'_i|}$. Due
-to the large variability of $\beta$ in Figure \ref{fig:dimer-angle} we predict
-$H_1$ and $H_2$ to be at $O$ in both predictors.
 
+\section{Water Compressor}
+
+This section details the algorithm of the water compressor and is the main
+contribution of this report. This algorithm is implemented as a compressor
+component and uses the components detailed in the last section.
+
+The compressor each quantised frame in order. This algorithm is an intra-frame
+compressor, and as such only compresses using information contained in the
+frame. So detailed is the compression of a quantised frame.
+
+The algorithm is similiar to the predictive point cloud compressors by
+\cite{gumholdcomp} and \cite{merrycomp}. The following is a high level
+overview of the algorithm:
+
+\begin{verbatim}
+CompressFrame(Atoms *atoms, ArithmeticEncoder output):
+  WaterMolecules *water_atoms = FindWater(atoms)
+  Atoms *other_atoms = FindNonWater(atoms)
+  compress(other_atoms, output)
+  Graph water_graph = CreateGraph(water_atoms)
+  Tree spanning_tree = CreateSpanningTree(water_graph)
+  TreeSerialise(output, tree)
+\end{verbatim}
+
+\noindent Similarly decompression is as follows:
+
+\begin{verbatim}
+DecompressFrame(ArithmeticDecoder input):
+  Atoms *other_atoms = decompress(input)
+  WaterMolecules *water_atoms = TreeDeserialise(input)
+  return other_atoms + water_atoms
+\end{verbatim}
+
+\todo once we get more substantial results we can pick which point cloud compressor to use
+
+Each part of the high level overview is explained in the rest of this section.
+
+
+\subsection{Finding Water Molecules}
+
+The PDB file associated with a DCD file contains information on what an atom
+is bonded to. Using the PDB file we find all oxygen atoms which are bonded to
+two hydrogen atoms. This section was implemented by Julian Kenwood.
+
+
+\subsection{Water Predictors}
+
+The predictors are based on the models of water dimers explained in the
+background chapter. There are three predictors used, the constant predictor
+and the two hydrogen predictors.
+
+Let $O, H_1, H_2$ be the predictions for where the water molecule will be and
+let $O', H'_1, H'_2$ be the water molecules parent.
+
+\paragraph{Constant Predictor}
+The constant predictor predicts $O, H_1, H_2$ to be at $O'$.
+
+\paragraph{Hydrogen Predictor}
+The hydrogen predictor predicts along $O'-H'_1$ or $O'-H'_2$. We simplify the
+model in Figure \ref{fig:dimer-angle} and assume $\alpha$ is $0\degree$. We
+predict $O$ to be at $O' + 2.976\frac{O'-H'_i}{|O'-H'_i|}$. Due to the large
+variability of $\beta$ in Figure \ref{fig:dimer-angle} we predict $H_1$ and
+$H_2$ to be at $O$ in both predictors.
+
+
+\subsection{Creating the Water Graph}
+
+A directed graph is created of the water molecules for prediction to be
+applied. The water molecules are the verticies of the graph. There is an edge
+from $O$ to $O'$ if $O'$ is a candidate for good prediction from $O$.
+
+Using ANN's kd-tree and its fixed radius search all oxygen roughly within
+$3\AA$ are found. Due to the forces involved the number of oxygens within
+$3\AA$ is small. So the search takes approximately $O(\log(N))$ where $N$ is
+the number of water molecules. This is done per molecule so the overall
+complexity of graph creation is $O(N\log(N))$.
+
+
+\subsection{Creating the Spanning Tree}
+
+\todo this explains the current method. improvements: do a MST to connect
+forest. Be less greedy with predictions, don't encode everything it is
+connected to. Maybe use dijkstra modification instead of a BFS
+
+This stage takes the graph and creates a directed spanning tree. Each edge
+indicates which predictor is used.
+
+The graph is not necessarily connected, so a tree is created for each
+component. A root vertex is arbitrarily selected. Then each tree in the forest
+is connected to it with the constant predictor. The serialiser needs to know
+what the root is.
+
+For each component a root is arbitrarily picked. Then a BFS starts at the
+root. For each vertex every unseen vertex is greedily assigned the predictor
+which gives the smallest residual. The unseen vertex is then set to seen and
+added to the queue. When the queue is empty every vertex in the component has
+been visited.
+
+
+\subsection{Tree Serialisation}
+
+\todo This section needs a lot of improvement
+
+This stage writes the spanning tree to the file. It encodes the spanning tree
+in BFS order starting at the root. For each water molecule it does the following:
+
+\begin{verbatim}
+predictions = get_predictions(water_molecule)
+errors = water_molecule.positions - predictions
+error_encoder.encode(errors)
+
+permutation_encoder.encode(water_molecule.index)
+
+for child in water_molecule.children_verticies:
+  child.parent = water_molecule
+  tree_encoder.encode(child.predictor)
+  bfs_queue.push(child)
+tree_encoder.encode(end of children sentinal)
+\end{verbatim}
+
+
+\subsection{Tree Deserialisation}
+
+\todo
+
+\chapter{Random sections to be integrated properly}
+
+\section{Verifiers}
+
+Once a DCD file has been compressed and then decompressed we have a DCD file
+approximating the original DCD file. The compressor is expected to be lossless
+once quantisation has occurred. So to verify a compressor on a DCD file the
+following process is done:
+
+\begin{verbatim}
+Verify(Compressor comp, Quantiser quant, DCD dcd):
+  dcd_quant1 = quant.quantise(dcd)
+  dcd_quant2 = comp.decompress(comp.compress(dcd_quant1))
+  return dcd_quant1 == dcd_quant2
+\end{verbatim}
+
+Note that \emph{quant.dequantise(dcd\_quant2)} will not likely be equal to
+\emph{dcd}. This is because the quantisation stage is lossy.
 
 \nocite{*}
 \bibliography{report_keegan}
