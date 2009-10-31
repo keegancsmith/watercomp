@@ -113,20 +113,39 @@ int OxygenGraph::prediction_error(int idx,
 }
 
 
-bool OxygenGraph::create_component(Graph * graph, Graph * tree, int v) const
+// Creates a spanning tree of the component v is in. Created using a process
+// similiar to dijkstra. An edge is added from the root to v.
+bool OxygenGraph::create_component(Graph * graph, Graph * tree, int v,
+                                   int root) const
 {
     int * prediction = (int *) tree->data;
 
     if (prediction[v] != -1)
         return false;
 
-    queue<int> q;
-    q.push(v);
-    prediction[v] = 0;
+    int nVerticies = graph->nVerticies;
+    int parent[nVerticies];
+    int smallest_error[nVerticies];
+    fill(smallest_error, smallest_error + graph->nVerticies, INT_MAX);
+
+    priority_queue< pair<int, pair<int, int> > > q; // <-err, pred, v>
+    q.push(make_pair(0, make_pair(0, v)));
+    parent[v] = root;
 
     while (!q.empty()) {
-        v = q.front();
+        int p =  q.top().second.first;
+        int v =  q.top().second.second;
         q.pop();
+
+        // Already processed this edge
+        if (prediction[v] != -1)
+            continue;
+
+        // If we get to this point, then p is the best prediction we have
+        // found for v. This will also be connected to root
+        prediction[v] = p;
+        if (v != parent[v])
+            tree->addEdge(parent[v], v);
 
         WaterPredictor::Prediction preds[3];
         preds[0] = m_predictor.predict_constant(m_waters[v]);
@@ -136,18 +155,27 @@ bool OxygenGraph::create_component(Graph * graph, Graph * tree, int v) const
         for (size_t i = 0; i < graph->adjacent[v].size(); i++) {
             int u = graph->adjacent[v][i];
 
+            // Already processed this edge
             if (prediction[u] != -1)
                 continue;
 
+            // Find the best prediction from v to u
             int error = INT_MAX;
+            int cur_prediction;
             for (int j = 0; j < 3; j++) {
                 int e = prediction_error(u, preds[j]);
                 if (e < error)
-                    prediction[u] = j;
+                    cur_prediction = j;
             }
 
-            tree->addEdge(v, u);
-            q.push(u);
+            // This prediction is worse than our current best for u
+            if (error > smallest_error[u])
+                continue;
+
+            // Update and push
+            parent[u] = v;
+            smallest_error[u] = error;
+            q.push(make_pair(-error, make_pair(cur_prediction, u)));
         }
     }
 
@@ -161,12 +189,14 @@ Graph * OxygenGraph::create_spanning_tree(Graph * graph, int & root) const
     Graph * tree = new Graph(prediction, nWaters);
 
     fill(prediction, prediction + nWaters, -1);
+
+    int nClusters = 1;
     root = 0;
-    create_component(graph, tree, root);
+    create_component(graph, tree, root, root);
 
     for (int v = 1; v < nWaters; v++)
-        if (create_component(graph, tree, v))
-            tree->addEdge(root, v);
+        if (create_component(graph, tree, v, root))
+            nClusters++;
 
     return tree;
 }
@@ -236,7 +266,7 @@ void OxygenGraph::serialise(Graph * tree, int root,
 
             assert(0 <= u && u < nWaters);
             assert(0 <= p && p < 3);
-            
+
             enc.tree_encoder.encode_int(p);
 
             parent[u] = v;
