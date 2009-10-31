@@ -87,8 +87,8 @@ Molecular dynamics (MD) simulations generate vast amounts of data. A typical
 100-million atom MD simulation produces approximately 5 gigabytes of data per
 frame consisting of atom types, coordinates and velocities. This will generate
 17 terabytes of data a day if run for $35\,000$ steps with every 10th frame
-being saved \citep{omeltchenko2000sls}. Generating this much data makes good
-compression very desirable.
+being saved \citep{omeltchenko2000sls}. Generating this much data makes
+compression desirable.
 
 We have developed a method which compresses MD simulations. It targets
 simulations which have a large amount of water in them. It uses a connectivity
@@ -122,19 +122,19 @@ concentrated on point clouds of surfaces since point clouds are usually
 generated from 3D scans of object surfaces. A surface is the ``skin'' of an
 object, i.e. the boundary of a solid object.
 
-\cite{gumholdcomp} create a tree of the points that exploits the knowledge
-that the points lie on a surface. They do not, however, use predictors which
+\cite{gumholdcomp} create a tree of the points that exploit the knowledge that
+the points lie on a surface. They do not, however, use predictors which
 exploit this. \citet{merrycomp} extend this by using predictors which do
 exploit the rectilinear nature of surface scans.
 
 \citet{omeltchenko2000sls} compress point clouds from molecular dynamics
-simulations. To exploit the density of the point clouds, a space filling
-curve\footnote{A space filling curve is one that touches every point in the
-  space. \citet{omeltchenko2000sls} create this using a techniques similiar to
-  an octree.} is created along the quantised positions. So, every point is
-assigned an index along the curve. Then by encoding the difference between
-successive indicies which contain points, they generate consistently small
-differences leading to good compression rates.
+simulations. To exploit the density of the point clouds, a space filling curve
+is created along the quantised positions. A space filling curve is one that
+touches every point in a discrete space. The space filling curve used by
+\citep{omeltchenko2000sls} is based on indexing the cells created by an octree
+division. Then by encoding the difference between successive indicies which
+contain points, they generate consistently small differences leading to good
+compression rates.
 
 \todo possibly define mesh at beginning
 
@@ -159,7 +159,7 @@ that uses quantisation, quantises the vertex positions for each coordinate
 separately and uniformly in Cartesian space. This can be visualized as
 creating an evenly-spaced grid over the dimensions of the space, and snapping
 the points to the closest grid point. This is the most na\"{\i}ve method, but
-there are more complex methods reviewed by \citet{ag-racm-03}. These lie
+there are more complex methods reviewed by \citep{ag-racm-03}. These lie
 outside the scope of this survey. \citet{chen2005lcp} gets around quantisation
 by treating the 32-bit floating point numbers as 32-bit integers.
 
@@ -200,7 +200,7 @@ surface normal\footnote{A surface normal at a point $v$ is the normal of the
 determined from $v, v'', v'$ and $n_{v'}$ (where $n_{v'}$ is the surface
 normal at $v'$). From this they determine what left and right are by using the
 plane determined by $n_{v'}, v'$ and $v''$. Another difference to
-\citeauthor{gumholdcomp} is that instead of letting the user choose the
+\citep{gumholdcomp} is that instead of letting the user choose the
 predictor used, the best predictor is picked for each point. This requires the
 predictor used at each point to be encoded, which is discussed next.
 
@@ -219,7 +219,7 @@ by entropy encoding the out degree of each vertex in breadth-first order.
 
 \citet{merrycomp} also create a rooted spanning tree of the points, but in a
 way that favours ``long runs'' of the forward predictor. They need to encode
-the predictor used at each point, so encoding the tree as \citet{gumholdcomp}
+the predictor used at each point, so encoding the tree as \citep{gumholdcomp}
 did will not work. Instead the tree is serialized by entropy coding the
 predictor used in depth-first order. By favouring long runs of the forward
 predictor they get better compression ratios of the encoding of the tree. To
@@ -256,7 +256,7 @@ over time as they arrive.
 
 The use case of MD simulations require the whole file (or frame) to be
 decompressed. So progressive encoders have no advantage, and are judged purely
-on how well the compress the data.
+on how well they compress the data.
 
 \citet{devillers2000gci} provide an example of a progressive coder. The method
 is best explained in 1 dimension first. If you know the total number of points
@@ -325,7 +325,7 @@ given the positions of a water molecules atoms. The creation of the spanning
 tree would be different, since we know the expected degree of the verticies is
 at most two.
 
-\begin{figure}[t]
+\begin{table}[t]
 \centering
 \resizebox{\textwidth}{!}{
 \begin{tabular}{||l|c|c||}
@@ -393,13 +393,13 @@ at most two.
   \hline
 \end{tabular}
 }
-\caption{Taxonomy of the different methods.}\label{fig:taxonomy}
-\end{figure}
+\caption{Taxonomy of the different methods.}\label{tab:taxonomy}
+\end{table}
 
 
 \section{Taxonomy of Techniques}
 
-Refer to Figure \ref{fig:taxonomy} for an overview of the categorisations of
+Refer to Figure \ref{tab:taxonomy} for an overview of the categorisations of
 the different papers. There are two underlying philosophies which the
 compression algorithms exploit, the \emph{scope} and the \emph{topology}.
 
@@ -477,13 +477,14 @@ The decompressor works in the reverse direction:
 
 The decompressed DCD files have been quantised. Excluding the quantisation
 step, the scheme is lossless. Note that each step in the compression phase has
-auxillary information. The auxillary information is required for reconstruct.
+auxillary information. The auxillary information is required for
+reconstruction.
 
-Reference implementations of \citet{devillers2000gci}, \citet{gumholdcomp} and
-\citet{omeltchenko2000sls} where also created. These use the DCD I/O to read
-in the MD simulation files. \citet{omeltchenko2000sls} was implemented by
-Julian Kenwood, while \cite{devillers2000gci} and \cite{gumholdcomp} where
-implemented by Keegan Carruthers-Smith.
+Reference implementations of \citep{devillers2000gci}, \citep{gumholdcomp} and
+\citep{omeltchenko2000sls} where also created. These use the DCD I/O to read
+in the MD simulation files. Julian Kenwood implemented
+\citep{omeltchenko2000sls}, while Keegan Carruthers-Smith implemented
+\citep{devillers2000gci} and \citep{gumholdcomp}.
 
 
 \subsection{Dependencies}
@@ -498,8 +499,7 @@ dependencies which are not.
 
 \paragraph{C++}
 C++ fits the requirements of this project since compressors need to be fast
-and all the authors are competent with it. Development was done with GNU gcc
-4.x.
+and all the authors are competent with it. Development was done with GCC 4.x.
 
 \paragraph{ANN}
 ANN is a library for approximate nearest neighbor searching. It is used to
@@ -538,9 +538,9 @@ The arithmetic coder has two parts to it, a \emph{reader} and a
 other, with the \emph{reader} converting a symbol stream to a bit stream and
 the \emph{writer} converting a bit stream to a symbol stream.
 
-The scheme by \citet{omeltchenko2000sls} does not make use of an Arithmetic
-Coder, instead it uses its own coder. Every other scheme uses the arithmetic
-encoder though.
+The encoder by \citep{omeltchenko2000sls} does not make use of an Arithmetic
+Coder, instead it uses its own coder. Every other encoder uses the arithmetic
+encoder.
 
 
 \paragraph{Quantiser}
@@ -596,7 +596,7 @@ CompressFrame(list_of_atoms_in_frame, arithmetic_encoder):
   TreeSerialise(spanning_tree, arithmetic_encoder)
 \end{verbatim}
 
-\noindent Similarly decompression is as follows:
+\noindent Similarly decompression uses this algorithm:
 
 \begin{verbatim}
 DecompressFrame(arithmetic_decoder):
@@ -758,13 +758,47 @@ Optimal uses a static arithmetic coder with a frequency of $1$ for each
 $P_i$. Since each $P_i$ occurs only once, this gives the best possible
 compression.
 
-A static arithmetic encoder model takes roughly $O(\log(N))$ to update the
-symbol table for each encoding. In the optimal permutation compressor we can
-get this down to $O(1)$ by using the fact that we only ever encode each $P_i$
-once. To encode a symbol $i$ the arithmetic encoder requires $S_{tot}$, $S_i$
-and $S_{i-1}$. $S_{tot}$ is the sum of all the frequencies. $S_i$ is the sum
-of the frequencies for all the symbols less than or equal to $i$. \todo
-explain algorithm
+A static arithmetic encoder model uses a Fenwick Tree to update the symbol
+table after each encoding. This takes $O(\log(N))$ per update. In the optimal
+permutation compressor we can get this down to $O(1)$ by using the fact that
+we only ever encode each $P_i$ once. To encode a symbol $i$ the arithmetic
+encoder requires $S_{tot}$, $S_i$ and $S_{i-1}$. $S_{tot}$ is the sum of all
+the frequencies. $S_i$ is the sum of the frequencies for all the symbols less
+than or equal to $i$. Since the frequency of each index is one, $S_i = i$ and
+$S_{tot}$ is the number of permutations left. We need a way to map permutation
+indicies to symbols which is quick to update once an index has been
+encoded. The following algorithm is used:
+
+\begin{verbatim}
+init(permutation):
+  number_of_symbols = permutation.size
+  for i in 0, 1, ..., permutation.size - 1:
+    index_to_symbol[i] = i
+    symbol_to_index[i] = i
+\end{verbatim}
+
+\begin{verbatim}
+pop_index(index):
+  number_of_symbols--
+
+  symbol = index_to_symbol[index]
+  index2 = symbol_to_index[number_of_symbols]
+
+  index_to_symbol[index2] = symbol;
+  symbol_to_index[symbol] = index2;
+
+  return symbol;
+\end{verbatim}
+
+\begin{verbatim}
+pop_symbol(symbol):
+  index = symbol_to_index[symbol]
+  pop_index(index)
+  return index
+\end{verbatim}
+
+Then to encode $P_i$, we encode $pop\_index(P_i)$. To decode, we use
+$pop\_symbol(decoded\_val)$.
 
 \section{Verifiers}
 
