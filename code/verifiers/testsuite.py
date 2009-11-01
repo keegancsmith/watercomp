@@ -76,7 +76,7 @@ TESTS = {
 
     'watercomp': {
         'bin'    : './watercomp/watercomp',
-        'dcds'   : 'smallwater mscl'.split(),
+        'dcds'   : DCDS,
         'perms'  : PERMUTATIONS,
         'author' : 'keegan',
     },
