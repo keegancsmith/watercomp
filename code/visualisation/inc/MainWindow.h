@@ -13,6 +13,7 @@
 #include <graph/gridgraphcreator/GridGraphCreator.h>
 
 class QAction;
+class QCheckBox;
 class QLabel;
 class QMenu;
 class QSettings;
@@ -45,6 +46,7 @@ class MainWindow : public QMainWindow
         void setFrame(int value);
         void setTps(int value);
         void setQuantisationLevel(int value);
+        void setDrawQuantised(int state);
 
         void doProcessAllFrames();
 
@@ -53,6 +55,7 @@ class MainWindow : public QMainWindow
         QMap<QAction*, BaseView*> views;
 
         int quantisationLevel;
+        bool drawQuantised;
 
         QString lastLocation;
         // QStringList recentFiles;
@@ -69,6 +72,7 @@ class MainWindow : public QMainWindow
         Renderer* renderer;
         ViewPreferenceDialog* viewPreferenceDialog;
         QLabel* frameLabel;
+        QCheckBox* drawQuantisedCheckBox;
         QSpinBox* quantisationSpinBox;
         QSlider* speedSlider;
         QLabel* speedLabel;
@@ -78,6 +82,7 @@ class MainWindow : public QMainWindow
 
         void setupMenu();
         void addRenderMode(BaseView* view, QMenu* menu);
+        void setupExtraControls(QVBoxLayout* parentLayout);
 };//MainWindow
 
 #endif

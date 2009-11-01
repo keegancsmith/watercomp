@@ -1,0 +1,9 @@
+                        Julian          Min             Keegan
+System analysis         5               5               ?
+Theoretical analysis    0               0               ?
+Experimental design     5               15              ?
+System development      15              5               ?
+Results                 15              15              ?
+Overall                 10              10              ?
+
+Total                   50              50              ?

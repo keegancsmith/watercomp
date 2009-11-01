@@ -35,14 +35,21 @@
 \end{titlepage}
 % }}}
 
-\setlength{\parskip}{3mm plus3mm minus3mm}
+\setlength{\parskip}{3mm plus1mm minus1mm}
 \include{abstract}
 
+\setcounter{page}{1}
+\pagenumbering{roman}
 \setlength{\parskip}{0mm}
 \tableofcontents
 \listoffigures
+\listoftables
 
-\setlength{\parskip}{3mm plus3mm minus3mm}
+\newpage
+\setcounter{page}{1}
+\pagenumbering{arabic}
+
+\setlength{\parskip}{3mm plus1mm minus1mm}
 \include{introduction}
 \include{background}
 \include{design}
@@ -50,8 +57,10 @@
 \include{experiment}
 \include{conclusion}
 
-% \bibliographystyle{abbrvnat}
-\bibliographystyle{plain}
+\bibliographystyle{abbrvnat}
+% \bibliographystyle{plain}
 \bibliography{report_min}
+
+\include{appendix}
 
 \end{document}

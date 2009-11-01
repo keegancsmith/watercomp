@@ -2,72 +2,66 @@
 % {{{
 \label{cha:introduction}
 
-% Molecular data is composed of many interconnected atoms and interacting
-% molecules, this poses a problem for visualisation: how do you effectively
-% visualise a large number of objects in 3D space? The complex diagrams that arise
-% from basic visualisation techniques will be hard to analyse and identify
-% structures due to the large number of objects and extraneous data.
+Molecular simulations typically generate massive amounts of data. A large
+simulation can comprise hundreds of thousands of atoms, with thousands of
+frames.  Multiplying the two dimensions together yields many gigabytes of data.
+Due to the computational costs and time required in performing these
+simulations, they are often run on clusters, which means that the generated
+data needs to be transferred from the cluster to a researchers' workstation.
+Compressing the molecular data is thus advantageous as it will make the
+transferring the data faster, as well as decreasing the storage costs of the
+molecular simulation data.
 
-% Although there are several different visualisation techniques that have been
-% developed, how they cope with many objects in 3D space will need to be
-% evaluated. Another aspect that is often neglected is the temporal aspect, data
-% changes over time and this should also be reflected in the visualisation.
+% TODO: why large amounts of water?
+A large proportion of the volume in many molecular simulations is water, which
+has certain characteristics that can be exploited to achieve good compression.
+The water compression project thus targets molecular simulations with large
+amounts of water, aiming to achieve high compression ratios by exploiting
+certain characteristics of the data.
 
-% In order to get some perspective on what some of the existing visualisation
-% techniques are, this paper will look at some of the molecular modelling and
-% visualisation techniques, as well as some general visualisation techniques
-% applicable to molecular data.
+Due to molecular simulation being composed of a sequence of frames of data,
+where a single frame is a snapshot of the positions of all the atoms,
+compressing the molecular simulation can be broken up into: compressing a
+single frame (intraframe compression), and compressing data across frames
+(interframe compression).
 
-Molecular simulations can and do generates lots of data. A large simulation can
-comprise of hundreds of thousands of atoms, with thousands of frames.
-Multiplying the two dimensions together yields many gigabytes of data. Due to
-the computational costs and time required in performing the simulations, the
-simulations are often run on clusters, which means that the generated data needs
-to be transferred from the cluster to the researchers. Compressing the molecular
-data is thus advantageous as it will make the transferring the data faster, as
-well as decreasing the storage costs of the molecular simulation data.
-
-A large proportion of the volume in molecular simulations is water, which has
-certain characteristics that can be exploited to achieve good compression. The
-water compression project thus targets molecular simulations with large amounts
-of water, aiming to achieve high compression ratios by exploiting certain
-characteristics of the data.
-
-The water compression project is split into three main parts:
+Our water compression project is thus split into three main parts:
 
 \begin{itemize}
-  \item Interframe compression
   \item Intraframe compression
+  \item Interframe compression
   \item Visualisation
 \end{itemize}
 
+The visualisation aspect of the project supports the main goal of the project:
+compressing molecular simulations. To do so, the molecular simulation data will
+need to be visualised, and a quantisation experiment carried out. Quantisation
+is converting the original floating point values to integer values, this is to
+facilitate compressing the molecular data as integers can be more effectively
+compressed.
+
 This report will focus on the visualisation aspect of the water compression
-project. The interframe compression is completed by Julian Kenwood, while the
-intraframe compression is completed by Keegan Smith.
+project. The intraframe compression is completed by Keegan Smith, while the
+interframe compression is completed by Julian Kenwood.
 
-The visualisation supports the compression aspect of the system by visualising
-specific areas of the molecular data.  However, the visualisation also provides
-more general visualisation uses, not specific to the compression of the
-molecular data.
+The remainder of this report is structured as follows:
 
-Chapter \ref{cha:background} provides background on the relevant existing
-visualisation techniques that influenced the development of the visualisation.
+Chapter \ref{cha:background} provides background on relevant visualisation
+techniques that influenced the development of our visualisation.
 
-A number of visualisation approaches has been identified, and is detailed in
-Chapter \ref{cha:design}. The chapter details why the approaches are chosen and
-the design behind them. A few of the visualisation approaches is aimed at
+A number of visualisation solutions are identified and detailed in Chapter
+\ref{cha:design}. The chapter explains why these approaches are chosen and the
+design behind them. A few of the visualisation approaches are aimed purely at
 supporting the compressors.
 
 Chapter \ref{cha:implementation} provides implementation details on each of the
 visualisation components.
 
-Returning back to supporting the compression aspect of the system, the
-compression technique used is lossless, except for the quantisation step. An
-experiment was thus carried out to determine the perceptual impact of different
-quantisation levels. Chapter \ref{cha:experiment} provides the details and
-results from the quantisation experiment.
+The second part of the visualisation aspect of the system, the quantisation
+experiment, is detailed in Chapter \ref{cha:experiment}. The experiment results
+and analysis is also in Chapter \ref{cha:experiment}.
 
-Chapter \ref{cha:conclusion} finally concludes and summarises this project.
+Finally, Chapter \ref{cha:conclusion} concludes and summarises this project.
 
 % }}}
 

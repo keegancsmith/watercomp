@@ -23,6 +23,7 @@ BaseView::BaseView()
     dequantised = 0;
 
     doSplitWaters = false;
+    drawQuantised = true;
 }//constructor
 
 BaseView::~BaseView()

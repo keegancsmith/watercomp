@@ -2,5 +2,71 @@
 % {{{
 \label{cha:conclusion}
 
+The visualisation aspect of the water compression system is split into two main
+parts. The first part is visualising the molecular data; both for general
+viewing, as well as for supporting the compression aspect of the system. The
+second part is testing the perceptual impact of quantisation, and hence decide
+on an appropriate level of quantisation.
+
+\section{Visualisation Techniques}
+% {{{
+\label{sec:conclusion_visualisation}
+
+5 different visualisation techniques has been successfully implemented:
+\begin{itemize}
+  \item Water Point Visualisation
+  \item Ball and Stick Visualisation
+  \item Metaballs Visualisation
+  \item Water Cluster Visualisation
+  \item Quantisation Error Visualisation
+\end{itemize}
+
+The Water Point Visualisation allows for large areas of water and non-water to
+be seen quickly, this will be useful for getting an initial idea of the volume.
+
+The Ball and Stick Visualisation renders each of the atoms, thus providing the
+most detail.
+
+The Metaballs Visualisation determines and extracts the surface between the
+water and non-water regions of the volume. The water and non-water regions are
+clearly separated from each other.
+
+The Water Cluster Visualisation shows the extracted water clusters in the
+volume, which is used by the compression aspect of the system.
+
+The Quantisation Error Visualisation shows the errors introduced by
+quantisation, which are evenly distributed across the volume.
+
+% }}}
+
+\section{Quantisation Experiment}
+% {{{
+\label{sec:conclustion_experiment}
+
+The results from the quantisation experiment showed that 10 bit and 8 bit
+quantisation yield very similar results, and is not rated considerably
+different from the original data. 6 bit quantisation is still similar, but the
+effects are more noticeable. While 4 bit quantisation is rated very different
+from the original data and is thus not recommended for general use.
+
+The results between the ball and stick, and metaballs visualisation technique
+are very similar.The ball and stick visualisation yields more noticeable
+differences when using more bits when compared to metaballs, but the metaballs
+yields more differences when using fewer bits.
+
+The recommended quantisation level to use is 8 bits. For large simulations
+where higher fidelity is needed, then more bits may be used, but for general
+viewing, 8 bit quantisation is sufficient.
+
+% }}}
+
+\section{Future work}
+% {{{
+\label{sec:conclusion_future}
+
+What future work can i mention? Other experiments to carry out? o.O
+
+% }}}
+
 % }}}
 
