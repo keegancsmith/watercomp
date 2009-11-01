@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-O3 -I../components/ 
+CXXFLAGS=-O3 -g -I../components/ 
 
 INCS = ../dcd_loader/dcd.h ../components/pdbio/DCDReader.h ../components/pdbio/DCDWriter.h ../components/pdbio/Frame.h ../components/quantiser/QuantisedFrame.h SortedQuantisedFrame.h ../components/FrameWriter.h ../components/FrameReader.h OmelEncoder.h OmelDecoder.h OmelReader.h OmelWriter.h
 

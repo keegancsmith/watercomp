@@ -40,12 +40,12 @@ bool OmelReader::next_frame(QuantisedFrame& qframe)
     OmelDecoder order_decoder(in_file, &bit_buffer);
     OmelDecoder dist_decoder(in_file, &bit_buffer);
     
-    unsigned int last = 0;
+    unsigned long long last = 0;
     
     for(int i = 0; i < atoms; ++i)
     {
-        unsigned int index = last + dist_decoder.read_uint32();
-        unsigned int order = order_decoder.read_uint32();
+        unsigned long long index = last + dist_decoder.read_uint64();
+        unsigned long long order = order_decoder.read_uint64();
         
         sqframe.sorted_frame.push_back(make_pair(index, order));
         

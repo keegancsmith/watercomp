@@ -36,7 +36,7 @@ OmelEncoder::~OmelEncoder()
     bit_buffer = NULL;
 }
 
-void OmelEncoder::write_uint32(unsigned int num)
+void OmelEncoder::write_uint64(unsigned long long num)
 {
     int li = num_bits(num);
     
@@ -68,8 +68,8 @@ void OmelEncoder::write_uint32(unsigned int num)
         // Write bit data
         for(int i = 0; i < alloc; ++i)
         {
-            put_bit(num&1);
-            num >>= 1;
+            put_bit(num&1ULL);
+            num >>= 1ULL;
         }
         
         li -= alloc;
@@ -112,29 +112,8 @@ void OmelEncoder::write_uint32(unsigned int num)
     }
 }
 
-void OmelEncoder::write_int32(int num)
-{
-    // Handle case where int cannot be negated probably
-    if(num == -2147483647)
-    {
-        put_bit(1);
-        write_uint32(2147483647);
-        return;
-    }
-    else
-    {
-        if(num < 0)
-        {
-            put_bit(1);
-            write_uint32(-num);
-        }
-        else
-        {
-            put_bit(0);
-            write_uint32(num);
-        }
-    }
-}
+
+
 
 bool OmelEncoder::put_bit(bool bit)
 {
@@ -159,14 +138,14 @@ void OmelEncoder::flush()
     }
 }
 
-int OmelEncoder::num_bits(unsigned int num)
+int OmelEncoder::num_bits(unsigned long long num)
 {
     int ans = 1; // 0 needs 1 bit to store
     
     while(num > 1)
     {
         ++ans;
-        num>>=1;
+        num>>=1ULL;
     }
     
     return ans;

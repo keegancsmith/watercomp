@@ -18,7 +18,7 @@ class SortedQuantisedFrame
         QuantisedFrame toQFrame() const;
         int natoms() const;
 
-        std::vector< std::pair<unsigned int, unsigned int> > sorted_frame;
+        std::vector< std::pair<unsigned long long, unsigned int> > sorted_frame;
 
         float min_coord[3];
         float max_coord[3];
