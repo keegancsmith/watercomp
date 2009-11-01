@@ -1,0 +1,134 @@
+\appendix
+
+\chapter{Statistical test results}
+% {{{
+\label{cha:statsresults}
+
+\begin{table}[h!]
+  \begin{tabular}{ | l | r | r | }
+  \hline
+                 & Ball and stick p-value & Metaballs p-value  \\ \hline
+  amall (4 bit)  &                0.02970 &          0.003224  \\ \hline
+  cmc (4 bit)    &                0.01617 &         1.056e-05  \\ \hline
+  gala (4 bit)   &               0.006227 &          0.002222  \\ \hline
+  mscl (4 bit)   &               0.001035 &         1.056e-05  \\ \hline
+  \hline
+
+  amall (6 bit)  &              0.06854 * &          0.2670 *  \\ \hline
+  gala (6 bit)   &                0.768 * &          0.2008 *  \\ \hline
+  cmc (6 bit)    &               0.1263 * &          0.1832 *  \\ \hline
+  mscl (6 bit)   &               0.6061 * &          0.008472  \\ \hline
+  \hline
+
+  amall (8 bit)  &                0.04416 &          0.003488  \\ \hline
+  cmc (8 bit)    &              0.09556 * &         0.05903 *  \\ \hline
+  gala (8 bit)   &               0.001952 &          0.1266 *  \\ \hline
+  mscl (8 bit)   &                0.02076 &           0.04192  \\ \hline
+  \hline
+
+  amall (10 bit) &               0.008083 &         0.0007939  \\ \hline
+  cmc (10 bit)   &                0.04372 &          0.3688 *  \\ \hline
+  gala (10 bit)  &               0.2525 * &           0.04283  \\ \hline
+  mscl (10 bit)  &               0.1550 * &          0.1750 *  \\ \hline
+  \end{tabular}
+  \caption{Shapiro-Wilks test results for the different datasets}
+  \label{tab:dataset_normality}
+\end{table}
+
+A * indicates that the null hypothesis cannot be rejected at the 95\%
+confidence interval. i.e. the data is not a normal distribution.
+
+
+\begin{table}[h!]
+  \begin{tabular}{ | l | r | r | r | }
+  \hline
+                          & chi-squared & df &    p-value  \\ \hline
+  Ball and stick (4 bit)  &      3.9921 &  3 &     0.2623  \\ \hline
+  Ball and stick (6 bit)  &      0.4545 &  3 &     0.9288  \\ \hline
+  Ball and stick (8 bit)  &         6.6 &  3 &     0.0858  \\ \hline
+  Ball and stick (10 bit) &     25.8416 &  3 &  1.029e-05  \\ \hline
+  Metaballs (4 bit)       &      4.4851 &  3 &     0.2136  \\ \hline
+  Metaballs (6 bit)       &      7.1957 &  3 &    0.06592  \\ \hline
+  Metaballs (8 bit)       &      3.9778 &  3 &     0.2639  \\ \hline
+  Metaballs (10 bit)      &      5.0294 &  3 &     0.1697  \\ \hline
+  \end{tabular}
+  \caption{Friedman Test results for the different quantisation levels}
+  \label{tab:friedman_test_results}
+\end{table}
+
+
+\begin{table}[h!]
+  \begin{tabular}{ | l | r | r | }
+  \hline
+  Quantistion level &      W &   p-value  \\ \hline
+  4 bit             & 0.8235 & 5.487e-07  \\ \hline
+  6 bit             & 0.9488 &   0.01366  \\ \hline
+  8 bit             & 0.8865 & 4.405e-05  \\ \hline
+  10 bit            & 0.8999 & 0.0001304  \\ \hline
+  \end{tabular}
+  \caption{Shapiro-Wilks test results for the ball and stick visualisation
+  technique}
+  \label{tab:ballstick_normality}
+\end{table}
+
+
+\begin{table}[h!]
+  \begin{tabular}{ | l | r | r | r | r | r | }
+  \hline
+               &  Df & Sum Sq & Mean Sq & F value &   Pr($>$F)   \\ \hline
+  quantisation &   3 & 283.77 &   94.59 &  44.218 & $<$ 2.2e-16  \\ \hline
+  Residuals    & 236 & 504.83 &    2.14 &         &              \\ \hline
+  \end{tabular}
+  \caption{ANOVA analysis of the ball and stick visualisation technique}
+  \label{tab:ballstick_anova}
+\end{table}
+
+
+\begin{table}[h!]
+  \begin{tabular}{ | l | r | r | }
+  \hline
+  Quantistion level &      W &   p-value  \\ \hline
+  4 bit             & 0.6942 & 6.857e-10  \\ \hline
+  6 bit             & 0.9244 &  0.001164  \\ \hline
+  8 bit             & 0.8788 & 2.407e-05  \\ \hline
+  10 bit            & 0.8722 & 1.466e-05  \\ \hline
+  \end{tabular}
+  \caption{Shapiro-Wilks test results for the metaballs visualisation
+  technique}
+  \label{tab:metaballs_normality}
+\end{table}
+
+
+\begin{table}[h!]
+  \begin{tabular}{ | l | r | r | r | r | r | }
+  \hline
+               &  Df & Sum Sq & Mean Sq & F value &    Pr($>$F)  \\ \hline
+  quantisation &   3 & 469.68 &  156.56 &  65.291 & $<$ 2.2e-16  \\ \hline
+  Residuals    & 236 & 565.90 &    2.40 &         &              \\ \hline
+  \end{tabular}
+  \caption{ANOVA analysis of the metaballs visualisation technique}
+  \label{tab:metaballs_anova}
+\end{table}
+
+
+
+\begin{table}[h!]
+  \begin{tabular}{ | l | r | r | r | }
+  \hline
+                          &  Mean & Median & Mode  \\ \hline
+  Ball and stick (4 bit)  & 5.667 &      6 &    7  \\ \hline
+  Ball and stick (6 bit)  & 3.683 &      4 &    3  \\ \hline
+  Ball and stick (8 bit)  & 3.167 &      3 &    2  \\ \hline
+  Ball and stick (10 bit) & 2.883 &      3 &    2  \\ \hline
+  Metaballs (4 bit)       & 6.233 &      7 &    7  \\ \hline
+  Metaballs (6 bit)       & 3.983 &      4 &    2  \\ \hline
+  Metaballs (8 bit)       & 2.867 &      3 &    2  \\ \hline
+  Metaballs (10 bit)      &  2.75 &      3 &    3  \\ \hline
+  \end{tabular}
+  \caption{Statistics for the two visualisation techniques and different
+  quantisation levels}
+  \label{tab:experiment_statistics}
+\end{table}
+
+
+% }}}

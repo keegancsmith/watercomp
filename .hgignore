@@ -9,6 +9,7 @@ dcd
 # Tex output
 *.aux
 *.lof
+*.lot
 *.log
 *.dvi
 *.pdf
