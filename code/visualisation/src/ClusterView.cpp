@@ -249,7 +249,8 @@ void ClusterView::initGL()
 
 void ClusterView::render()
 {
-    if (dequantised == NULL) return;
+    Frame* data = drawQuantised ? dequantised : unquantised;
+    if (data == NULL) return;
 
     float l0_pos[] = {-1.0f, 1.0f, 2.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, l0_pos);
@@ -273,12 +274,12 @@ void ClusterView::render()
 
 #ifdef DRAW_LINES
             glBegin(GL_LINES);
-            glVertex3i(dequantised->atom_data[3*start],
-                       dequantised->atom_data[3*start+1],
-                       dequantised->atom_data[3*start+2]);
-            glVertex3i(dequantised->atom_data[3*(*vit)],
-                       dequantised->atom_data[3*(*vit)+1],
-                       dequantised->atom_data[3*(*vit)+2]);
+            glVertex3i(data->atom_data[3*start],
+                       data->atom_data[3*start+1],
+                       data->atom_data[3*start+2]);
+            glVertex3i(data->atom_data[3*(*vit)],
+                       data->atom_data[3*(*vit)+1],
+                       data->atom_data[3*(*vit)+2]);
             glEnd();
 #endif
             // if (first)
@@ -292,12 +293,12 @@ void ClusterView::render()
                         // dequantised->atom_data[3*(*vit)+2]);
             // }//if
 
-            renderCylinder(dequantised->atom_data[3*start],
-                           dequantised->atom_data[3*start+1],
-                           dequantised->atom_data[3*start+2],
-                           dequantised->atom_data[3*(*vit)],
-                           dequantised->atom_data[3*(*vit)+1],
-                           dequantised->atom_data[3*(*vit)+2],
+            renderCylinder(data->atom_data[3*start],
+                           data->atom_data[3*start+1],
+                           data->atom_data[3*start+2],
+                           data->atom_data[3*(*vit)],
+                           data->atom_data[3*(*vit)+1],
+                           data->atom_data[3*(*vit)+2],
                            radius, 8, quadric);
         }//for
     }//for

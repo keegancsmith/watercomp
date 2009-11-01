@@ -170,7 +170,8 @@ void BallStickView::initGL()
 
 void BallStickView::render()
 {
-    if (dequantised == NULL) return;
+    Frame* data = drawQuantised ? dequantised : unquantised;
+    if (data == NULL) return;
 
     float l0_pos[] = {-1.0f, 1.0f, 2.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, l0_pos);
@@ -203,24 +204,24 @@ void BallStickView::render()
         if (n++ > this->number) break;
         glColor4fv(_oColor);
         glPushMatrix();
-        glTranslatef(dequantised->atom_data[3*waters[i].OH2_index],
-                     dequantised->atom_data[3*waters[i].OH2_index+1],
-                     dequantised->atom_data[3*waters[i].OH2_index+2]);
+        glTranslatef(data->atom_data[3*waters[i].OH2_index],
+                     data->atom_data[3*waters[i].OH2_index+1],
+                     data->atom_data[3*waters[i].OH2_index+2]);
         gluSphere(quadric, _oSize, oslice, oslice);
         glPopMatrix();
 
         glColor4fv(_hColor);
         glPushMatrix();
-        glTranslatef(dequantised->atom_data[3*waters[i].H1_index],
-                     dequantised->atom_data[3*waters[i].H1_index+1],
-                     dequantised->atom_data[3*waters[i].H1_index+2]);
+        glTranslatef(data->atom_data[3*waters[i].H1_index],
+                     data->atom_data[3*waters[i].H1_index+1],
+                     data->atom_data[3*waters[i].H1_index+2]);
         gluSphere(quadric, _hSize, hslice, hslice);
         glPopMatrix();
 
         glPushMatrix();
-        glTranslatef(dequantised->atom_data[3*waters[i].H2_index],
-                     dequantised->atom_data[3*waters[i].H2_index+1],
-                     dequantised->atom_data[3*waters[i].H2_index+2]);
+        glTranslatef(data->atom_data[3*waters[i].H2_index],
+                     data->atom_data[3*waters[i].H2_index+1],
+                     data->atom_data[3*waters[i].H2_index+2]);
         gluSphere(quadric, _hSize, hslice, hslice);
         glPopMatrix();
     }//for

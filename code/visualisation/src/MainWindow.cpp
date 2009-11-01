@@ -2,6 +2,7 @@
 
 #include <QAction>
 #include <QCoreApplication>
+#include <QCheckBox>
 #include <QFileDialog>
 #include <QLabel>
 #include <QMenu>
@@ -61,39 +62,7 @@ MainWindow::MainWindow()
     connect(playbackControl, SIGNAL(frameChange(int)), this, SLOT(setFrame(int)));
     centralLayout->addWidget(playbackControl);
 
-    QVBoxLayout* extraLayout = new QVBoxLayout();
-
-    QHBoxLayout* infoLayout = new QHBoxLayout();
-    QLabel* frameDescLabel = new QLabel(tr("Frame: "), this);
-    infoLayout->addWidget(frameDescLabel);
-    frameLabel = new QLabel("0", this);
-    infoLayout->addWidget(frameLabel);
-
-    infoLayout->addSpacing(50);
-
-    QLabel* quantisationLabel = new QLabel(tr("Quantisation level: "), this);
-    infoLayout->addWidget(quantisationLabel);
-    quantisationSpinBox = new QSpinBox(this);
-    quantisationSpinBox->setRange(1, MAX_QUANTISATION);
-    connect(quantisationSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setQuantisationLevel(int)));
-    infoLayout->addWidget(quantisationSpinBox);
-
-    extraLayout->addLayout(infoLayout);
-
-    QHBoxLayout* speedLayout = new QHBoxLayout();
-    speedSlider = new QSlider(this);
-    speedSlider->setRange(1, 20);
-    speedSlider->setOrientation(Qt::Horizontal);
-    connect(speedSlider, SIGNAL(valueChanged(int)), this, SLOT(setTps(int)));
-    speedLayout->addWidget(speedSlider);
-
-    speedLabel = new QLabel("0", this);
-    speedLayout->addWidget(speedLabel);
-    extraLayout->addLayout(speedLayout);
-
-#ifndef TESTING_SETUP
-    centralLayout->addLayout(extraLayout);
-#endif
+    setupExtraControls(centralLayout);
 
     setCentralWidget(centralWidget);
     resize(800, 600);
@@ -111,6 +80,8 @@ MainWindow::MainWindow()
     renderer->setRenderMode(settings->value("Renderer/renderMode", 0).toInt());
     quantisationLevel = settings->value("quantisationLevel", 8).toInt();
     quantisationSpinBox->setValue(quantisationLevel);
+    drawQuantised = settings->value("drawQuantised", true).toBool();
+    drawQuantisedCheckBox->setCheckState(drawQuantised ? Qt::Checked : Qt::Unchecked);
     speedSlider->setValue(settings->value("playbackSpeed", 10).toInt());
 }//constructor
 
@@ -206,6 +177,15 @@ void MainWindow::setQuantisationLevel(int value)
     renderer->dataTick(framenum, unquantised, quantised, dequantised);
 }//setQuantisationLevel
 
+void MainWindow::setDrawQuantised(int state)
+{
+    drawQuantised = state != 0;
+    settings->setValue("drawQuantised", drawQuantised);
+
+    foreach (BaseView* view, views)
+        view->drawQuantised = drawQuantised;
+}//setDrawQuantised
+
 void MainWindow::setTps(int value)
 {
     playbackControl->setTps(value);
@@ -256,7 +236,6 @@ void MainWindow::setupMenu()
     viewMenu->addAction(viewPreferencesAction);
 }//setupMenu
 
-
 void MainWindow::addRenderMode(BaseView* view, QMenu* menu)
 {
     QAction* viewAction = new QAction(view->viewName, menu);
@@ -274,6 +253,48 @@ void MainWindow::addRenderMode(BaseView* view, QMenu* menu)
     view->preferenceParent = viewPreferenceDialog;
 }//addRenderMode
 
+void MainWindow::setupExtraControls(QVBoxLayout* centralLayout)
+{
+    QVBoxLayout* extraLayout = new QVBoxLayout();
+
+    QHBoxLayout* infoLayout = new QHBoxLayout();
+    QLabel* frameDescLabel = new QLabel(tr("Frame: "), this);
+    infoLayout->addWidget(frameDescLabel);
+    frameLabel = new QLabel("0", this);
+    infoLayout->addWidget(frameLabel);
+
+    infoLayout->addSpacing(50);
+
+    QLabel* drawQuantisedLabel = new QLabel(tr("Draw quantised: "), this);
+    infoLayout->addWidget(drawQuantisedLabel);
+    drawQuantisedCheckBox = new QCheckBox(this);
+    connect(drawQuantisedCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setDrawQuantised(int)));
+    infoLayout->addWidget(drawQuantisedCheckBox);
+
+    QLabel* quantisationLabel = new QLabel(tr("Quantisation level: "), this);
+    infoLayout->addWidget(quantisationLabel);
+    quantisationSpinBox = new QSpinBox(this);
+    quantisationSpinBox->setRange(1, MAX_QUANTISATION);
+    connect(quantisationSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setQuantisationLevel(int)));
+    infoLayout->addWidget(quantisationSpinBox);
+
+    extraLayout->addLayout(infoLayout);
+
+    QHBoxLayout* speedLayout = new QHBoxLayout();
+    speedSlider = new QSlider(this);
+    speedSlider->setRange(1, 20);
+    speedSlider->setOrientation(Qt::Horizontal);
+    connect(speedSlider, SIGNAL(valueChanged(int)), this, SLOT(setTps(int)));
+    speedLayout->addWidget(speedSlider);
+
+    speedLabel = new QLabel("0", this);
+    speedLayout->addWidget(speedLabel);
+    extraLayout->addLayout(speedLayout);
+
+#ifndef TESTING_SETUP
+    centralLayout->addLayout(extraLayout);
+#endif
+}//setupExtraControls
 
 
 void MainWindow::doProcessAllFrames()

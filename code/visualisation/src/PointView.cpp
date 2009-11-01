@@ -88,7 +88,8 @@ void PointView::initGL()
 
 void PointView::render()
 {
-    if (dequantised == NULL) return;
+    Frame* data = drawQuantised ? dequantised : unquantised;
+    if (data == NULL) return;
 
     glDepthFunc(GL_ALWAYS);
     //draw points
@@ -96,9 +97,9 @@ void PointView::render()
     glBegin(GL_POINTS);
     for (int i = 0; i < waters.size(); i++)
     {
-        glVertex3i(dequantised->atom_data[3*waters[i].OH2_index],
-                   dequantised->atom_data[3*waters[i].OH2_index+1],
-                   dequantised->atom_data[3*waters[i].OH2_index+2]);
+        glVertex3i(data->atom_data[3*waters[i].OH2_index],
+                   data->atom_data[3*waters[i].OH2_index+1],
+                   data->atom_data[3*waters[i].OH2_index+2]);
     }//for
     glEnd();
     glDepthFunc(GL_LEQUAL);

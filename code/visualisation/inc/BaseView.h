@@ -32,6 +32,7 @@ class BaseView : public QObject
         Frame* unquantised;
         QuantisedFrame* quantised;
         Frame* dequantised;
+        bool drawQuantised;
 
         BaseView();
         virtual ~BaseView();
