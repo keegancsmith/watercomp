@@ -573,27 +573,28 @@ The decompressor works in the reverse direction:
 
 \[ Decompressor \to QuantisedAtoms \to DCDFile \]
 
-The decompressed DCD files have been quantised. Excluding the quantisation
-step, the scheme is lossless. Note that each step in the compression phase has
-auxillary information. The auxillary information is required for
-reconstruction.
+The decompressed DCD files are an approximation due to quantisation. Excluding
+the quantisation step, the schemes are lossless. Note that each step in the
+compression phase has auxillary information. The auxillary information is
+required for reconstruction.
 
 Reference implementations of \citep{devillers2000gci}, \citep{gumholdcomp} and
-\citep{omeltchenko2000sls} where also created. These use the DCD I/O to read
-in the MD simulation files. Julian Kenwood implemented
+\citep{omeltchenko2000sls} are also implemented. These use the I/O and
+quantisation components. Julian Kenwood implemented
 \citep{omeltchenko2000sls}, while Keegan Carruthers-Smith implemented
-\citep{devillers2000gci} and \citep{gumholdcomp}.
+\citep{devillers2000gci} and \citep{gumholdcomp}. Visualisation uses the I/O
+and quantisation components as well and was implemented by Min-Young Wu.
 
 
 \subsection{Dependencies}
 
 All development was done on Linux, but no Linux or POSIX specific APIs where
-used. So the implementation should be cross platform barring library
-dependencies which are not.
+used. The implementations should be cross platform, but have not been tested
+on anything but Linux.
 
 \paragraph{C++}
-C++ fits the requirements of this project since compressors need to be fast
-and all the authors are competent with it. Development was done with GCC 4.x.
+C++ fits the requirements of the project since the compressors need to be fast
+and all the authors are competent in C++. Development was done with GCC 4.x.
 
 \paragraph{ANN}
 ANN is a library for approximate nearest neighbor searching. It is used to
@@ -616,11 +617,11 @@ The different components are the following:
 
 \paragraph{Simulation I/O}
 
-These components handle I/O to and from the files we are compressing. The VMD
-DCD loader plugin is used to load the DCD files. Implemented is also a PDB
-reader for determining what each atom is in the DCD file. DCD is used since it
-is the prevalent format used for storing simulation data, and it is well
-supported in VMD.
+These components handle I/O to and from the simulation data files. The VMD DCD
+loader plugin is used to load and write the DCD files. Implemented is also a
+PDB reader for determining what each atom is in the DCD file. DCD is used
+since it is the prevalent format used for storing simulation data, and it is
+well supported in VMD.
 
 
 \paragraph{Arithmetic Coder}
@@ -637,7 +638,7 @@ by \citep{cormack1984algorithms} used in Adaptive Huffman Encoding. The
 adaptive model initially only has one symbol meaning ``new'' symbol. When
 encoding if there is a new symbol, the ``new'' symbols is encoded followed by
 a raw representation of the new symbol. By using a trie and a modification of
-Fenwick trees insertion of new symbols into the model is $O(n \log n)$ where
+a Fenwick tree, insertion of new symbols into the model is $O(n \log n)$ where
 $n$ is the number of seen symbols.
 
 The encoder by \citep{omeltchenko2000sls} does not make use of an Arithmetic
@@ -669,24 +670,27 @@ algorithm is still referred to as lossless.
 
 When decompressing we need to recover the atoms in the same order they are
 listed in the original DCD file. The water compressor as well as the other
-predictive point cloud schemes do not recover the original order. How we
-recover the order is explained in Section \ref{sec:compr-perm}.
+predictive point cloud schemes do not recover the original order. How
+permutations are encoded is explained in Section \ref{sec:compr-perm}.
 
 
 \paragraph{Compressors}
 
-The compressor component is different for each compressor. There is the
-compressor presented in this report and the three reference compressors:
-\citep{omeltchenko2000sls}, \citep{gumholdcomp} and \citep{devillers2000gci}.
+The compressor component is different for each compressor. It implements the
+encoding and decoding of the quantised frames. The intra-frame compressors
+which are implemented are the water compressor and reference implementations
+of \citep{omeltchenko2000sls}, \citep{gumholdcomp} and
+\citep{devillers2000gci}.
 
 
 \paragraph{Verifiers}
 
 Verifiers are for testing whether a compression scheme is working. Given a DCD
 file and a decompressed DCD file, if the files match when quantised then the
-compressor is working. There is the possibility of floating point error which
-will say the files do not match. This happens really and the so the frames
-which do not match can be inspected manually to see if they are the same.
+compressor is working. There is the possibility of floating point error
+causing a mismatch when the files are equivalent. This happens infrequently,
+so the frames which do not match can be inspected manually to see if they are
+the same.
 
 
 \section{Compressing Permutations}
@@ -703,8 +707,8 @@ When decompressing we need to recover the original order of the points, since
 the index of a point indicates which atom it is in the DCD file format.
 
 We experimented with five different types of permutation compressors. Each
-permutation compressor takes in a permutation of $[0,1,\dots,N-1]$ and writes
-it to the file. Let the permutation be $[P_0, P_1, \dots P_{N-1}]$.  The
+permutation compressor takes in a permutation of $[0,1,\dots,N-1]$ and encodes
+it to the file. Let the permutation be $[P_0, P_1, \dots P_{N-1}]$. The
 decompressor then recovers the permutation.
 
 \paragraph{Null}
@@ -897,17 +901,19 @@ Let $O, H_1, H_2$ be the predictions for where the water molecule will be and
 let $O', H'_1, H'_2$ be the water molecules parent.
 
 \paragraph{Constant Predictor}
-The constant predictor predicts $O, H_1, H_2$ to be at $O'$. This predictor is
-included since occasionally the hydrogen bond is broken (molecule information
-remains static from the start of the simulation). If the bonds are broken the
-hydrogen predictors are far less accurate than the constant predictor.
+The constant predictor predicts $O$ to be at $O'$. This predictor is included
+since occasionally the hydrogen bond is broken (molecule information remains
+static from the start of the simulation). If the bonds are broken the hydrogen
+predictors are far less accurate than the constant predictor.
 
 \paragraph{Hydrogen Predictor}
 The hydrogen predictor predicts along $O'-H'_1$ or $O'-H'_2$. We simplify the
 model in Figure \ref{fig:dimer-angle} and assume $\alpha$ is $0\degree$. Then
-$O$ is predicted to be at $O' + 2.976\frac{O'-H'_i}{|O'-H'_i|}$. $H_1$ and
-$H_2$ are predicted to be at $O$ in both predictors due to the large
-variability of $\beta$ in Figure \ref{fig:dimer-angle}.
+$O$ is predicted to be at $O' + 2.976\frac{O'-H'_i}{|O'-H'_i|}$.
+
+In all three prediction schemes $H_1$ and $H_2$ are predicted to be at
+$O$. This is since their is a large variability in $\beta$ in Figure
+\ref{fig:dimer-angle}.
 
 
 \subsection{Creating the Water Graph}
@@ -915,12 +921,12 @@ variability of $\beta$ in Figure \ref{fig:dimer-angle}.
 Creating the spanning tree is $O(E \log E)$, where $E$ is the number of edges
 in the graph. When creating the spanning tree, each molecule's predictions are
 compared to all of its neighbours. If the graph created is the complete graph,
-E is $O(N^2)$, where $N$ is the number of water molecules. This is two
+$E$ is $O(N^2)$, where $N$ is the number of water molecules. This is too
 inefficient for large scale simulations.
 
-So the purpose of the graph creation is to efficiently minimise the degree of
-the verticies (and hence $E$), while maintaining the neighbours which predict
-well against the predictors.
+So the purpose of graph creation is to efficiently minimise the degree of the
+verticies (and hence $E$), while maintaining the neighbours which predict well
+against the predictors.
 
 The neighbours which predict well against a water molecule are related to the
 spatial locality of the oxygens. So the approximation used is to add edges
@@ -952,16 +958,16 @@ createGraph(list_of_water_molecules):
 
 \subsection{Creating the Spanning Tree}
 
-The order in which we serialise the points, and which predictor is used for
+The order in which the points are serialised, and which predictor is used for
 each point is not obvious from the graph created in the previous section. A
-directed tree is used since each molecule is predicted by one other
-molecule. The edge $O' \to O$ indicates that $O$ is predicted using the
-position of $O'$.
+directed tree is created from the graph since each molecule is predicted by
+one other molecule. The edge $O' \to O$ indicates that $O$ is predicted using
+the position of $O'$.
 
 The graph is not necessarily connected, so a spanning tree is created for each
 component. A root vertex is arbitrarily selected. Then each tree in the forest
 is connected to the root with the constant predictor. Each edge $O' \to O$ is
-labelled with what predictor was used to predict $O$ from $O'$.
+labelled with what predictor is used to predict $O$ from $O'$.
 
 For each component a root is arbitrarily picked. The tree is then created by
 using a modification of Dijkstra. The priority queue stores potential edges,
@@ -1003,7 +1009,7 @@ added if the residual is less than the current smallest residual for $u$.
 
 This stage encodes the predictions and spanning tree. The predictions are
 encoded in breadth first order. The spanning tree is also encoded since it is
-required to reconstruct the what each molecule is predicted from. The BFS then
+required to reconstruct what each molecule is predicted from. The BFS then
 starts at the root of the spanning tree and for each molecule in the BFS the
 following happens:
 
@@ -1078,4 +1084,4 @@ MST of the components or encoding the components separate to the errors.
 
 \end{document}
 
-% LocalWords:  oxygens Deserialisation deserialisation
+% LocalWords:  oxygens Deserialisation deserialisation BFS
