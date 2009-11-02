@@ -104,7 +104,7 @@ visualisation technique.
 % TODO: discuss
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=100mm]{waterpoint}
+    \includegraphics[width=50mm]{waterpoint}
   \end{center}
   \caption{Water point visualisation. Each point represents a water molecule.}
   \label{fig:implementation_waterpoint}
@@ -120,17 +120,22 @@ visualisation technique.
 
 For the ball and stick visualisation technique, the oxygen and hydrogen atoms
 are represented by spheres. The spheres are rendered using different colours,
-and at different sizes. Lighting can be enabled to better see the spheres. See
-figure \ref{fig:implementation_ballstick} where only a few water molecules are
-rendered.
+and at different sizes. The size and colour of the sphere can be changed by the
+user. Lighting can be enabled to better see the spheres. See figure
+\ref{fig:implementation_ballstick} where some water molecules are visible.
 
-% TODO: have one with sticks, another without
+The red spheres represents the oxygen atoms, while the blue spheres represents
+the hydrogen atoms. The left image uses the classical approach, where
+cylinders are used to connect the atoms together. The right image uses the CPK
+approach, where the atoms are enlarged to encompass the molecular bond.
+
 % TODO: discuss
 \begin{figure}[h!]
   \begin{center}
     \includegraphics[width=100mm]{ballstick}
   \end{center}
-  \caption{Ball and stick visualisation, clearly showing each of the atoms.}
+  \caption{Ball and stick visualisation. The left image uses the classical
+  approach, while the right image uses the CPK approach.}
   \label{fig:implementation_ballstick}
 \end{figure}
 
@@ -153,14 +158,18 @@ As was mentioned in Section \ref{sec:implementation_details}, the GTS library
 is used to perform the surface decimation. Due to unforeseen difficulties and
 time constraints, using a library was the fastest way to achieve decimation.
 
-% TODO: numbers. Size, quantity, file format
 The computational cost for a single frame for the metaballs visualisation
 technique is quite high. A frame can be generated in real time for small
-volumes only. Performing decimation on the extracted surface will only make the
-time delay worse. Therefore, a preprocessing option is available for the
-metaballs visualisation technique. All the frames can be preprocessed and saved
-to file. This file can then be used to render the surface without the
-processing overhead.
+volumes only (less than 500 water molecules). Larger volumes may take upwards
+of 5 seconds or more for a single frame to be generated. Performing decimation
+on the extracted surface will only make the time delay worse. See Chapter
+\ref{cha:results} for results and an analysis on the computation costs of the
+surface extraction and decimation.
+
+A pre-processing option is available for the metaballs visualisation technique.
+All the frames can be pre-processed and saved to file. The output file is a
+simple dump of the vertices and normals of all the triangles. This file can
+then be used to render the surface without the processing overhead.
 
 When rendering the surface, one side of the surface is coloured blue, while the
 other is coloured green. This allows differentiation of the sides of the
@@ -176,7 +185,7 @@ To help see the surface detail, lighting can be enabled.
 % TODO: discuss
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=100mm]{metaballs}
+    \includegraphics[width=50mm]{metaballs}
   \end{center}
   \caption{Metaballs visualisation, where the surface is easily visible.}
   \label{fig:implementation_metaballs}
@@ -197,7 +206,7 @@ showing a few water clusters.
 % TODO: discuss
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=100mm]{watercluster}
+    \includegraphics[width=50mm]{watercluster}
   \end{center}
   \caption{Water cluster visualisation, each water cluster is visible.}
   \label{fig:implementation_watercluster}
@@ -234,7 +243,7 @@ example volume.
 % TODO: discuss, add labels, interpolate colours, colour range
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=100mm]{quant_colour_graph}
+    \includegraphics[width=80mm]{quant_colour_graph}
   \end{center}
   \caption{Graph illustrating stepped colour assignment for quantisation error.}
   \label{fig:implementation_quantgraph}
@@ -243,7 +252,7 @@ example volume.
 % TODO: discuss
 \begin{figure}[h!]
   \begin{center}
-    \includegraphics[width=100mm]{quanterror}
+    \includegraphics[width=50mm]{quanterror}
   \end{center}
   \caption{Quantisation error visualisation, highlights large quantisation
   errors.}
@@ -271,12 +280,24 @@ are large amounts of water, and there is also a large area where there is no
 water. If the volume is small or uniformly filled with water molecules, the
 alpha effects will not be significant.
 
-% TODO: how much larger (1 ~ 100 times larger), processing time...
 The metaballs visualisation technique requires considerable processing for each
 frame (surface extraction and decimation), hence real time rendering is only
-possible for small volumes. There is an option to pre-process the volume and
-save the surfaces to file, however, the generated files are generally
-considerably larger than the DCD file.
+possible for small volumes. The amount of rendering time required is dependant
+on the number of water molecules and extracted surface, processing time for a
+single frame can be from a few seconds, up to a minute. Disabling decimation
+will decrease the time required for a single frame, processing time then ranges
+from a few hundred milliseconds, up to 10 seconds.
+
+There is an option to pre-process the volume and save the extracted surfaces to
+file, however, the generated files are generally considerably larger than the
+DCD file. The size of the pre-processed file is dependant on the number of
+water molecules and number of frames. From the data used for the quantisation
+experiment, the pre-processed file was an average of 10 times larger than the
+DCD file. The smallest output file was the same size as the DCD file, while the
+largest was 100 times larger.
+
+To limit the file size and pre-processing time, the number of frames to
+pre-process is limited. This number can be set by the user.
 
 % }}}
 

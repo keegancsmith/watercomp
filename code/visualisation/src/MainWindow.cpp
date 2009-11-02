@@ -207,7 +207,7 @@ void MainWindow::setupMenu()
     connect(toggleFocusPlaneAction, SIGNAL(triggered()), renderer, SLOT(toggleFocusPlane()));
 
     QAction* quitAction = new QAction(tr("&Quit"), fileMenu);
-    quitAction->setShortcut(tr("Q"));
+    quitAction->setShortcut(tr("Ctrl+Q"));
     connect(quitAction, SIGNAL(triggered()), this, SLOT(close()));
 
     fileMenu->addAction(openFileAction);

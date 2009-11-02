@@ -11,6 +11,7 @@
 #define USE_GRID
 
 class QCheckBox;
+class QComboBox;
 class QFile;
 class QDataStream;
 class QSettings;
@@ -75,6 +76,8 @@ class MetaballsView : public BaseView
         void setLighting(int state);
         void setUseDataFile(int state);
         void setIsoValue(int value);
+        void setDecimateSurface(int state);
+        void setSurfaceExtraction(int value);
 
         void updateFaces();
 
@@ -89,6 +92,8 @@ class MetaballsView : public BaseView
         bool haveDataFile;
         bool useDataFile;
         int isoValue;
+        bool decimateSurface;
+        int surfaceExtraction;
 
         int cur_quant;
         int size;
@@ -105,6 +110,8 @@ class MetaballsView : public BaseView
         QCheckBox* cullCheckBox;
         QCheckBox* dataFileCheckBox;
         QSpinBox* isoValueSpinBox;
+        QCheckBox* decimateSurfaceCheckBox;
+        QComboBox* surfaceExtractionComboBox;
 
 
         float sampleVolume(float x, float y, float z);

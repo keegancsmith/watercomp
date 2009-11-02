@@ -1,10 +1,12 @@
 #include "MetaballsView.h"
 
 #include <GL/gl.h>
-#include <cmath>
+#include <sys/time.h>
 #include <cassert>
+#include <cmath>
 
 #include <QCheckBox>
+#include <QComboBox>
 #include <QFile>
 #include <QGridLayout>
 #include <QLabel>
@@ -66,6 +68,14 @@ uint qHash(const Point3f& p)
 }//qHash
 
 #endif
+
+double wtime()
+{
+    struct timeval tv;
+    gettimeofday(&tv, 0);
+    return tv.tv_sec + 1.0e-6*tv.tv_usec;
+}//wtime
+
 
 
 void sampleSphere(gdouble** f, GtsCartesianGrid g, guint k, gpointer data)
@@ -309,6 +319,8 @@ MetaballsView::MetaballsView()
     haveDataFile = false;
     useDataFile = settings->value("MetaballsView/dataFile", true).toBool();
     isoValue = settings->value("MetaballsView/isoValue", 100).toInt();
+    decimateSurface = settings->value("MetaballsView/decimateSurface", false).toBool();
+    surfaceExtraction = settings->value("MetaballsView/surfaceExtraction", 0).toInt();
 
     g_surface = 0;
 
@@ -384,6 +396,8 @@ void MetaballsView::updatePreferences()
     dataFileCheckBox->setCheckState(useDataFile ? Qt::Checked : Qt::Unchecked);
     dataFileCheckBox->setEnabled(haveDataFile);
     isoValueSpinBox->setValue(isoValue);
+    decimateSurfaceCheckBox->setCheckState(decimateSurface ? Qt::Checked : Qt::Unchecked);
+    surfaceExtractionComboBox->setCurrentIndex(surfaceExtraction);
 }//updatePreferences
 
 void MetaballsView::setupPreferenceWidget(QWidget* preferenceWidget)
@@ -440,9 +454,26 @@ void MetaballsView::setupPreferenceWidget(QWidget* preferenceWidget)
     connect(isoValueSpinBox, SIGNAL(valueChanged(int)), this, SLOT(setIsoValue(int)));
     layout->addWidget(isoValueSpinBox, 6, 1);
 
+    QLabel* decimateSurfaceLabel = new QLabel(tr("Decimate surface"), preferenceWidget);
+    layout->addWidget(decimateSurfaceLabel, 7, 0);
+
+    decimateSurfaceCheckBox = new QCheckBox(preferenceWidget);
+    connect(decimateSurfaceCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setDecimateSurface(int)));
+    layout->addWidget(decimateSurfaceCheckBox, 7, 1);
+
+    QLabel* surfaceExtractionLabel = new QLabel(tr("Surface extraction"), preferenceWidget);
+    layout->addWidget(surfaceExtractionLabel, 8, 0);
+
+    surfaceExtractionComboBox = new QComboBox(preferenceWidget);
+    surfaceExtractionComboBox->addItem(tr("Marching cubes"));
+    surfaceExtractionComboBox->addItem(tr("Marching tetrahedrons"));
+    surfaceExtractionComboBox->addItem(tr("Marching tetrahedrons bcl"));
+    connect(surfaceExtractionComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(setSurfaceExtraction(int)));
+    layout->addWidget(surfaceExtractionComboBox, 8, 1);
+
     QPushButton* updateButton = new QPushButton(tr("Update faces"), preferenceWidget);
     connect(updateButton, SIGNAL(clicked()), this, SLOT(updateFaces()));
-    layout->addWidget(updateButton, 7, 0);
+    layout->addWidget(updateButton, 9, 0);
 
     preferenceWidget->setLayout(layout);
 }//setupPreferenceWidget
@@ -498,9 +529,7 @@ void MetaballsView::tick(int framenum, Frame* unquantised, QuantisedFrame* quant
     if (dequantised == 0) return;
     if (useDataFile) return;
 
-    // g_grid.nx = 1 << quantised->m_xquant;
-    // g_grid.ny = 1 << quantised->m_yquant;
-    // g_grid.nz = 1 << quantised->m_zquant;
+    double start_time = wtime();
     g_grid.nx = 1 << MAX_QUANT;
     g_grid.ny = 1 << MAX_QUANT;
     g_grid.nz = 1 << MAX_QUANT;
@@ -568,130 +597,71 @@ void MetaballsView::tick(int framenum, Frame* unquantised, QuantisedFrame* quant
     }//for
 
     _surface.clear();
-    // printf("march march march\n");
     if (g_surface) gts_object_destroy((GtsObject*)g_surface);
     // if (g_surface) delete g_surface;
     g_surface = gts_surface_new(gts_surface_class(),
                                 gts_face_class(),
                                 gts_edge_class(),
                                 gts_vertex_class());
-    // printf("value: (%d, %d)\n", min_dataval, max_dataval);
 
 #ifdef USE_GRID
-    // mscl
-    // gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 128);
-
-    // amall
-    // gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 14);
-
-    // gala
-    // gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, 45);
-
-
-    gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, isoValue);
+    switch (surfaceExtraction)
+    {
+        case 0:
+            gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)volumedata, isoValue);
+            break;
+        case 1:
+            gts_isosurface_tetra(g_surface, g_grid, sample_volume_data, (void*)volumedata, isoValue);
+            break;
+        case 2:
+            gts_isosurface_tetra_bcl(g_surface, g_grid, sample_volume_data, (void*)volumedata, isoValue);
+            break;
+    }//switch
 #else
     gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)&meta_volume, isoValue);
+    gts_isosurface_tetra(g_surface, g_grid, sample_volume_data, (void*)&meta_volume, isoValue);
+    gts_isosurface_tetra_bcl(g_surface, g_grid, sample_volume_data, (void*)&meta_volume, isoValue);
 #endif
 
-    int count = gts_surface_face_number(g_surface);
-    // printf("face number: %u\n", count);
+    if (decimateSurface)
+    {
+        GtsVolumeOptimizedParams params = {0.5, 0.5, 0.0};
 
+        GtsKeyFunc cost_func = (GtsKeyFunc)gts_volume_optimized_cost;
+        gpointer cost_data = &params;
 
+        GtsCoarsenFunc coarsen_func = (GtsCoarsenFunc)gts_volume_optimized_vertex;
+        gpointer coarsen_data = &params;
+
+            // GtsStopFunc stop_func = (GtsStopFunc)gts_coarsen_stop_cost;
+            // gdouble cmax = 0.001;
+            // gpointer stop_data = &cmax;
+        GtsStopFunc stop_func = (GtsStopFunc)gts_coarsen_stop_number;
+        guint number = gts_surface_face_number(g_surface) * 0.75;
+        gpointer stop_data = &number;
+
+        gts_surface_coarsen(g_surface,
+                cost_func, cost_data,
+                coarsen_func, coarsen_data,
+                stop_func, stop_data,
+                M_PI/180);
+    }//if
+
+    // now get the surface
     gts_surface_foreach_face(g_surface, draw_face, (void*)&_surface);
-    printf("\r%d: %d (%d~%d) ", framenum, _surface.size(), min_dataval, max_dataval);
+    double end_time = wtime();
+    printf("\r%d: %d (%d~%d) waters:%d time:%lf ",
+            framenum,
+            _surface.size(),
+            min_dataval,
+            max_dataval,
+            waters.size(),
+            end_time - start_time);
     fflush(stdout);
-    // printf("_surface: %u\n", _surface.size());
-    return;
-
-
-
-    vertex_map.clear();
-    vertex_num = 0;
-    triangle_num = 0;
-    if (vertices) delete [] vertices;
-    vertices = new float[gts_surface_vertex_number(g_surface) * 3];
-
-    if (normals) delete [] normals;
-    normals = new float[gts_surface_vertex_number(g_surface) * 3];
-
-    if (avg_normals) delete [] avg_normals;
-    avg_normals = new float[gts_surface_vertex_number(g_surface) * 4];
-
-    if (indices) delete [] indices;
-    indices = new int[gts_surface_face_number(g_surface) * 3];
-
-    printf("vertex num: %i\n", gts_surface_vertex_number(g_surface));
-
-    // printf("surface count: %i\n", _surface.count());
-    gts_surface_foreach_face(g_surface, process_surface, (void*)this);
-
-
-    /*
-    int t;
-    Triangle tri;
-    for (int i = 0; i < _surface.count(); i++)
-    {
-        triangle_num += 1;
-        t = i*3;
-        tri = _surface.at(i);
-        // view->indices[t]   = process_vertex(view, v1, e3);
-        // view->indices[t+1] = process_vertex(view, v2, e3);
-        // view->indices[t+2] = process_vertex(view, v3, e3);
-        indices[t]   = process_vertex(this, tri.p[0], tri.n[0]);
-        indices[t+1] = process_vertex(this, tri.p[1], tri.n[1]);
-        indices[t+2] = process_vertex(this, tri.p[2], tri.n[2]);
-    }//for
-    // */
-    printf("calculate normals: %i %i\n", vertex_num, triangle_num);
-
-    int n, an;
-    for (int i = 0; i < vertex_num; i++)
-    {
-        n = i*3;
-        an = i*4;
-        normals[n] = avg_normals[an] / avg_normals[an+3];
-        normals[n+1] = avg_normals[an+1] / avg_normals[an+3];
-        normals[n+2] = avg_normals[an+2] / avg_normals[an+3];
-        normalize(&normals[n]);
-    }//for
-
-
     return;
 
     /*
 
-    _surface.clear();
-    printf("woo: 0x%x\n", mridata);
-    gts_isosurface_cartesian(g_surface, g_grid, sample_volume_data, (void*)mridata, 128);
-    printf("hoo\n");
-    // gts_isosurface_cartesian(g_surface, g_grid, sampleSphere, NULL, 128);
-    // gts_isosurface_tetra_bcl(g_surface, g_grid, sampleSphere, NULL, 128);
-    // gts_isosurface_tetra(g_surface, g_grid, sampleSphere, NULL, 128);
-    int count = gts_surface_face_number(g_surface);
-    printf("face number: %u\n", count);
-    gts_surface_foreach_face(g_surface, draw_face, (void*)&_surface);
-
-    GtsVolumeOptimizedParams params = {0.5, 0.5, 0.0};
-
-    GtsKeyFunc cost_func = (GtsKeyFunc)gts_volume_optimized_cost;
-    gpointer cost_data = &params;
-
-    GtsCoarsenFunc coarsen_func = (GtsCoarsenFunc)gts_volume_optimized_vertex;
-    gpointer coarsen_data = &params;
-
-        // GtsStopFunc stop_func = (GtsStopFunc)gts_coarsen_stop_cost;
-        // gdouble cmax = 0.001;
-        // gpointer stop_data = &cmax;
-    GtsStopFunc stop_func = (GtsStopFunc)gts_coarsen_stop_number;
-    guint number = count * 0.75;
-    gpointer stop_data = &number;
-
-    gts_surface_coarsen(g_surface,
-            cost_func, cost_data,
-            coarsen_func, coarsen_data,
-            stop_func, stop_data,
-            M_PI/180);
-    printf("coarsen number: %u\n", gts_surface_face_number(g_surface));
     return;
 
     int nz = 160 - _stepSize - 1;
@@ -949,6 +919,18 @@ void MetaballsView::setIsoValue(int value)
     isoValue = value;
     settings->setValue("MetaballsView/isoValue", isoValue);
 }//setUseDataFile
+
+void MetaballsView::setDecimateSurface(int state)
+{
+    decimateSurface = state != 0;
+    settings->setValue("MetaballsView/decimateSurface", decimateSurface);
+}//setDecimateSurface
+
+void MetaballsView::setSurfaceExtraction(int value)
+{
+    surfaceExtraction = value;
+    settings->setValue("MetaballsView/surfaceExtraction", surfaceExtraction);
+}//setSurfaceExtraction
 
 void MetaballsView::updateFaces()
 {
