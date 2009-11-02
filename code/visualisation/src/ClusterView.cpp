@@ -23,7 +23,7 @@
 #include "Util.h"
 
 #define MAX_ALPHA_SLIDER 100
-#define MAX_ALPHA_VAL 0.9
+#define MAX_ALPHA_VAL 1.0
 
 #define MAX_LINE_WIDTH 10
 

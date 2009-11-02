@@ -7,6 +7,7 @@ report_min.pdf: report_min.tex \
 		design.tex \
 		implementation.tex \
 		experiment.tex \
+		results.tex \
 		conclusion.tex \
 		appendix.tex \
 		report_min.bbl
@@ -26,6 +27,7 @@ clean:
 		design.aux \
 		implementation.aux \
 		experiment.aux \
+		results.aux \
 		conclusion.aux \
 		appendix.aux \
 
