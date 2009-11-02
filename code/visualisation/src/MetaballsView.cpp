@@ -650,7 +650,13 @@ void MetaballsView::tick(int framenum, Frame* unquantised, QuantisedFrame* quant
     // now get the surface
     gts_surface_foreach_face(g_surface, draw_face, (void*)&_surface);
     double end_time = wtime();
-    printf("\r%d: %d (%d~%d) %lf ", framenum, _surface.size(), min_dataval, max_dataval, end_time - start_time);
+    printf("\r%d: %d (%d~%d) waters:%d time:%lf ",
+            framenum,
+            _surface.size(),
+            min_dataval,
+            max_dataval,
+            waters.size(),
+            end_time - start_time);
     fflush(stdout);
     return;
 

@@ -37,15 +37,22 @@ BallStickView::BallStickView()
     _oColor[1] = settings->value("BallStickView/oColorG", 0.0).toDouble();
     _oColor[2] = settings->value("BallStickView/oColorB", 0.0).toDouble();
     _oColor[3] = settings->value("BallStickView/oColorA", 1.0).toDouble();
+    _stickColor[0] = settings->value("BallStickView/stickColorR", 1.0).toDouble();
+    _stickColor[1] = settings->value("BallStickView/stickColorG", 1.0).toDouble();
+    _stickColor[2] = settings->value("BallStickView/stickColorB", 1.0).toDouble();
+    _stickColor[3] = settings->value("BallStickView/stickColorA", 1.0).toDouble();
     quantised = 0;
     _preferenceWidget = NULL;
     _hSize = settings->value("BallStickView/hSize", 1).toDouble();
     _oSize = settings->value("BallStickView/oSize", 2).toDouble();
+    _stickSize = settings->value("BallStickView/stickSize", 2).toDouble();
     setHSize(_hSize);
     setOSize(_oSize);
+    setStickSize(_stickSize);
     lighting = settings->value("BallStickView/lighting", false).toBool();
     quadric = gluNewQuadric();
     number = settings->value("BallStickView/number", 50).toInt();
+    drawStick = settings->value("BallStickView/drawStick", false).toBool();
     // gluQuadricDrawStyle(quadric, GLU_SILHOUETTE);
     doSplitWaters = true;
 }//constructor
@@ -69,9 +76,12 @@ void BallStickView::updatePreferences()
 {
     hSizeSpinBox->setValue(_hSize);
     oSizeSpinBox->setValue(_oSize);
+    stickSizeSpinBox->setValue(_stickSize);
     hAlphaSlider->setValue((int)(_hColor[3] * MAX_ALPHA_SLIDER / MAX_ALPHA_VAL));
     oAlphaSlider->setValue((int)(_oColor[3] * MAX_ALPHA_SLIDER / MAX_ALPHA_VAL));
+    stickAlphaSlider->setValue((int)(_stickColor[3] * MAX_ALPHA_SLIDER / MAX_ALPHA_VAL));
     lightCheckBox->setCheckState(lighting ? Qt::Checked : Qt::Unchecked);
+    drawStickCheckBox->setCheckState(drawStick ? Qt::Checked : Qt::Unchecked);
     numberBox->setValue(number);
 }//updatePreferences
 
@@ -121,20 +131,48 @@ void BallStickView::setupPreferenceWidget(QWidget* preferenceWidget)
     connect(oSizeSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setOSize(double)));
     layout->addWidget(oSizeSpinBox, 5, 1);
 
+    QPushButton* stickColorButton = new QPushButton(tr("Select stick colour"), preferenceWidget);
+    connect(stickColorButton, SIGNAL(clicked()), this, SLOT(pickStickColor()));
+    layout->addWidget(stickColorButton, 6, 0, 1, 2);
+
+    QLabel* stickAlphaLabel = new QLabel(tr("Stick alpha"), preferenceWidget);
+    layout->addWidget(stickAlphaLabel, 7, 0);
+
+    stickAlphaSlider = new QSlider(preferenceWidget);
+    stickAlphaSlider->setOrientation(Qt::Horizontal);
+    stickAlphaSlider->setRange(0, MAX_ALPHA_SLIDER);
+    connect(stickAlphaSlider, SIGNAL(valueChanged(int)), this, SLOT(setStickAlpha(int)));
+    layout->addWidget(stickAlphaSlider, 7, 1);
+
+    QLabel* stickSizeLabel = new QLabel(tr("Stick size"), preferenceWidget);
+    layout->addWidget(stickSizeLabel, 8, 0);
+
+    stickSizeSpinBox = new QDoubleSpinBox(preferenceWidget);
+    stickSizeSpinBox->setRange(0, MAX_SPHERE_SIZE);
+    connect(stickSizeSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setStickSize(double)));
+    layout->addWidget(stickSizeSpinBox, 8, 1);
+
     QLabel* lightLabel = new QLabel(tr("Enable lighting"), preferenceWidget);
-    layout->addWidget(lightLabel, 6, 0);
+    layout->addWidget(lightLabel, 9, 0);
 
     lightCheckBox = new QCheckBox(preferenceWidget);
     connect(lightCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setLighting(int)));
-    layout->addWidget(lightCheckBox, 6, 1);
+    layout->addWidget(lightCheckBox, 9, 1);
+
+    QLabel* drawStickLabel = new QLabel(tr("Draw sticks"), preferenceWidget);
+    layout->addWidget(drawStickLabel, 10, 0);
+
+    drawStickCheckBox = new QCheckBox(preferenceWidget);
+    connect(drawStickCheckBox, SIGNAL(stateChanged(int)), this, SLOT(setDrawStick(int)));
+    layout->addWidget(drawStickCheckBox, 10, 1);
 
     QLabel* numberLabel = new QLabel(tr("Molecule count"), preferenceWidget);
-    layout->addWidget(numberLabel, 7, 0);
+    layout->addWidget(numberLabel, 11, 0);
 
     numberBox = new QSpinBox(preferenceWidget);
     numberBox->setRange(0, 0);
     connect(numberBox, SIGNAL(valueChanged(int)), this, SLOT(setNumber(int)));
-    layout->addWidget(numberBox, 7, 1);
+    layout->addWidget(numberBox, 11, 1);
 
     preferenceWidget->setLayout(layout);
 }//setupPreferenceWidget
@@ -180,8 +218,9 @@ void BallStickView::render()
     glLightfv(GL_LIGHT1, GL_POSITION, l1_pos);
 
     int n = 0;
-    int oslice = oSliceCount * 2;
-    int hslice = hSliceCount * 2;
+    int oslice = oSliceCount * 10;
+    int hslice = hSliceCount * 10;
+    int stickslice = stickSliceCount * 10;
     float pos[3];
     float dis_ratio = 1;
 
@@ -224,6 +263,25 @@ void BallStickView::render()
                      data->atom_data[3*waters[i].H2_index+2]);
         gluSphere(quadric, _hSize, hslice, hslice);
         glPopMatrix();
+
+        if (drawStick)
+        {
+            glColor4fv(_stickColor);
+            renderCylinder(data->atom_data[3*waters[i].OH2_index],
+                           data->atom_data[3*waters[i].OH2_index+1],
+                           data->atom_data[3*waters[i].OH2_index+2],
+                           data->atom_data[3*waters[i].H1_index],
+                           data->atom_data[3*waters[i].H1_index+1],
+                           data->atom_data[3*waters[i].H1_index+2],
+                           _stickSize, stickslice, quadric);
+            renderCylinder(data->atom_data[3*waters[i].OH2_index],
+                           data->atom_data[3*waters[i].OH2_index+1],
+                           data->atom_data[3*waters[i].OH2_index+2],
+                           data->atom_data[3*waters[i].H2_index],
+                           data->atom_data[3*waters[i].H2_index+1],
+                           data->atom_data[3*waters[i].H2_index+2],
+                           _stickSize, stickslice, quadric);
+        }//if
     }//for
 }//render
 
@@ -246,6 +304,15 @@ void BallStickView::setOAlpha(int value)
     settings->setValue("BallStickView/oColorA", _oColor[3]);
 }//setOAlpha
 
+void BallStickView::setStickAlpha(int value)
+{
+    if (value > MAX_ALPHA_SLIDER) value = MAX_ALPHA_SLIDER;
+    if (value < 0) value = 0;
+    _stickColor[3] = (float)value * MAX_ALPHA_VAL / MAX_ALPHA_SLIDER;
+
+    settings->setValue("BallStickView/stickColorA", _stickColor[3]);
+}//setOAlpha
+
 void BallStickView::setHSize(double value)
 {
     if (value > MAX_SPHERE_SIZE) value = MAX_SPHERE_SIZE;
@@ -266,6 +333,16 @@ void BallStickView::setOSize(double value)
     settings->setValue("BallStickView/oSize", _oSize);
 }//setOSize
 
+void BallStickView::setStickSize(double value)
+{
+    if (value > MAX_SPHERE_SIZE) value = MAX_SPHERE_SIZE;
+    if (value < MIN_SPHERE_SIZE) value = MIN_SPHERE_SIZE;
+    _stickSize = value;
+    stickSliceCount = (_stickSize * 2 * M_PI);
+
+    settings->setValue("BallStickView/stickSize", _stickSize);
+}//setOSize
+
 void BallStickView::pickHColor()
 {
     pickColor(_hColor);
@@ -284,6 +361,15 @@ void BallStickView::pickOColor()
     settings->setValue("BallStickView/oColorB", _oColor[2]);
 }//pickOColor
 
+void BallStickView::pickStickColor()
+{
+    pickColor(_stickColor);
+
+    settings->setValue("BallStickView/stickColorR", _stickColor[0]);
+    settings->setValue("BallStickView/stickColorG", _stickColor[1]);
+    settings->setValue("BallStickView/stickColorB", _stickColor[2]);
+}//pickStickColor
+
 void BallStickView::setLighting(int state)
 {
     lighting = state != 0;
@@ -296,6 +382,12 @@ void BallStickView::setLighting(int state)
         else
             glDisable(GL_LIGHTING);
     }//if
+}//setLighting
+
+void BallStickView::setDrawStick(int state)
+{
+    drawStick = state != 0;
+    settings->setValue("BallStickView/drawStick", drawStick);
 }//setLighting
 
 void BallStickView::setNumber(int value)
