@@ -65,7 +65,7 @@ bool SplineInterframeReader::next_frame(QuantisedFrame& qframe)
 
     if(frames.size() == K)
     {   
-        double t = double(K + 1)/double(K);
+        double t = double(K)/double(K-1);
         double mt = 1.0 - t;
         
         double ct = 1.0;
