@@ -9,7 +9,7 @@ class WaterPredictor
 public:
     struct Prediction
     {
-        unsigned int O[3], H1[3], H2[3];
+        unsigned int O[3];
     };
 
     WaterPredictor(const QuantisedFrame & qframe);

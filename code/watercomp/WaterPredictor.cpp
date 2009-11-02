@@ -17,15 +17,12 @@ WaterPredictor::predict_constant(const WaterMolecule & mol) const
 
     if (mol.OH2_index == INT_MAX) {
         for (int d = 0; d < 3; d++)
-            pred.O[d] = pred.H1[d] = pred.H2[d] = 0;
+            pred.O[d] = 0;
         return pred;
     }
 
-    for (int d = 0; d < 3; d++) {
+    for (int d = 0; d < 3; d++)
         pred.O[d]  = m_qframe.at(mol.OH2_index, d);
-        pred.H1[d] = m_qframe.at(mol.H1_index,  d);
-        pred.H2[d] = m_qframe.at(mol.H2_index,  d);
-    }
 
     return pred;
 }
@@ -52,7 +49,7 @@ WaterPredictor::predict(const WaterMolecule & parent, bool along_h1) const
 
     if (parent.OH2_index == INT_MAX) {
         for (int d = 0; d < 3; d++)
-            pred.O[d] = pred.H1[d] = pred.H2[d] = 0;
+            pred.O[d] = 0;
         return pred;
     }
 
@@ -91,17 +88,8 @@ WaterPredictor::predict(const WaterMolecule & parent, bool along_h1) const
         pred_O[d] = O_pos[d] + 2.976 * O_H_unit[d];
 
 
-    // TODO We can do a better prediction for Hydrogens
-    float pred_H1[3];
-    float pred_H2[3];
-    for (int d = 0; d < 3; d++)
-        pred_H1[d] = pred_H2[d] = pred_O[d];
-
-
-    // Convert back to the quantised positions
+    // Convert back to the quantised position
     m_quantiser.quantise(pred_O, pred.O);
-    m_quantiser.quantise(pred_H1, pred.H1);
-    m_quantiser.quantise(pred_H2, pred.H2);
 
     return pred;
 }

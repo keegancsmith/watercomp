@@ -101,14 +101,9 @@ int OxygenGraph::prediction_error(int idx,
                                   WaterPredictor::Prediction & pred) const
 {
     int O  = m_waters[idx].OH2_index;
-    int H1 = m_waters[idx].H1_index;
-    int H2 = m_waters[idx].H2_index;
     unsigned int error = 0;
-    for (int d = 0; d < 3; d++) {
+    for (int d = 0; d < 3; d++)
         error += calc_delta(pred.O[d],  m_qframe.at(O,  d));
-        error += calc_delta(pred.H1[d], m_qframe.at(H1, d));
-        error += calc_delta(pred.H2[d], m_qframe.at(H2, d));
-    }
     return error;
 }
 
@@ -248,9 +243,10 @@ void OxygenGraph::serialise(Graph * tree, int root,
         int H2 = m_waters[v].H2_index;
         int error[3][3];
         for (int d = 0; d < 3; d++) {
-            error[0][d] = (int)m_qframe.at(O,  d) - pred.O[d];
-            error[1][d] = (int)m_qframe.at(H1, d) - pred.H1[d];
-            error[2][d] = (int)m_qframe.at(H2, d) - pred.H2[d];
+            unsigned int o_pos = m_qframe.at(O, d);
+            error[0][d] = (int)o_pos - pred.O[d];
+            error[1][d] = (int)m_qframe.at(H1, d) - o_pos;
+            error[2][d] = (int)m_qframe.at(H2, d) - o_pos;
         }
 
         // Write values to arithmetic encoder
@@ -334,9 +330,10 @@ void OxygenGraph::readin(SerialiseDecoder & dec,
         int H1 = waters[index].H1_index;
         int H2 = waters[index].H2_index;
         for (int d = 0; d < 3; d++) {
-            qframe.at(O,  d) = pred.O[d]  + error[0][d];
-            qframe.at(H1, d) = pred.H1[d] + error[1][d];
-            qframe.at(H2, d) = pred.H2[d] + error[2][d];
+            unsigned int o_pos = pred.O[d]  + error[0][d];
+            qframe.at(O,  d) = o_pos;
+            qframe.at(H1, d) = o_pos + error[1][d];
+            qframe.at(H2, d) = o_pos + error[2][d];
         }
     }
 
