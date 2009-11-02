@@ -5,7 +5,7 @@ import os.path
 import sys
 
 PERMUTATIONS = 'null best naive interframe delta'.split()
-DCDS = 'mscl smallwater mscl1000atoms mscl5frames'.split()
+DCDS = 'mscl smallwater mscl1000atoms mscl5frames gala_pmf'.split()
 
 CMD_PATH = os.path.abspath(sys.argv[0])
 WORKING_DIR = os.path.dirname(os.path.dirname(CMD_PATH))

@@ -98,8 +98,6 @@ the structure of water.
 
 \chapter{Background}
 
-% TODO Need to introduce MD format, since you refer to them later
-
 \todo update for new sections. When updating fix tense and ``we'' usage
 
 This section introduces common techniques used in point cloud compression
@@ -109,6 +107,7 @@ compression. Finally, we will conclude with two general categorisations of
 what the compression algorithms exploit.
 
 \section{Molecular Dynamics Format}
+\label{sec:molec-dynam-form}
 
 There are several Molecular Dynamics Simulations formats in use. The most
 common format is the binary DCD file. DCD is also the default format used in
@@ -303,11 +302,14 @@ predictor used, the best predictor is picked for each point. This requires the
 predictor used at each point to be encoded, which is discussed next.
 
 
-\subsection{Serialization}
-\label{sec:serialization}
+\subsection{Serialisation}
+\label{sec:serialisation}
 
 Unlike meshes, point clouds have no connectivity information. So there is no
-obvious order to serialize the vertices' information (generally residuals).
+obvious order to serialize the vertices' information (generally residuals). By
+creating a spanning tree of the points, serialisation can occur by walking the
+graph. The tree also needs to be encoded so decoding can recover the tree to
+do the walk.
 
 \citep{gumholdcomp} create a rooted spanning tree of the points. The points
 are first sorted along the $x, y$ or $z$ axis. The tree is then greedily
@@ -545,20 +547,21 @@ prediction scheme should result in better compression.
 
 \chapter{Design and Implementation}
 
-\todo Need to justify decisions, not just list them! \\
+This chapter outlines the design and implementation of our compressor and
+decompressor. The compression techniques investigated only cover intra-frame
+compression. Intra-frame compression is where compression occurs per frame
+independently of the other frames. Reference implementations of other schemes,
+inter-frame compression as well as visualisation is also implemented, as such
+the design needs to take into account these uses. Components outside of the
+scope of intra-frame compression will not be covered in detailed.
 
-This chapter outlines the design of our compressor and decompressor. The
-compression techniques investigated only cover intra-frame
-compression\footnote{Intra-frame compression is where we compress each frame
-  independently of the other frames.}, but our final product handles
-multiframe compression and visualisation as well. As such the design needs to
-take into account these uses, but components outside of the scope of
-intra-frame compression will not be covered.
+The main contribution of this report is a predictive encoder targeting water
+molecules. The compressor is referred to as the Water Compressor.
 
 \section{Overview}
 
 Compression is done on the DCD/PDB format, which is a format for storing MD
-simulations. DCD files are readable by VMD. \todo references.
+simulations. DCD files are explained in Section \ref{sec:molec-dynam-form}.
 
 A high-level overview of how data flows in the compressors is illustrated by
 the following: \todo replace with pretty picture similiar to the FBI
@@ -584,13 +587,9 @@ in the MD simulation files. Julian Kenwood implemented
 
 \subsection{Dependencies}
 
-\todo Implementation chapter \\
-
 All development was done on Linux, but no Linux or POSIX specific APIs where
 used. So the implementation should be cross platform barring library
 dependencies which are not.
-
-\todo References
 
 \paragraph{C++}
 C++ fits the requirements of this project since compressors need to be fast
@@ -598,13 +597,14 @@ and all the authors are competent with it. Development was done with GCC 4.x.
 
 \paragraph{ANN}
 ANN is a library for approximate nearest neighbor searching. It is used to
-speed up graph creation where locality of points is important.
+speed up graph creation where locality of points is important. \citep{ann}
 
 \paragraph{VMD DCD Loader Plugin}
-This plugin is used to read and write DCD files.
+This plugin is used to read and write DCD files. \citep{vmd}
 
 
 \section{Components}
+\label{sec:components}
 
 A component-based approach was used to design the compressor and
 decompressor. This is because the algorithm can be broken up into distinct
@@ -616,48 +616,61 @@ The different components are the following:
 
 \paragraph{Simulation I/O}
 
-These components handle I/O to and from the files we are compressing. We are
-compressing DCD files. DCD files come with accompanying PDB file, which
-contains info about what each atom is in the DCD file.
+These components handle I/O to and from the files we are compressing. The VMD
+DCD loader plugin is used to load the DCD files. Implemented is also a PDB
+reader for determining what each atom is in the DCD file. DCD is used since it
+is the prevalent format used for storing simulation data, and it is well
+supported in VMD.
 
 
 \paragraph{Arithmetic Coder}
 
-The ``meat'' of all the compression schemes convert the input into a symbol
-stream (where the symbols are from a fixed alphabet). These symbols are then
-compressed with an arithmetic encoder. Similarly the decompressor takes a
-symbol stream and converts it into the original input.
+The water compression scheme as well as the point cloud schemes use arithmetic
+encoding for encoding the residuals and tree. The usual approach of the
+implementation of the arithmetic coder is used, where the encoder and the
+model are separated.
 
-The arithmetic coder has two parts to it, a \emph{reader} and a
-\emph{writer}. The \emph{reader} and the \emph{writer} are inverses to each
-other, with the \emph{reader} converting a symbol stream to a bit stream and
-the \emph{writer} converting a bit stream to a symbol stream.
+The range of the residuals in the predictive schemes as well as the number of
+different residuals is not known before hand. As such we use a novel approach
+for an adaptive arithmetic model. We use an approach similiar to the technique
+by \citep{cormack1984algorithms} used in Adaptive Huffman Encoding. The
+adaptive model initially only has one symbol meaning ``new'' symbol. When
+encoding if there is a new symbol, the ``new'' symbols is encoded followed by
+a raw representation of the new symbol. By using a trie and a modification of
+Fenwick trees insertion of new symbols into the model is $O(n \log n)$ where
+$n$ is the number of seen symbols.
 
 The encoder by \citep{omeltchenko2000sls} does not make use of an Arithmetic
-Coder, instead it uses its own coder. Every other encoder uses the arithmetic
-encoder.
+Coder, instead it uses its own entropy coder. Every other encoder uses the
+arithmetic encoder.
 
 
 \paragraph{Quantiser}
 
-The quantiser is responsible for quantising and dequantising a frame. A frame
-is a collection of points in three dimensional space. Each coordinate of the
-point is specified as a floating point value. The quantiser takes in as input
-a number $b$. It then converts each floating point value to a $b$-bit integer.
+The quantiser is responsible for quantising and dequantising a frame. The
+quantiser takes in as input a number $b$. The quantiser quantises each
+dimension independently using linear quantisation. The number of cells it
+divides each dimension into is $2^b$. So after quantisation each coordinate
+becomes a $b$-bit integer.
 
-Converting the floating point value to an integer introduces error. This is
-the only step which is lossy. It is necessary to quantise since we need the
-prediction residuals to be small and common. Without quantisation the
-residuals will be close, but not the same. This leads poorer compression.
+Linear quantisation is chosen since the water compressor (as well as the other
+predictive compressor) require locality of the points to be
+preserved. Quantisation is also necessary since small differences in
+predictive residuals should be treated as the same for better entropy
+encoding.
 
-\todo what a frame is should be explained in background.
+Converting the floating point values to integers introduces error. But for the
+predictive schemes to be effective it is necessary. This is the only step
+which is lossy. In the literature if the only lossy step is quantisation, the
+algorithm is still referred to as lossless.
 
 
 \paragraph{Permutations}
 
 When decompressing we need to recover the atoms in the same order they are
-listed in the original DCD file. How we recover the order is explained in
-Section \ref{sec:compr-perm}.
+listed in the original DCD file. The water compressor as well as the other
+predictive point cloud schemes do not recover the original order. How we
+recover the order is explained in Section \ref{sec:compr-perm}.
 
 
 \paragraph{Compressors}
@@ -667,138 +680,14 @@ compressor presented in this report and the three reference compressors:
 \citep{omeltchenko2000sls}, \citep{gumholdcomp} and \citep{devillers2000gci}.
 
 
-\section{Water Compressor}
+\paragraph{Verifiers}
 
-This section details the algorithm of the water compressor and is the main
-contribution of this report. This algorithm is implemented as a compressor
-component and uses the components detailed in the last section.
+Verifiers are for testing whether a compression scheme is working. Given a DCD
+file and a decompressed DCD file, if the files match when quantised then the
+compressor is working. There is the possibility of floating point error which
+will say the files do not match. This happens really and the so the frames
+which do not match can be inspected manually to see if they are the same.
 
-The compressor processes each quantised frame in order. This algorithm is an
-intra-frame compressor, and as such only compresses using information
-contained in the frame.
-
-The algorithm is similiar to the predictive point cloud compressors of
-\citep{gumholdcomp} and \citep{merrycomp}. The following is a high level
-overview of the algorithm:
-
-\begin{verbatim}
-CompressFrame(list_of_atoms_in_frame, arithmetic_encoder):
-  list_of_water_molecules = FindWater(list_of_atoms_in_frame)
-  list_of_other_atoms = FindNonWater(list_of_atoms_in_frame)
-  compress(list_of_other_atoms, arithmetic_encoder)
-  water_graph = CreateGraph(list_of_water_molecules)
-  spanning_tree = CreateSpanningTree(water_graph)
-  TreeSerialise(spanning_tree, arithmetic_encoder)
-\end{verbatim}
-
-\noindent Similarly decompression uses this algorithm:
-
-\begin{verbatim}
-DecompressFrame(arithmetic_decoder):
-  list_of_other_atoms = decompress(arithmetic_decoder)
-  list_of_water_atoms = TreeDeserialise(arithmetic_decoder)
-  return list_of_other_atoms + list_of_water_atoms
-\end{verbatim}
-
-\todo once we get more substantial results we can pick which point cloud compressor to use
-
-Each part of the high level overview is explained in the rest of this section.
-
-
-\subsection{Finding Water Molecules}
-
-The PDB file associated with a DCD file contains information on which atoms a
-given atom is bonded to. Using the PDB file we find all oxygen atoms which are
-bonded to two hydrogen atoms. This section was implemented in the Simulation
-I/O component.
-
-
-\subsection{Water Predictors}
-
-The predictors are based on the models of water dimers explained in the
-background chapter. There are three predictors used, the constant predictor
-and the two hydrogen predictors.
-
-Let $O, H_1, H_2$ be the predictions for where the water molecule will be and
-let $O', H'_1, H'_2$ be the water molecules parent.
-
-\paragraph{Constant Predictor}
-The constant predictor predicts $O, H_1, H_2$ to be at $O'$.
-
-\paragraph{Hydrogen Predictor}
-The hydrogen predictor predicts along $O'-H'_1$ or $O'-H'_2$. We simplify the
-model in Figure \ref{fig:dimer-angle} and assume $\alpha$ is $0\degree$. We
-predict $O$ to be at $O' + 2.976\frac{O'-H'_i}{|O'-H'_i|}$. Due to the large
-variability of $\beta$ in Figure \ref{fig:dimer-angle} we predict $H_1$ and
-$H_2$ to be at $O$ in both predictors.
-
-
-\subsection{Creating the Water Graph}
-
-A directed graph is created of the water molecules. The water molecules are
-the verticies of the graph. There is an edge from $O$ to $O'$ if $O'$ is a
-candidate for good prediction from $O$.
-
-The graph is created iteratively. There is an edge between two water molecules
-if their respective oxygen atoms are within $3\AA$. Due to the forces involved
-the number of oxygen atoms within $3\AA$ is small. Na\"{\i}vely this takes
-$O(N)$ where $N$ is the number of water molecules. To speed this up a kd-tree
-is created of the molecules. A molecule's position is the position of its
-oxygen atom. Using the kd-tree the search takes approximately $O(\log(N))$
-where $N$ is the number of water molecules. This is done per molecule so the
-overall complexity of graph creation is $O(N\log(N))$.
-
-
-\subsection{Creating the Spanning Tree}
-
-\todo needs psuedocode
-
-\todo this explains the current method. improvements: do a MST to connect
-forest. Be less greedy with predictions, don't encode everything it is
-connected to. Maybe use dijkstra modification instead of a BFS
-
-This stage takes the graph and creates a directed spanning tree. Each edge
-indicates which predictor is used.
-
-The graph is not necessarily connected, so a tree is created for each
-component. A root vertex is arbitrarily selected. Then each tree in the forest
-is connected to it with the constant predictor. The serialiser needs to know
-what the root is.
-
-For each component a root is arbitrarily picked. Then a BFS starts at the
-root. For each vertex every unseen vertex is greedily assigned the predictor
-which gives the smallest residual. The unseen vertex is then set to seen and
-added to the queue. When the queue is empty every vertex in the component has
-been visited.
-
-
-\subsection{Tree Serialisation}
-
-\todo This section needs a lot of improvement
-
-This stage writes the spanning tree to the file. It encodes the spanning tree
-in BFS order starting at the root. For each water molecule it does the following:
-
-\begin{verbatim}
-predictions = get_predictions(water_molecule)
-errors = water_molecule.positions - predictions
-error_encoder.encode(errors)
-
-permutation_encoder.encode(water_molecule.index)
-
-for child in water_molecule.children_verticies:
-  child.parent = water_molecule
-  tree_encoder.encode(child.predictor)
-  bfs_queue.push(child)
-tree_encoder.encode(end of children sentinal)
-\end{verbatim}
-
-
-\subsection{Tree Deserialisation}
-
-\todo
-
-\chapter{Random sections to be integrated properly}
 
 \section{Compressing Permutations}
 \label{sec:compr-perm}
@@ -939,26 +828,254 @@ permutation increases, the gains made by the optimal scheme decrease.
 \end{table}
 
 
+\section{Water Compressor}
 
+This section details the algorithm of the water compressor and is the main
+contribution of this report. The encoder is implemented as a compressor
+component and uses the components detailed in the Section
+\ref{sec:components}.
 
-\section{Verifiers}
+The compressor processes each quantised frame in order. This encoder is a
+predictive intra-frame encoder, and as such only compresses using information
+contained in the frame.
 
-Once a DCD file has been compressed and then decompressed we have a DCD file
-approximating the original DCD file. The compressor is expected to be lossless
-once quantisation has occurred. So to verify a compressor on a DCD file the
-following process is done:
+The algorithm is similiar to the predictive point cloud compressors of
+\citep{gumholdcomp} and \citep{merrycomp}. The following is a high level
+overview of the algorithm:
 
 \begin{verbatim}
-Verify(Compressor comp, Quantiser quant, DCD dcd):
-  dcd_quant1 = quant.quantise(dcd)
-  dcd_quant2 = comp.decompress(comp.compress(dcd_quant1))
-  return dcd_quant1 == dcd_quant2
+CompressFrame(list_of_atoms_in_frame, arithmetic_encoder):
+  list_of_water_molecules = FindWater(list_of_atoms_in_frame)
+  list_of_other_atoms = FindNonWater(list_of_atoms_in_frame)
+  compress(list_of_other_atoms, arithmetic_encoder)
+  water_graph = CreateGraph(list_of_water_molecules)
+  spanning_tree = CreateSpanningTree(water_graph)
+  TreeSerialise(spanning_tree, arithmetic_encoder)
 \end{verbatim}
 
-Note that \emph{quant.dequantise(dcd\_quant2)} will not likely be equal to
-\emph{dcd}. This is because the quantisation stage is lossy.
+\noindent Similarly decompression uses this algorithm:
+
+\begin{verbatim}
+DecompressFrame(arithmetic_decoder):
+  list_of_other_atoms = decompress(arithmetic_decoder)
+  list_of_water_atoms = TreeDeserialise(arithmetic_decoder)
+  return list_of_other_atoms + list_of_water_atoms
+\end{verbatim}
+
+\todo once we get more substantial results we can pick which point cloud
+compressor to use
+
+An explanation of each step follows, along with motivation of why each step is
+done.
+
+
+\subsection{Finding Water Molecules}
+
+The PDB file associated with a DCD file contains information on which atoms a
+given atom is bonded to. Using the PDB file the encoder finds all oxygen atoms
+which are bonded to two hydrogen atoms. This section was implemented in the
+Simulation I/O component.
+
+The implementation returns two lists: a list of water molecule indicies and a
+list of other atom indicies. Every water molecule is specified as the indicies
+in the frame of its corresponding oxygen and hydrogen atoms. Every index which
+is not in a water molecule is stored in the second list.
+
+The splitting between water molecules and other atoms is done so that
+compression of water molecules and the other atoms can be done using different
+encoders. The water compression predictors target water atoms, so a more
+general compression method is used on the other atoms.
+
+
+\subsection{Water Predictors}
+
+The predictors are based on the models of water dimers explained in the
+background chapter. There are three predictors used, the constant predictor
+and the two hydrogen predictors.
+
+Let $O, H_1, H_2$ be the predictions for where the water molecule will be and
+let $O', H'_1, H'_2$ be the water molecules parent.
+
+\paragraph{Constant Predictor}
+The constant predictor predicts $O, H_1, H_2$ to be at $O'$. This predictor is
+included since occasionally the hydrogen bond is broken (molecule information
+remains static from the start of the simulation). If the bonds are broken the
+hydrogen predictors are far less accurate than the constant predictor.
+
+\paragraph{Hydrogen Predictor}
+The hydrogen predictor predicts along $O'-H'_1$ or $O'-H'_2$. We simplify the
+model in Figure \ref{fig:dimer-angle} and assume $\alpha$ is $0\degree$. Then
+$O$ is predicted to be at $O' + 2.976\frac{O'-H'_i}{|O'-H'_i|}$. $H_1$ and
+$H_2$ are predicted to be at $O$ in both predictors due to the large
+variability of $\beta$ in Figure \ref{fig:dimer-angle}.
+
+
+\subsection{Creating the Water Graph}
+
+Creating the spanning tree is $O(E \log E)$, where $E$ is the number of edges
+in the graph. When creating the spanning tree, each molecule's predictions are
+compared to all of its neighbours. If the graph created is the complete graph,
+E is $O(N^2)$, where $N$ is the number of water molecules. This is two
+inefficient for large scale simulations.
+
+So the purpose of the graph creation is to efficiently minimise the degree of
+the verticies (and hence $E$), while maintaining the neighbours which predict
+well against the predictors.
+
+The neighbours which predict well against a water molecule are related to the
+spatial locality of the oxygens. So the approximation used is to add edges
+between all molecule pairs where the oxygens are within $3\AA$. The degree of
+a vertex is then a small number (typically less than 5 from
+experimentation). The number of edges created is usually $O(N)$.
+
+The na\"{i}ve implementation of graph creation would compare each molecule
+against every other yielding a $O(N^2)$ algorithm. This is too slow. Instead a
+kd-tree is used to create the graph. The kd-tree is populated with the oxygen
+positions. Then using ANN's approximate fixed radius search one can find all
+other oxygens within approximately $3\AA$. Creating the graph requires $O(N
+\log N)$ time. The fixed radius search takes approximately $O(\log N)$
+time. The search is done per molecule, so the overall time complexity for
+graph creation is $O(N \log N)$. The algorithm is as follows:
+
+\begin{verbatim}
+createGraph(list_of_water_molecules):
+  graph = graph of water molecules
+  kdtree = KDTree(list_of_water_molecules.O_pos)
+  for cur_mol in list_of_water_molecules:
+    radius = 3 angstroms
+    for mol in kdtree.fixed_radius_search(cur_mol.O_pos, radius):
+      graph.addEdge(cur_mol, mol)
+  return graph
+\end{verbatim}
+
+
+
+\subsection{Creating the Spanning Tree}
+
+The order in which we serialise the points, and which predictor is used for
+each point is not obvious from the graph created in the previous section. A
+directed tree is used since each molecule is predicted by one other
+molecule. The edge $O' \to O$ indicates that $O$ is predicted using the
+position of $O'$.
+
+The graph is not necessarily connected, so a spanning tree is created for each
+component. A root vertex is arbitrarily selected. Then each tree in the forest
+is connected to the root with the constant predictor. Each edge $O' \to O$ is
+labelled with what predictor was used to predict $O$ from $O'$.
+
+For each component a root is arbitrarily picked. The tree is then created by
+using a modification of Dijkstra. The priority queue stores potential edges,
+and sorts by the residual from the prediction. When a potential edge $O' \to
+O$ is removed from the queue, it is added to the spanning tree if $O$ is not
+already in it. The algorithm is illustrated by the following:
+
+\begin{verbatim}
+create_spanning_component(graph, tree, component_root, root):
+  priority_queue q
+  q.add(0, component_root -> root, constant)
+  while q not empty:
+    residual, v' -> v, p = q.pop()
+
+    if v not in tree:
+      tree add edge v' -> v with predictor p
+
+    predictions = { constant_predictor(p),
+                    h1_predictor(p),
+                    h2_predictor(p) }
+
+    for u in graph[v].children:
+      if u in tree:
+        continue
+
+      residual, predictor = smallest_residual(u, predictions)
+
+      q.add(residual, v -> u, predictor)
+\end{verbatim}
+
+This algorithm is $O(E \log E)$ since for every edge in the graph, a potential
+edge is added to the queue. In the implementation an optimisations is used
+which reduces the complexity to approximately $O(N \log E)$. The smallest seen
+residuals is kept for each molecule. Then a potential edge $v \to u$ is only
+added if the residual is less than the current smallest residual for $u$.
+
+
+\subsection{Tree Serialisation}
+
+This stage encodes the predictions and spanning tree. The predictions are
+encoded in breadth first order. The spanning tree is also encoded since it is
+required to reconstruct the what each molecule is predicted from. The BFS then
+starts at the root of the spanning tree and for each molecule in the BFS the
+following happens:
+
+\begin{verbatim}
+process(O' -> O, predictor):
+  prediction  = prediction(O', predictor)
+  O_residual  = water_molecule.oxygen - prediction
+  H1_residual = water_molecule.hydrogen1 - water_molecule.oxygen
+  H2_residual = water_molecule.hydrogen2 - water_molecule.oxygen
+
+  residual_encoder.encode({ O_residual, H1_residual, H2_residual })
+  permutation_encoder.encode(water_molecule.index)
+
+  for pred, child in O.children:
+    tree_encoder.encode(pred)
+    bfs_queue.push(O -> child, pred)
+  tree_encoder.encode(sentinel)
+\end{verbatim}
+
+The root does not have a predictor, so by default the constant predictor will
+predict the position to be $(0,0,0)$.
+
+
+\paragraph{Deserialisation}
+
+The tree deserialisation is the reverse of the serialisation. It populates a
+quantised frame with the following algorithm:
+
+\begin{verbatim}
+q = queue()
+q.push(NULL, constant_predictor)
+
+while q not empty:
+  parent, predictor = q.pop()
+
+  prediction  = predict(parent, predictor)
+  O_position  = residual_decoder.decode() + prediction
+  H1_residual = residual_decoder.decode() + O_position
+  H2_residual = residual_decoder.decode() + O_position
+
+  index = permutation_decoder.decode()
+  water_molecules[index].oxygen    = O_position
+  water_molecules[index].hydrogen1 = H1_position
+  water_molecules[index].hydrogen2 = H2_position
+\end{verbatim}
+
+
+
+\chapter{Random sections to be integrated properly}
+
+\section{Future Work}
+
+\paragraph{Parallelism}
+
+The intra-frame compressor works independently of each frame. This allows
+parallising over frames.
+
+\paragraph{General Molecular Dynamics Predictors}
+
+Running an approximate simulation and using the positions it obtains as
+predictors should give good general predictors. This also does not need to
+store the permutation information.
+
+\paragraph{Better joining of components in spanning tree}
+
+The water compressor implementation joins up the components by adding an edge
+to a route. Explore ways of joining up better. Possible ways include using a
+MST of the components or encoding the components separate to the errors.
 
 \nocite{*}
 \bibliography{report_keegan}
 
 \end{document}
+
+% LocalWords:  oxygens Deserialisation deserialisation

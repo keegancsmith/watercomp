@@ -216,7 +216,7 @@ void OxygenGraph::serialise(Graph * tree, int root,
     queue<int> q;
     q.push(root);
 
-    enc.err_encoder.encode_int(predictions[root]);
+    enc.tree_encoder.encode_int(predictions[root]);
 
     while(!q.empty()) {
         int v = q.front();
@@ -286,7 +286,7 @@ void OxygenGraph::readin(SerialiseDecoder & dec,
     int nWaters = waters.size();
     int count = 0;
 
-    int root_predictor = dec.err_decoder.decode_int();
+    int root_predictor = dec.tree_decoder.decode_int();
 
     queue< pair<int, int> > q;
     q.push(make_pair(-1, root_predictor));
