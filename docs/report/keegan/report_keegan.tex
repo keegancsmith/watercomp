@@ -1,13 +1,14 @@
 \documentclass{report}
 
+% Misc packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{multirow}
+
 % Better font
 \usepackage[protrusion=true,expansion=true]{microtype}
 \usepackage[T1]{fontenc}
 \usepackage{pxfonts}
-
-% Misc packages
-\usepackage{graphicx}
-\usepackage{multirow}
 
 % Clickable links
 \usepackage{hyperref}
@@ -62,8 +63,6 @@ Intra-frame Compression of Molecular Dynamics Simulations of Water
 \end{center}
 \end{titlepage}
 
-% TODO citation style
-
 
 \section*{Abstract}
 Molecular dynamics (MD) simulations generate vast amounts of data. A typical
@@ -99,13 +98,7 @@ the structure of water.
 
 \chapter{Background}
 
-% TODO Perhaps have a section to introduce new concepts near the start of the
-% bg or do this as they are introduced.
-
 % TODO Need to introduce MD format, since you refer to them later
-
-% TODO Basic compression intro + details on entropy coding, AC,
-% quantisation/dequantisation, etc. -> Some overlap with Julian
 
 \todo update for new sections. When updating fix tense and ``we'' usage
 
@@ -115,6 +108,138 @@ applied. We discuss how to apply these techniques to water molecule
 compression. Finally, we will conclude with two general categorisations of
 what the compression algorithms exploit.
 
+\section{Molecular Dynamics Format}
+
+There are several Molecular Dynamics Simulations formats in use. The most
+common format is the binary DCD file. DCD is also the default format used in
+Visual Molecular Dynamics (VMD) \citep{vmd}. VMD is a molecular visualisation
+program for displaying, animating, and analyzing molecular dynamics
+simulations. VMD also relies on an accompanying PDB file to display the DCD
+file.
+
+There are multiple variations on the format of a DCD file, but they all store
+the points in effectively the same way. VMD can handle two major variants,
+CHARMm and X-PLOR, but VMD defaults to X-PLOR \citep{vmddcdformat}.
+
+The DCD header contains at least the number of atoms and frames in the
+simulations. Every atom is assigned an index $i$ between $0$ and $\#atoms -
+1$. Each frame is then stored as an array of floating point values of size $3
+\times \#atoms$. The location of atom $i$ is then stored at indicies $3 \times
+i$ to $3 \times i + 2$ (storing the $x, y$ and $z$). Atom $i$ will always
+occur at index $3 \times i$ in every frame.
+
+The DCD file does not contain information on what each atom actually is. An
+accompanying PDB files contains information on what each atom $i$ is.
+
+
+\section{Compression}
+
+Compression is the process of encoding information such that it uses less
+storage than the unencoded form.
+
+Compression algorithms can be either lossy or lossless. Lossless compression
+algorithms do not ``lose'' any information during the encoding and decoding
+process. An example of lossless compression is the Zip data compressor. Lossy
+compression algorithms can ``lose'' information during the encoding and
+decoding stages, but give approximations of the original information. An
+example of a lossy compression algorithm is DivX for video compression.
+
+\subsection{Entropy Encoders}
+
+Entropy encoders attempt to optimally encode symbols as bits. A familiar
+example of an entropy encoder is Huffman Encoders. Given $n$ symbols
+$\left\{x_1, \dots x_n \right\}$ each with corresponding probabilities
+$\left\{p_1, \dots p_n \right\}$, Huffman Encoding assigns each $x_i$ a binary
+codeword $c_i$ such that:
+\begin{enumerate}
+  \item $p_i < p_j$ implies that $|c_j| \le |c_i|$ where $|c|$ is the length
+    of the codeword $c$.
+  \item There is no $c_i$ such that it is a prefix of $c_j$
+\end{enumerate}
+\citep{huffman1952method}
+
+Huffman Encoding generates an optimal encoding which have the two listed
+properties. Generation of the code takes $O(n \log n)$ time and $O(n)$ space.
+
+Huffman Encoding has three main shortcomings. The first two problems are that
+it requires the probabilities of each symbol and it needs to store the mapping
+for decoding. Both of these problems are remedied by Adaptive Huffman Encoders
+\citep{drozdek,vitter1987}. Adaptive Huffman Encoders start with every symbol
+having equal probability, and then proceed to efficiently update the
+probabilities as each symbol is encoded.
+
+The final shortcoming is that each symbol is mapped to a prefix-free binary
+codeword. The amount of wastage caused by this could be as much as one bit per
+symbol. Arithmetic Coding is an alternative approach which can encode a symbol
+as a fractional amount of bits \citep{drozdek}. Arithmetic Coding achieves
+this by encoding the entire message as a rational number in $[0,1)$. Each
+  symbol $x_i$ is assigned a disjoint subrange of $[0,1)$ with size $p_i$.
+
+Encoding is done by adjusting the lower and upper bound of what the encoded
+rational number will be. Initially the lower bound is $l=0$ and the upper
+bound is $u=1$. Then when encoding a symbol $x_i$ which is assigned the range
+$[a,b)$ the bounds are adjusted to
+\begin{align*}
+  l' & = l + a * (u-l) \\
+  u' & = l + b * (u-l)
+\end{align*}
+
+Arithmetic coding has a similiar shortcoming to Huffman Encoding, in that it
+requires the probabilities of each symbol and needs to store the
+probabilities. This can be overcome by using an Adaptive Arithmetic Encoder
+\citep{drozdek}. Initially all symbols have equal probability and as each
+symbol is encoded the ranges are updated.
+
+Implementations of Arithmetic Encoding usually separate out the model and the
+encoder. The model keeps track of what the probabilities of each symbol are,
+while the encoder writes out the rational. The encoder does not store the full
+rational, but instead writes out each bit of the binary decimal expansion. It
+can write the bit when the lower bound is such that the bit will not
+change. Encoding and decoding is $O(1)$.
+
+The static model is just a look-up table of the probabilities, so can be
+implemented to be $O(1)$. The adaptive model uses Fenwick trees to update and
+query frequencies in $O(\log n)$ time.
+
+
+\subsection{Quantisation}
+
+The data encoded by the algorithms in this report are usually stored as
+floating point values. A process called \emph{quantisation} reduces the
+precision of a floating point value to an integer value
+\citep{ag-racm-03}. \emph{Dequantisation} converts the integer value back into
+an approximation of the original floating point value. Quantisation is
+inherently lossy.
+
+If the bounds of the data are known, then the range of the data can be
+uniformly divided up. Then each sample is assigned the index of the range it
+falls into \citep{drozdek}. This is called \emph{linear quantisation}. By
+storing the bounds and the number of buckets the range is divided up into,
+original values can be approximated.
+
+There are more complex methods reviewed by \citep{ag-racm-03}. These lie
+outside the scope of the report.
+
+
+\subsection{Predictive Coding}
+
+Predictive coders exploit inter-correlation of data to do compression
+\citep{drozdek}. If the data is points then neighbouring points are
+inter-correlated. So using the encoded neighbouring points, a predictive
+encoder would predict where the point is. The encoder would then encode the
+difference between the points location and its predicted location (known as
+the residual).
+
+Linear quantisation preserves the inter-correlation of the points. So if the
+points are quantised first, then the residuals can be encoded using an entropy
+encoder such as an arithmetic coder. If the predictor is accurate, the
+residuals will mostly be small values. So the probability of the small values
+will be high, leading to good compression.
+
+Using the residuals and the predictions the decoder can reconstruct the point
+locations.
+
+
 \section{Point Cloud Compression}
 
 A point cloud is a collection of point locations in 3D space. Research has
@@ -122,12 +247,21 @@ concentrated on point clouds of surfaces since point clouds are usually
 generated from 3D scans of object surfaces. A surface is the ``skin'' of an
 object, i.e. the boundary of a solid object.
 
-\cite{gumholdcomp} create a tree of the points that exploit the knowledge that
+Every point cloud compressor in this report (except \citep{chen2005lcp}) first
+quantise the points using linear quantisation. Linear quantisation of points
+involves quantising each coordinate separately and uniformly in Cartesian
+space. This can be visualised as creating an evenly-spaced grid over the
+dimensions of the space, and snapping the points to the closest grid point. In
+all the point cloud compressors reviewed, this is the only lossy
+step. \citep{chen2005lcp} gets around quantisation by treating the 32-bit
+floating point numbers as 32-bit integers.
+
+\citep{gumholdcomp} create a tree of the points that exploit the knowledge that
 the points lie on a surface. They do not, however, use predictors which
-exploit this. \citet{merrycomp} extend this by using predictors which do
+exploit this. \citep{merrycomp} extend this by using predictors which do
 exploit the rectilinear nature of surface scans.
 
-\citet{omeltchenko2000sls} compress point clouds from molecular dynamics
+\citep{omeltchenko2000sls} compress point clouds from molecular dynamics
 simulations. To exploit the density of the point clouds, a space filling curve
 is created along the quantised positions. A space filling curve is one that
 touches every point in a discrete space. The space filling curve used by
@@ -136,48 +270,12 @@ division. Then by encoding the difference between successive indicies which
 contain points, they generate consistently small differences leading to good
 compression rates.
 
-\todo possibly define mesh at beginning
-
-A mesh is a collection of vertices, edges and faces defining a 3D
-object. \citet{devillers2000gci} compress meshes of 3D models. The method they
-use only considers point locations, so it can be used for point cloud
+\citep{devillers2000gci} compress meshes of 3D models. A mesh is a collection
+of vertices, edges and faces defining a 3D object. The method they use only
+considers point locations, so it can be used for point cloud
 compression. Their method exploits a property of kd-trees, instead of general
 geometric properties.
 
-% TODO from here to...
-
-\section{Quantisation}
-
-\todo need to add stuff on linear quantisation etc. Check quantisation section
-in compression textbook
-
-Point cloud data usually stores the point coordinates in a floating point
-format. Most geometric compression algorithms reduce the precision to achieve
-better compression rates. This reduction of precision is called
-\emph{quantisation} \citep{ag-racm-03}. Every algorithm reviewed in this paper
-that uses quantisation, quantises the vertex positions for each coordinate
-separately and uniformly in Cartesian space. This can be visualized as
-creating an evenly-spaced grid over the dimensions of the space, and snapping
-the points to the closest grid point. This is the most na\"{\i}ve method, but
-there are more complex methods reviewed by \citep{ag-racm-03}. These lie
-outside the scope of this survey. \citet{chen2005lcp} gets around quantisation
-by treating the 32-bit floating point numbers as 32-bit integers.
-
-
-\section{Predictive Encoding}
-
-Predictive compressors try to predict where a point is and then encode the
-difference between its actual location and the predicted location (known as
-the residual). These residuals are then encoded such that the decompressor can
-calculate the point's location by the prediction added to the
-residual. Entropy coding\footnote{Entropy encoding is a lossless compression
-  scheme that does not exploit any characteristics of the underlying data.} is
-usually applied to the encoding of residuals. If the chosen predictor(s)
-exploit contextual information well, the residuals should have a low
-entropy\footnote{A low entropy means we can predict what a residual will be
-  well.}  leading to higher compression ratios.
-
-% ... here is general compression stuff and should be put earlier
 
 \subsection{Predictors}
 
@@ -187,13 +285,13 @@ predictor(s) are used and will be described in \ref{sec:serialization}. For
 each point $v$ in the spanning tree let $v'$ be the point's parent and $v''$
 be the point's grandparent.
 
-\citet{gumholdcomp} lets the user choose between two predictors. The first is
+\citep{gumholdcomp} lets the user choose between two predictors. The first is
 a \emph{constant} predictor where $v$ is predicted to be at $v'$. The second
 is a \emph{linear} predictor where $v$ is predicted to be at $v' + (v' -
 v'')$. So either $v$ is in the same place as its parent, or it is along the
 straight line $(v', v'')$ with distance $|v'-v''|$ away from its parent.
 
-\citet{merrycomp} use the same predictors as \citep{gumholdcomp} but with two
+\citep{merrycomp} use the same predictors as \citep{gumholdcomp} but with two
 additional predictors, the \emph{left} and \emph{right} predictors. The
 surface normal\footnote{A surface normal at a point $v$ is the normal of the
   plane tangent to the surface at $v$.} $n_v$ at $v$ is heuristically
@@ -211,13 +309,13 @@ predictor used at each point to be encoded, which is discussed next.
 Unlike meshes, point clouds have no connectivity information. So there is no
 obvious order to serialize the vertices' information (generally residuals).
 
-\citet{gumholdcomp} create a rooted spanning tree of the points. The points
+\citep{gumholdcomp} create a rooted spanning tree of the points. The points
 are first sorted along the $x, y$ or $z$ axis. The tree is then greedily
 created by picking the first point as a root and then adding each successive
 point to the vertex which minimises the residual. The tree is then serialized
 by entropy encoding the out degree of each vertex in breadth-first order.
 
-\citet{merrycomp} also create a rooted spanning tree of the points, but in a
+\citep{merrycomp} also create a rooted spanning tree of the points, but in a
 way that favours ``long runs'' of the forward predictor. They need to encode
 the predictor used at each point, so encoding the tree as \citep{gumholdcomp}
 did will not work. Instead the tree is serialized by entropy coding the
@@ -231,7 +329,7 @@ but instead using a metric\footnote{A metric is a way to calculate the
   distance between vertices.} that favours recently considered vertices and
 ones predicted well by the forward predictor.
 
-\citet{chen2005lcp} uses a spanning tree with differential coding on the
+\citep{chen2005lcp} uses a spanning tree with differential coding on the
 weights. So the point cloud is encoded as a tree, with edge weights being the
 difference vectors between points. They show that there exists a spanning tree
 which minimises the number of pairwise different edge weights, but also show
@@ -258,10 +356,10 @@ The use case of MD simulations require the whole file (or frame) to be
 decompressed. So progressive encoders have no advantage, and are judged purely
 on how well they compress the data.
 
-\citet{devillers2000gci} provide an example of a progressive coder. The method
-is best explained in 1 dimension first. If you know the total number of points
-in $[a, b]$ (say $x$ points) and the number of points in $[a, (a+b)/2]$ (say
-$y$ points) then the number of points in $[(a+b)/2+1, b]$ is $x - y$ . By
+\citep{devillers2000gci} provide an example of a progressive coder. The method
+is best explained in one dimension first. If you know the total number of
+points in $[a, b]$ (say $x$ points) and the number of points in $[a, (a+b)/2]$
+(say $y$ points) then the number of points in $[(a+b)/2+1, b]$ is $x - y$ . By
 sending out counts of deeper and deeper levels in breadth first order they
 progressively get a better representation. Encoding this with arithmetic
 coding gives us the desired compression ratios. To extend to 3 dimensions one
@@ -270,13 +368,11 @@ different dimension.
 
 \paragraph{Single-Rate Encoding}
 A single-rate encoder is one which requires the whole stream to be available
-before the data can be decompressed. \citet{omeltchenko2000sls},
-\citet{gumholdcomp} and \citet{merrycomp} are all single-rate encoders.
+before the data can be decompressed. \citep{omeltchenko2000sls},
+\citep{gumholdcomp} and \citep{merrycomp} are all single-rate encoders.
 
 
 \section{Modelling Water}
-
-\todo references
 
 \begin{figure}[h]
 \centering
@@ -284,7 +380,7 @@ before the data can be decompressed. \citet{omeltchenko2000sls},
   \includegraphics{images/h402}
 }
 \caption{The most energetically favourable water dimer calculated from first
-  principles.}
+  principles. \citep{watermolecule}}
 \label{fig:dimer}
 \end{figure}
 
@@ -294,7 +390,7 @@ before the data can be decompressed. \citet{omeltchenko2000sls},
   \includegraphics{images/dimr}
 }
 \caption{Water dimer angles. $R = 2.976\AA, \alpha = 6 \pm 20\degree, \beta =
-  57 \pm 10\degree$}
+  57 \pm 10\degree$. \citep{watermolecule}}
 \label{fig:dimer-angle}
 \end{figure}
 
@@ -309,17 +405,16 @@ extensively studied.
 The oxygen which is loosely bonded to the hydrogen is expected to be
 $2.976\AA$ away from the other oxygen. It is also expected that the vector
 created by the O-H bond to be roughly in line with the vector of the loose O-H
-bond. See Figure \ref{fig:dimer} and Figure \ref{fig:dimer-angle}.
+bond \citep{watermolecule}. See Figure \ref{fig:dimer} and Figure
+\ref{fig:dimer-angle}.
 
 \subsection{Using the Model in Point Cloud Compressors}
 
-\todo should this be in the design chapter?
-
-\citet{omeltchenko2000sls} only exploit the fact that we have many dense
+\citep{omeltchenko2000sls} only exploit the fact that there may be many dense
 clusters in MD simulations. It is more general than water compression, and
 modifying it to use the relative layouts of the water molecules is not clear.
 
-The predictors of \citet{merrycomp} and \citet{gumholdcomp} do not exploit the
+The predictors of \citep{merrycomp} and \citep{gumholdcomp} do not exploit the
 layout of water molecules. Using water dimer model prediction can be done
 given the positions of a water molecules atoms. The creation of the spanning
 tree would be different, since we know the expected degree of the verticies is
@@ -330,7 +425,7 @@ at most two.
 \resizebox{\textwidth}{!}{
 \begin{tabular}{||l|c|c||}
   \hline
-  \emph{Attribute/Method} & \citet{omeltchenko2000sls} & \citet{gumholdcomp} \\
+  \emph{Attribute/Method} & \citep{omeltchenko2000sls} & \citep{gumholdcomp} \\
 
   \hline
 
@@ -351,7 +446,7 @@ at most two.
   \hline
   \hline
 
-  \emph{Attribute/Method} & \citet{chen2005lcp} & \citet{devillers2000gci} \\
+  \emph{Attribute/Method} & \citep{chen2005lcp} & \citep{devillers2000gci} \\
 
   \hline
 
@@ -372,7 +467,7 @@ at most two.
   \hline
   \hline
 
-  \emph{Attribute/Method} & \citet{merrycomp} & \\
+  \emph{Attribute/Method} & \citep{merrycomp} & \\
 
   \hline
 
@@ -404,15 +499,15 @@ the different papers. There are two underlying philosophies which the
 compression algorithms exploit, the \emph{scope} and the \emph{topology}.
 
 \emph{Scope} is whether the algorithm is exploiting \emph{global} or
-\emph{local} properties of the points. \citet{merrycomp} uses a local scope
+\emph{local} properties of the points. \citep{merrycomp} uses a local scope
 since it exploits nearby points to predict the location of the current
-point. \citet{chen2005lcp} uses a global scope, since it is trying to minimise
+point. \citep{chen2005lcp} uses a global scope, since it is trying to minimise
 a global property of the spanning tree.
 
 \emph{Topology} is whether the algorithm is trying to exploit connectivity or
-geometric information. \citet{gumholdcomp} exploits both, but the geometry
+geometric information. \citep{gumholdcomp} exploits both, but the geometry
 more since it uses a predictor to predict the location based on other points
-location. \citet{chen2005lcp} just tries to choose the best possible spanning
+location. \citep{chen2005lcp} just tries to choose the best possible spanning
 tree, so they exploit connectivity of points.
 
 The other properties listed in the taxonomy are \emph{structure},
@@ -569,7 +664,7 @@ Section \ref{sec:compr-perm}.
 
 The compressor component is different for each compressor. There is the
 compressor presented in this report and the three reference compressors:
-\citet{omeltchenko2000sls}, \citet{gumholdcomp} and \citet{devillers2000gci}.
+\citep{omeltchenko2000sls}, \citep{gumholdcomp} and \citep{devillers2000gci}.
 
 
 \section{Water Compressor}
@@ -710,7 +805,7 @@ tree_encoder.encode(end of children sentinal)
 
 Every compression algorithm explored in this report does not necessarily
 preserve the order of the points when decompressed. For example in
-\cite{devillers2000gci}
+\citep{devillers2000gci}
 \[ (1, 2), (1, 3), (0, 0), (2, 3), (2, 2), (0, 2), (1, 1) \]
 when decompressed becomes
 \[ (0, 0), (1, 1), (0, 2), (1, 2), (1, 3), (2, 2), (2, 3) \]
@@ -797,8 +892,54 @@ pop_symbol(symbol):
   return index
 \end{verbatim}
 
-Then to encode $P_i$, we encode $pop\_index(P_i)$. To decode, we use
-$pop\_symbol(decoded\_val)$.
+To encode $P_i$, we encode $pop\_index(P_i)$. To decode, we return
+$pop\_symbol(val)$ where $val$ is a value returned from the arithmetic
+decoder.
+
+The optimal permutation encoder is optimal in the general case. If we have $M$
+indicies left to encode, each unseen index has probability $\frac{1}{M}$ of
+occurring and every seen index has probability $0$ of occurring. So for each
+$i$ we have that $S_{tot}=M, S_i = i, S_{i-1} = i-1$. This gives a probability
+of $\frac{i-(i-1)}{M} = \frac{1}{M}$.
+
+If there are $M$ indicies left, the lower-bound on the number bits to encode
+an index is $\log_2(M)$. So if $P$ has $N$ indicies a lower-bound on the
+number of bits to encode $P$ is
+\begin{equation}
+  \displaystyle\sum^{N}_{i=1} \log_2(i)
+  \label{eq:optimal-lowerbound}
+\end{equation}
+Each index can fit into $\lceil\log_2(N)\rceil$ bits, so this is used as an
+effective upper-bound. See Table \ref{tab:optimal-lowerbound} for values of
+Equation (\ref{eq:optimal-lowerbound}) in bytes. Notice how as the size of the
+permutation increases, the gains made by the optimal scheme decrease.
+
+
+\begin{table}
+  \center
+  \resizebox{\textwidth}{!}{
+  \begin{tabular}{|l||r|r|r|r|r|r|r|}
+    \hline
+    \emph{Permutation Size} & $1$ & $2$ & $10$ & $1000$ & $10\,000$ &
+    $100\,000$ \\
+    \hline
+    \emph{Lower-Bound} & $0.00$ & $0.12$ & $2.72$ & $1066.17$ & $14807.26$ &
+    $189588.02$ \\
+    \emph{Effective Upper-Bound} & $0.00$ & $0.25$ & $5.00$ & $1250.00$ &
+    $17500.00$ & $212500.00$ \\
+    \emph{Percentage Gain} & $0.00$ & $33.33$ & $29.47$ & $7.94$ & $8.33$ &
+    $5.70$ \\
+    \hline
+  \end{tabular}
+  }
+  \caption{Number of bytes needed for storing permutations of different
+    sizes. See Equation (\ref{eq:optimal-lowerbound}) for the lower bound. The
+    effective upper-bound is
+    $\lceil\log_2(N)\rceil/8$} \label{tab:optimal-lowerbound}
+\end{table}
+
+
+
 
 \section{Verifiers}
 

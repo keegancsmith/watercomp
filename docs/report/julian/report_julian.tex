@@ -43,110 +43,142 @@
 
 \chapter{Introduction}
 
+Molecular Dynamics is an area of computer science and computational chemistry where computers are used to determine properties of materials and how collections of molecules interact with each other. Often these simulations are the only method that theoretical chemists have for investigation. Laboratory experiments cannot give sufficient detail in order to determine the microscopic properties of materials, but are good at determining the macroscopic properties of materials, for instance colour changes and temperature changes.
+
+The most popular use for Molecular Dynamics is for Protein Folding, which is important for determining the structure of proteins. Protein folding is a process where a strand of amino acids(the protein) uncoil and form a 3D structure. The structure is determined by only the make up of the strand. Using this information, one can simulate an initial strand of amino acids and simulate it to determine what structure is formed. The use of distributed computing in Molecular Dynamics simulations, where multiple computers are used in the simulation, became popular with the release of Folding@Home.
+
+The simulations that are run typically generate a lot of data. The simulations need to be run at a very small timescale, on the order of $10^{-12}$ seconds and can contain thousands of atoms. All of which needs to be saved in order to be studied by an expert user, a chemist or biologist, at a later date. Certain simulations, known as explicit solvent simulations, consist of a large amount of water molecules, or other solvent, surrounding an object of interest. In these simulations, there are usually many more atoms as each solvent atom needs to be represented.
+
+For many simulations, compression is particular important as it can take an exceedingly large amount time to transmit all the data over slow internet connections. Our system will be specifically designed to tackle the problem of compression using the large amount of water molecules.
+
+\section{Research Question}
+
+Our research will attempt to establish which compression scheme is best for molecular simulations. We will determine which scheme is best by using two metrics for two criteria: compression rate and compression speed.
+
+We will define the compression rate as the ratio between the original file size and the compressed file size. This yields a percentage where a lower number implies high compression was acheived and a higher number means a less effective compression. The speed of a compression will be defined as the number of seconds taken to perform the compression.
+
+The key success factor will be if we can determine if a particular scheme performs best. Work from the project could be included in another project, so determining the best scheme is important.
+ 
+\section{Implementation}
+
+To determine these results, we implemented a system through which experiments could be done. The system is built-up of two sections: a compression section and a molecular visualisation section. The compression section contains all the compressors and the shared components required for each compressor to work. Each compressor is able to be run via separate drivers. The visualiser component is able to show the output of compression. Each compression scheme uses a process called quantisation where the atoms are irreversibly transformed to make compression more amenable. The visualiser facilitate the viewing of the transformation.
+
+\section{Ethics}
+
+There are several ethical issues that are relevant to our project. The first issue is with the quantisation process. Since the process is irreversible, the users must be aware that the compressed file does not necessarily represent the original simulation. The quantisation process, however, is a necessary part of compression. The user is also able to select the level of quantisation in order to balance the trade-off between simulation fidelity and compressed file size. 
+
+We use several libraries in our system. On the compression side we use the Approximate Nearest Neighbours library(ANN) in order to determine information about the water in the simulation. We also use QT, a graphical user interface library, and GTS, a library for surface decimation, for the visualisation process. All of these libraries are released under LPGL, which allow us to use them in non-commerical products. As a result of this, the license that we have chosen for our project is the MIT license.
+
+\section{Outline}
+
+In Chapter 2 the background necessary for the project is discussed. This is followed by the design of our project in Chapter 3 and the implementation specifics in Chapter 4. Results and Analysis will be presented in Chapter 5. Finally, we conclude with a discussion of the main impact of our project and possible future work in Chapter 6.
+
+
 \chapter{Background}
 
-There has been a great deal of work in compression over the years, however, there is very little research on compressing Molecular Dynamics data specifically.
-The following sections will describe various background necessary to an understanding of our approach.
+[TODO: fix labels]
+There has been a great deal of work in compression over the past two decades[TODO: general compression reference], however, there is very little research on compressing Molecular Dynamics data specifically.
+The following sections will describe the background necessary to an understanding of our approach.
 Section \ref{back_mdf} describes the most dominant format that is used for storing the simulations on hard disk,
 while sections \ref{back_intra} and \ref{back_inter} describe various techniques used in the related field of video compression.
 
 \section{Molecular Dynamics Formats}
 \label{back_mdf}
 
-There are several Molecular Dynamics Simulations formats. Chief among these formats is the binary DCD file. This is the principle format used in Visual Molecular Dynamics(VMD)\cite{vmd}, a popular program for visualisation of molecules and simulation. This format also relies heavily on an existing PDB file in order to make sense of the output.
+There are several Molecular Dynamics Simulation formats. Chief among these formats is the binary DCD file. This is the principle format used in Visual Molecular Dynamics(VMD)\cite{vmd}, a popular program for visualisation of molecules and simulation. This format also relies heavily on an existing PDB file in order to make sense of the output.
 
-The PDB file stores information about each specific atom in the simulation. This generally includes the atom's element and the atom's group, the latter only important for use in protein simulations.[Possibly a reference here?] The data in the PDB file is stored in ASCII so the file is often larger than necessary. However, the PDB file only stores information for each atom and not for each frame in the simulation, so we are less concerned about the size of this file. A large amount of information is redundant when using DCD files: The PDB file stores positions for each atom, which are ignored when a DCD file is loaded. The main reason for the redundant information is to enable the molecules to be viewed in its normal state using just the PDB file and nothing else.
+The PDB file stores information about each specific atom in the simulation. This generally includes the atom's element group, the latter is only important for use in protein simulations.[Possibly a reference here?] The data in the PDB file is stored in ASCII so the file is often larger than necessary. However, the PDB file only stores some initial information for each atom rather than for each frame in the simulation. The DCD format consists of the frames of the simulation containing all the atom's positions for each timestep. For this reason, a large amount of information is redundant when using DCD files in conjunction with PDB files: The PDB file stores positions for each atom, which are ignored when a DCD file is loaded. This means that the PDB files are much smaller than the corresponding DCD files and as succompressing the DCD files is the main priority for our project.  The main reason for the redundant information is to enable the molecules to be viewed in their normal state using just the PDB file and nothing else.
 
 \subsection{DCD format}
-The DCD format has various types which all differ slightly from each other. These differences may be ignored for most purposes as they normally store extra information in the header of the DCD file. VMD is able to handle all major variants such as the CHARMm and X-PLOR formats, however the main format used is the X-PLOR format. \cite{vmddcdformat}
+The DCD format has various types which all differ slightly from each other. These differences may be ignored for most purposes, as they are normally stored as extra information in the header of the DCD file. VMD is able to handle all major variants such as the CHARMm and X-PLOR formats. However the most popular used is the X-PLOR format. \cite{vmddcdformat}
 
 All these types have very slight differences which are mainly for keeping information about the original simulation, for instance the timestep between each frame. The DCD file format does not specify a prefered endian representation. The endianess of the data can be identified by magic numbers stored in the header, but any system that allows for loading DCD files must be able to handle both little and big endian correctly. The header also contains information relating to the number of atoms and the number of frames in the simulation.
 
-The majority of the file is dedicated to storing the frames of the simulation. Each frame of the file indicates a single timestep in the simulation. In each frame the positional information about each atom is stored. The positions are stored as triples of x, y and z 4-byte single precision floating point numbers. This makes up the majority of the file, as each atom repeated in every frame requires 12 bytes to fully specify. The order of the atoms in the frame is important as they correspond to the order of the atoms in the PDB file. No further information is stored in the file after the end of the final frame. The size of the final file can be estimated using the formula: 
+The majority of the file is dedicated to storing the frames of the simulation. Each frame of the file represents a single timestep in the simulation. In each frame the positional information about each atom is stored. The positions are stored as triples of $x$, $y$ and $z$ 4-byte single precision floating point numbers. This makes up the majority of the file, as each atom repeated in every frame requires 12 bytes to fully specify. The order of the atoms in the frame is important as they correspond to the order of the atoms in the PDB file. No further information is stored in the file after the end of the final frame. The size of the final file can be estimated using the formula: 
 
 \begin{center} $size = 12*frames*atoms$ bytes\end{center}
 
-The above formula is only an estimate as it does not account for the header. Another problem is that in certain format types there can be atoms which remain fixed in space for the duration of simulation. These atoms are only stored in the first frame rather than in all frames. It is reasonable to ignore these effects in the majority of simulations as they typically only account for a fraction of the original atoms. [TODO: Incorporate John Stone email to next thing] Molecular simulations may have millions of atoms stored at each step and can involve many thousands of frames. This can result in files that are several gigabytes in size and in extreme cases, several terabytes in size.
+The above formula is only an estimate as it does not account for the header. Another problem is that in certain format types there can be atoms which remain fixed in space for the duration of simulation. These atoms are only stored in the first frame rather than in all frames. It is reasonable to ignore these effects in most simulations as they typically only account for a fraction of the original atoms. In all the simulations we looked at, none have any fixed atom information. [TODO: Incorporate John Stone email to next thing] Molecular simulations may have millions of atoms stored at each step and can involve many thousands of frames. This can result in files that are several gigabytes in size and in extreme cases, several terabytes in size.
 
-These simulations need to be archived so that they can be reviewed by a molecular biologist at a later date or   they may need to be transmitted over slow media such as network connections. Given their large size, it is often necessary to use compression.
+These simulations need to be archived so that they can be reviewed by a molecular biologist at a later date or   they may need to be transmitted over relatively slow connections such as the Internet. Given their large size, it is often necessary to use compression.
 
 \section{Molecular Simulation Compression}
 \label{back_msc}
-To date, there has been little research on compressing large-scale molecular dynamics simulations. The current method\cite{RefWorks:3} for compression is able to acheive output sizes smaller than the original by an order of magnitude. The method does not have any specific name, so for the remainder of this report we will refer to it as Omeltchenko's algorithm. There are two other algorithms of note that are useful for this situation. These are the Gandoin \& Devilliers Algorithm[TODO: cite] and the Predictive Point Cloud Compression Algorithm[TODO: cite]. Both of which are used for compressing point cloud data. A point cloud is a collection of points, where each point has position and possibly other attributes. Atoms stored in a PDB file may be treated as a point cloud.
+To date, there has been little research on compressing large-scale molecular dynamics simulations. The current method\cite{RefWorks:3} for compression is able to acheive output sizes smaller than the original by an order of magnitude. The method does not have any specific name, so for the remainder of this report we will refer to it as Omeltchenko's algorithm. There are two other algorithms of note that are useful for this situation. These are the Gandoin \& Devilliers Algorithm[TODO: cite] and the Predictive Point Cloud Compression Algorithm[TODO: cite]. Both of which are used for compressing point cloud data. A point cloud is a collection of points, where each point has position and possibly other attributes. This is of releavance because atoms stored in a PDB file may be treated as a point cloud.
 
 \subsection{Omeltchenko's Algorithm}
 
 
-[TODO: This is not really true since they refer to compressing atoms as a whole, instead of only the positions. They compress the positions, velocities and any other information.]
+The algorithm works by quantising the space that the simulation occurs in. This space is usually taken to be the axis-aligned bounding box that encompasses all the atoms, and this has to be recalculated on a per-frame basis. A three dimensional grid of a particular granularity is embedded into the space. Atoms are snapped to the centers of the closest grid cell. This transformation introduces a small error, which can be controlled by the granularity of the grid, but enables the algorithm to reduce the floating point coordinates to integer-based grid cell indices. This step, known as quantisation, is commonplace in point compression. It allows insignificant variations in the data to be removed, while introducing a quality setting to allow for better compression at the cost of accuracy. This stage produces a quantised $(x, y, z)$ coordinate for each atom. As a post operation, the points are translated so that all coordinates are non-negative. This process is made reversible by storing the bounding box of the original atoms.
 
-The algorithm works by quantising the space that the simulation occurs in. This space is usually taken to be the axis-aligned bounding box that encompasses all the atoms, which has to be recalculated on a per-frame basis. A three dimensional grid of a particular granularity is embedded into the space. Atoms are snapped to the centers of the closest grid cell. This transformation introduces a small error, which can be controlled by the granularity of the grid, but enables the algorithm to reduce the floating point coordinates to integer-based grid cell indices. This step, known as quantisation, is commonplace in point compression. It allows insignificant variations in the data to be removed, while introducing a quality setting to allow for better compression at the cost of accuracy. This stage produces a quantised (x, y, z) coordinate for each atom. As a post operation, the points are translated so that all coordinates are non-negative.
-
-The atoms indices are mapped to Octree Indices. An Octree is a spatial partitioning data structure, which recursively splits space up into 8 subdivisions. The subdividing process typically stops when there are few points in a cell or a maximum depth has been reached. A related variant of Octrees is Linear Octrees, where the data structure is represented in a 1D array. Octree Indexing is a reversable spatial hashing algorithm where 3D points are mapped to 1D indices, by using the Linear Octree cells. In this case, the quantised points are mapped to single non-negative integers. The algorithm uses Octree Indexing to interleave the bits of the coordinates of each point. The index, itself, is cleverly assembled so that points are only interleaved up to the largest most significant bit of every coordinate.
+The atoms' indices are mapped to Octree Indices. An Octree is a spatial partitioning data structure[TODO: ref], which recursively splits space up into 8 subdivisions. The subdividing process typically stops when there are few points in a cell or a maximum depth has been reached. A related variant of Octrees is Linear Octrees[TODO: ref], where the data structure is represented in a 1D array. Instead of using pointers in a tree data structure, the Linear Octree uses arithmetic in an array to calculate each node's index in an array. This usually uses more memory than a normal Octree as it requires the tree to be complete, however we are not interested in constructing the Linear Octree, only calculating the indices at which atoms would fall under. Octree Indexing is a reversable spatial hashing algorithm where 3D points are mapped to 1D indices, by using the Linear Octree cells. In this case, the quantised points are mapped to single non-negative integers. The algorithm uses Octree Indexing to interleave the bits of the coordinates of each point. The index, itself, is cleverly assembled so that points are only interleaved up to the largest most significant bit of every coordinate.
 
 \begin{figure}
  \center
- \includegraphics[width=0.4\textwidth]{resources/OctreeIndexingVerticalCropped.png}
-\caption{Demonstration of the Octree Indexing Process on a system of 2 atoms.}
+ \includegraphics[width=0.5\textwidth]{resources/OctreeIndexingVerticalCropped.png}
+\caption{Demonstration of the Octree Indexing Process on a system of 2 atoms. The first step of the process is conversion to binary. From this we can see that the $x$ components require 4-bits to encode as an index, while the $y$ and $z$ components require 3-bits. The final step of the prcoess is the interleaving of the bits in each atom's coordinates to produce a final number. }
 \label{octree}
 \end{figure}
 
-The resulting indices are stored in a list and sorted in increasing order. These indices are written to the file using a delta encoding scheme. The first atom's position indicates its actual grid index, while the rest are stored as differences between the previous index and the current one. This final transformation typically allows a better compression rate to be acheived. Delta encoding reduces the amount of data that needs to be compressed by keeping things small, however it introduces a dependancyThe output, itself, is performed by an adaptive, variable-length compressor. Typically, each index can be stored in a single 4-byte integer which results in an immediate size reduction from 12-bytes per atom to 4-bytes per atom. 
+The resulting indices are stored in a list and sorted in increasing order. These indices are written to the file using a delta encoding scheme. The first atom's position indicates its actual grid index, while the rest are stored as differences between the previous index and the current one. This final transformation typically allows a better compression rate to be acheived. Delta encoding reduces the amount of data that needs to be compressed by keeping things small and making it more amenable for compression, however it introduces a dependancy on decoding all the previous atoms in the list first. The output, itself, is performed by an adaptive, variable-length compressor. Typically, each index can be stored in a single 4-byte integer which results in an immediate size reduction from 12-bytes per atom to 4-bytes per atom. 
 
-The compressor encodes the molecular data as a series of non-negative integers. Each integer streamed into the compressor one at a time. The compressor maintains an integer $l$ which is the current size that integers are encoded as. As each integer comes into it is checked to see if the integer can be stored using $l$ bits. If it can, it is stored as $l+1$ bits; a 0-bit followed by the bits of the integer. If it can't, the integer is partly stored as $l+1$ bits; a 1-bit followed the first $l$ bits of the integer. The rest of the bits are compressed in the next step of the compressor. When enough of these overflows occur, $l$ is incremented.
+The compressor encodes the molecular data as a series of non-negative integers. Each integer streamed into the compressor one at a time. The compressor maintains an integer $l$ which is the current size at which integers are encoded as. As each integer comes in, it is checked to see if the integer can be stored using $l$ bits. If it can, it is stored as $l+1$ bits; a 0-bit followed by the bits of the integer. If it cannot, the integer is partly stored as $l+1$ bits; a 1-bit followed the first $l$ bits of the integer. The rest of the bits are compressed in the next step of the compressor. If enough of these overflows occur, $l$ is incremented.
 
-The compressor was designed to be very computationally light as computers at the time of the paper were not as powerful as current machines. The paper claims that 56-byte atomic data is encoded at approximately 6.3 bytes per atom. It is, however, not considered to be a very good compression system as it is not based on any of the established variable-length encoders which have been shown to produce near-optimal encodings.
+The compressor was designed to be computationally undemanding as computers at the time of the paper were not as powerful as current machines. We found that it is not a good compression system as it is not based on any of the established variable-length encoders, which have been shown to produce near-optimal encodings.
 
-The paper does not use the common file formats such as those used in VMD, it does however treat atoms very similarly so we are able to use the scheme for DCD file compression. The algorithm deals with atoms that are represented by a block of 56-bytes, containing position(24-bytes), velocity(24-bytes) and an ID(8-bytes). In our application, the atoms are defined only as 12-byte position data, but have an implicit ordering from the PDB file. Since the sorting destroys the ordering, additional information will need to stored to recover the initial ordering when decompressing.
+The paper does not use the common file formats such as those used in VMD, it does, however, treat atoms very similarly so we are able to use the scheme for DCD file compression. The algorithm deals with atoms that are represented by a block of 56-bytes, containing position (24-bytes), velocity (24-bytes) and an ID (8-bytes). The paper claims that the 56-byte atomic data is encoded at approximately 6.3 bytes per atom. In our application, however, the atoms are defined only as 12-byte position data, but have an implicit ordering from the PDB file. Since the sorting destroys the ordering, additional information will need to stored to recover the initial ordering when decompressing.
 
-\subsection{Gandoin \& Devilliers' Algorithm}
+\subsection{Gandoin \& Devillier's Algorithm}
 
-The Gandoin \& Devillier's Compression Algorithm exploits a property of KD trees[TODO: cite] to compress Point Cloud Data.\cite{devillers2000gci} A KD tree is a spatial subdivision data structure which partition space using various axis-aligned splitting planes. The KD tree cycles through each dimension for the splitting axis as the data structure is recursively constructed. The splitting planes are chosen to divide the space in half each time.
+[TODO: Diagram]
+The Gandoin \& Devillier's Compression Algorithm exploits a property of KD trees[TODO: cite] to compress Point Cloud Data.\cite{devillers2000gci} A KD tree is a spatial subdivision data structure which partition space using various axis-aligned splitting planes. The KD tree cycles through each dimension for the splitting axis as the data structure is recursively constructed. The splitting planes are chosen to divide the space in half at each step. This differs from Octrees in they space is divided. Octrees split space into four subdivisions of equal area, while KD trees only split space into two and do not require that the areas are equal.
 
-The algorithm exploits the property that if one knows the number of points over the entire space and the number of points in one of the regions that were created from the split, one can work out the number of points for the other region by simple arithmetic.
+Gandoin and Devillier's algorithm exploits the property that if one knows the number of points over the entire space and the number of points in one of the regions created from the split, one can work out the number of points for the other region by arithmetic.
 
-Each leaf node of the tree is subdivided if there are multiple points in the region. The points in the compression are usually quantised. The original frame may only have distinct points, however the quantised frame could have several duplicates depending on the quality of the quantisation. For this reason, the subdivision might stop before the number of points in a cell is less than 2.
+Each leaf node of the tree is subdivided if there are multiple points in the region. The points in the compression are usually quantised. The original frame may only have distinct points, however, the quantised frame could have several duplicates depending on the quality of the quantisation. For this reason, the subdivision might stop before the number of points in a cell is less than 2.
 
 An advantage of this algorithm is that it is progressive. This means that low-detail representations of the point cloud can be constructed from the initial parts of the compressed stream. As the compression progresses the detail in the model becomes finer until the output reaches the final quantised result. This algorithm produces a symbol stream which is usually encoded with an entropy encoder such as Arithmetic Coding.[TODO: cite]
 
 \subsection{Predictive Point Cloud Compression Algorithm}
 
+[TODO: diagram]
 Predictive Point Cloud Cloud Compression is a new approach to compressing point cloud data. The compression scheme creates a spanning tree of the original point set using heursitics.\cite{gumholdcomp} Predictors based on these heuristics exploit patterns in the data to get an estimate of the position of a child in the tree relative to its parent. The use of these predictors means that only the residual error from each prediction needs to be stored.
 
-In the original paper the algorithm only used one of two predictors for the entire models to encode the entire pointset. The user was prompted for which predictor to use. The first predictor predicted that the child would be placed in the same position as the parent, while the second predictor estimates the child to be the same displacement as the displacement between its grandparent and parent. Further enhancements to the algorithm were made to choose the best predictor at each step of the algorithm and also extra predictors were added.\cite{merrycomp}
+In the original paper the algorithm only used one of two predictors for the entire models to encode the entire pointset. The user was prompted for which predictor to use. The first predictor predicta that the child would be placed in the same position as the parent, while the second predictor estimates the child to have the same displacement as the displacement between its grandparent and parent. Further enhancements to the algorithm were made to choose the best predictor at each step of the algorithm and also extra predictors were added.\cite{merrycomp}
 
-The performance of this algorithm depends greatly on the quality of the predictors used. Poor predictors will result in significantly worse compression. The compression scheme requires the number of small errors to be high which decays very rapidly as the the error size increases. The predictors also require that the point cloud represent a surface so that information such as the surface normal at each point can be estimated.
+The performance of this algorithm depends greatly on the quality of the predictors used. Poor predictors will result in significantly worse compression. The compression scheme requires the number of small errors to be high, and decays very rapidly as the the error size increases. The predictors also require that the point cloud represent a surface so that information such as the surface normal at each point can be estimated.
 
 \section{Video Compression}
 
-A different approach is to follow that of video compression. Essentially, the molecular simulations can be viewed as videos, but using 3D dimensional molecular data instead of 2D picture data. We can safely ignore the audio part of compression as it bears no importance on molecular simulations. Video Compression loosely falls into one of two subcategories. The first is intraframe compression which seeks to compress each individual frame using little or no information about previous frames. The other type is interframe prediction which uses a significant amount of information from previous frames to compress a frame. 
+A different approach to follow is that of video compression. Essentially, the molecular simulations can be viewed as videos, but using 3D molecular data instead of 2D picture data. We can safely ignore the audio part of compression as it bears no relevance to molecular simulations. Video Compression loosely falls into one of two subcategories. The first is intraframe compression which seeks to compress each individual frame using little or no information about previous frames. The other type is interframe prediction which uses a significant amount of information from previous frames to compress a frame. 
 
-Usually, each frame is heavily analysed for objects that are considered important. These objects are often major features such as a person's arm or a ball. The purpose of the intraframe compression is to record these objects with their initial positions, while interframe predictions estimates the position of the objects and only records the errors that occur from making the estimate. In most cases, given a good predictor, the error is usually small and can be compressed very well.
+Usually, each frame is heavily analysed for objects that are considered important. These objects are often major features such as a person's arm or a ball. The purpose of the intraframe compression is to record these objects with their initial positions, while interframe prediction estimates the position of the objects and only records the errors that occur from making the estimate. In most cases, given a good predictor, the error is usually small and can be compressed very well.
 
-The rest of this section will discuss the algorithms used in both intraframe compression and interframe prediction. The techniques used to detect objects in the images are ignored as our simulations have atoms which are clearly defined objects.
+The rest of this section will discuss the algorithms used in both intraframe compression and interframe prediction. The techniques used to detect objects in the images are ignored, as our simulations have atoms which are already defined objects.
 
 \subsection{Intraframe Compression}
 \label{back_intra}
 
-The latest MPEG encoding algorithms allow for several compression algorithms to be used\cite{gall1991mvc}. This section will focus on the most common algorithms used for compressing the objects in the original image. These algorithms can be classified as either lossless or lossy. Lossless compression algorithms are able to recreate the original data with no loss of information. These lossless compression algorithms are general enough to apply to standard data compression. Lossy compression algorithms, on the other hand, are able to achieve much higher compression rates, but do incur the penalty of some information loss. Typically, the lossy compression algorithms only quantise the input to fit within a certain number of symbols and still require further compression from a lossless algorithm. We will focus mainly on the lossless compression techniques as information loss, aside from small quantisation errors, may result in incorrect assumptions being drawn from simulations.  
+The latest MPEG encoding algorithms allow for a choice of several compression algorithms to be used\cite{gall1991mvc}. This section will focus on the most common algorithms used for compressing the objects in the original image. These algorithms can be classified as either lossless or lossy. Lossless compression algorithms are able to recreate the original data with no loss of information. These lossless compression algorithms are general enough to apply to standard data compression. Lossy compression algorithms, on the other hand, are able to achieve much higher compression rates, but do incur the penalty of some information loss. Typically, the lossy compression algorithms first quantise the input to fit within a certain number of symbols and still require further compression from a lossless algorithm. We will focus mainly on the lossless compression techniques as information loss, aside from small quantisation errors, may result in incorrect assumptions being drawn from simulations.  
 
-In the remainder of the chapter we will discuss only the lossless compression techniques. These techniques fall into two categories: Entropy encoders and dictionary encoders. 
+These techniques fall into two categories: Entropy encoders and dictionary encoders. 
 
 \subsubsection{Entropy Encoders}
 
 Entropy encoding makes use of Information Theory and tries to build an optimal mapping from symbols in the frame to individual bits. In a video frame, this information could be lossily compressed blocks of pixel data or information about identified object. In a molecular simulation we could easily use this to store positions of molecular data.
 
-The first such algorithm was called Huffman Encoding\cite{citeulike:1320251}. The original Huffman Encoding relies on having frequencies of all symbols that occur in the message to be compressed. It uses this table to build up a prefix-free tree. A prefix-free tree's leaves are symbols and the paths from the root to a leaf indicates the bits required to output that symbol. The frequencies allows the algorithm to construct an `optimal` tree which requires less bits to output common symbols and more bits to output rare symbols. Decoding a single symbol from a message  entails following the paths indicated by the bits until a symbol is reached, or looking up the bitpatterns in a table.
+The first algorithm of this type developed was Huffman Encoding\cite{citeulike:1320251}. The original Huffman Encoding relies on having frequencies of all symbols that occur in the message. It uses this table to build up a prefix-free tree. A prefix-free tree's leaves are symbols and the paths from the root to a leaf indicates the bits required to output that symbol. The frequencies allow the algorithm to construct an `optimal` tree that requires less bits to output common symbols and more bits to output rare symbols. Decoding a single symbol from a message  entails following the paths indicated by the bits until a symbol is reached, or looking up the bit patterns in a table or codebook.
 
 \begin{figure}
  \center
  \includegraphics[width=0.4\textwidth]{resources/HuffmanTreeCropped.png}
-\caption{Huffman Tree for a simple alphabet of \{A,B,C,D,E\} with given frequencies.}
+\caption{A Huffman Tree for a simple alphabet of \{A,B,C,D,E\} with frequencies \{2, 3, 4, 5, 5\}. A and B have a comparatively low frequency to the C, D and E and thus require more bits to encode. The codebook constructed from this tree would be \{A: 000, B: 001, C: 01, D: 10, E: 11 \}}
 \label{huffman}
 \end{figure}
 
-There are various issues when using regular Huffman Encoding. The first problem is that the entire message must be available when we write the compressed data in order to compute the frequency table.\cite{RefWorks:1} The second problem is that in order to decompress we need to also output all the prefix-tree used to compress. These problems can be remedied by Adaptive Huffman Encoding\cite{42227} which is able to re-optimise the prefix-tree while the compression occurs.
+There are various issues when using regular Huffman Encoding. The first problem is that the entire message must be available when writing the compressed data in order to compute the frequency table.\cite{RefWorks:1} The second problem is that in order to decompress we need to also output the entire prefix-tree used for compression. These problems can be remedied by Adaptive Huffman Encoding\cite{42227} which is able to re-optimise the prefix-tree while the compression occurs.
 
-The Adaptive Huffman Encoding scheme is a good candidate for compression of the molecular simulation frames. The memory footprint of the algorithm is low, only the prefix-free tree needs to be stored while the algorithm runs and has a worst-case space usage of $O(S)$, where $S$ is the number of unique symbols in the frame. The algorithm can also be run while the simulation takes place as only a small amount of computation needs to occur per atom.
+The Adaptive Huffman Encoding scheme is a good candidate for compression of the molecular simulation frames. The memory footprint of the algorithm is low: only the prefix-free tree needs to be stored while the algorithm runs and has a worst-case space usage of $O(S)$, where $S$ is the number of unique symbols in the frame. The algorithm can also be run while the simulation takes place as only a small amount of computation needs to occur per atom.
 
 There is a similar entropy-based compression algorithm called Arithmetic Coding. This algorithm has an advantage over Huffman Encoding as it can store symbols as a fractional number of bits. \cite{RefWorks:1}, \cite{RefWorks:3}. The amount of wasted bits that appear in Huffman Encoding can be as bad as 1 bit per symbol. Arithmetic Coding works by encoding the entire message into a single rational number in the range [0, 1). The frequency of each symbol is used to allocate large subranges to frequent symbols and small subranges to rare symbols. 
 
@@ -157,7 +189,7 @@ There is a similar entropy-based compression algorithm called Arithmetic Coding.
 \label{arithmeticcoder}
 \end{figure}
 
-Encoding a specific symbol simply requires adjusting upper and lower bounds of the output number. When the entire message is encoded the number can be output. Decoding simple requires one to follow the subranges that the encoded message falls into.
+Encoding a specific symbol simply requires adjusting upper and lower bounds of the output number. When the entire message is encoded the number can be output. Decoding requires one to follow the subranges that the encoded message falls into.
 
 \begin{figure}[h]
  \center
@@ -166,22 +198,24 @@ Encoding a specific symbol simply requires adjusting upper and lower bounds of t
 \label{arithmeticcodersubrange}
 \end{figure}
 
-Arithmetic Coding implementations are typically very complex. Some implementations use a static dictionary of 256 symbols, while others are able to handle only up to a dynamic dictionary of up to a few thousand symbols. The reason for this is that the numbers for the ranges are not implemented using an arbitrary precision rational number library. Instead they use a representation based on regular 32-bit integers. Overflow and underflow issues are handled by scaling the range.
+[TODO: image wrong]
 
-Unfortunately, there are problems with the original arithmetic algorithm in that you need to compute the entire frequency table which needs to be output before any compression can begin. The Adaptive Arithmetic Coding algorithm is an adjustment that does not require the frequency table to be constructed, but it does, however, require that symbols are stored prior to the output number. 
+Arithmetic Coding implementations are typically very complex. Some implementations use a static dictionary of 256 symbols, while others are able to handle a dynamic dictionary of up to a few thousand symbols. The reason for this is that the numbers for the ranges are not implemented using an arbitrary precision rational number library. Instead they use a representation based on regular 32-bit integers. Overflow and underflow issues are handled by scaling the range.
 
-Both the Adaptive Arithmetic Coding algorithm and the Huffman Coding algorithm require a separate component for handling the frequency table. Unlike, the regular static algorithms, this frequency table needs to allow insertion of new symbols, updating the frequencies of existing symbols as well as determining which symbol a given frequency belongs to and what the frequency range of a symbol is. Two common data structures for storing this data structure are arrays and Fenwick Trees.
+Unfortunately, there are problems with the original arithmetic coding algorithm in that you need to compute the entire frequency table so that it can be output before compression begins. The Adaptive Arithmetic Coding algorithm is an adjustment that does not require the frequency table to be constructed beforehand, but it does, however, require that symbols are stored prior to any output. 
+
+Both the Adaptive Arithmetic Coding algorithm and the Huffman Coding algorithm require a separate component for handling the frequency table. Unlike, the regular static algorithms, this frequency table needs to allow insertion of new symbols, updating the frequencies of existing symbols as well as determining which symbol a given frequency belongs to and what the frequency range of a symbol is. Two common data structures for storing this information are arrays and Fenwick Trees.[TODO: reference]
 %The two most common data structures for this are range trees[TODO: cite] and Fenwick trees[TODO: cite].
 
-In most implementations, the core Arithmetic Coding encoding algorithm is separated from the static or adaptive parts of the algorithm. The core algorithm is usually called the encoder and decoder, as it is only responsible for encoding and decoding ranges. The encoding and decoding part is independant on whether one uses the adaptive or static algorithm. The parts of the algorithm that handle the adaptive and static part is calleod the model. This separation allows for better modularity and design of an arithmetic coder.
+In most implementations of Arithmetic Coding, the encoding algorithm is separated from the static or adaptive parts of the algorithm. The core algorithm is usually called the encoder and decoder, as it is only responsible for encoding and decoding ranges. The encoding and decoding part is independant of whether one uses the adaptive or static algorithm. The parts of the algorithm that handle the adaptive and static part is called the model. This separation allows for better modularity and design of an arithmetic coder.
 
-The Arithmetic Encoding scheme offers a better choice for compression of the frames. The adaptive models allow us to update symbol frequencies while the frame is being compressed. This leads to the same worst-case space usage as Huffman Encoding. The adaptive algorithm also requires only a small amount of computation per symbol. However, the problem remains of conveniently storing the symbols for each output file.
+The Arithmetic Encoding scheme offers a better choice for compression of the frames. The adaptive models allow us to update symbol frequencies while the frame is being compressed. This leads to the same worst-case space usage as Huffman Encoding. The adaptive algorithm also requires only a small amount of computation per symbol. However, the problem of conveniently storing the symbols for each output file remains.
 
 \subsubsection{Dictionary Encoders}
 
-Dictionary-based encoding schemes attempt to compress data using a different approach from entropy encoders\cite{RefWorks:2}. A data structure known as dictionary is able to efficiently keep track of a sliding window of text information. This window allows different dictionary encoding algorithms to take advantage of distributions of symbol placement data in the input message. Rather than using frequencies as a basis for shorter codewords, they resort to greedily assigning symbols or groups of symbols to codewords of increasing length. This gives certain advantages over entropy encoders, such as being fast and requiring little or no mapping information necessary to decode the data. 
+Dictionary-based encoding schemes attempt to compress data using a different approach from entropy encoders\cite{RefWorks:2}. A data structure known as a dictionary is able to efficiently keep track of a sliding window of text information. This window allows different dictionary encoding algorithms to take advantage of distributions of symbol placement data in the input message. Rather than using frequencies as a basis for shorter codewords, they resort to greedily assigning symbols or groups of symbols to codewords of increasing length. This gives certain advantages over entropy encoders, such as speed and requiring little or no mapping information necessary to decode the data. 
 
-There are various dictionary-based compression algorithms, key among them are the LZW and DEFLATE algorithms. The LZW algorithm keeps an explicit dictionary that is progressively built up as the stream is read.\cite{1320134} Using this information, a codeword for the current symbol can be worked out and written to file. This algorithm needs to store additional information with the text in order to reconsitute the initial dictionary, but after this the message can recreated by dynamically updating the dictionary. 
+There are various dictionary-based compression algorithms, key among them are the LZW and DEFLATE algorithms. The Lempel-Ziv-Welch(LZW) algorithm keeps an explicit dictionary that is progressively built up as the stream is read.\cite{1320134} Using this information, a codeword for the current symbol can be worked out and written to file. This algorithm needs to store additional information with the text in order to reconsitute the initial dictionary, but after this the message can be recreated by dynamically updating the dictionary. 
 
 The DEFLATE algorithm uses several techniques such as an additional layer of Huffman Coding for bit-reduction, a sliding window based dictionary and a duplicate string removal algorithm\cite{deflaterfc}. It is the most commonly used dictionary-based compression algorithm and is used in applications such as gzip and in the PNG image format. 
 
@@ -208,18 +242,19 @@ Dictionary-based encoding schemes tend to perform worse on average than entropy-
 \section{Interframe Prediction} 
 \label{back_inter}
 
-Interframe prediction takes advantage of the correlation between the current frame and previous frames. Objects that are identified are predicted to be in a new position. Most of the time, the prediction will be incorrect, but, if the predictors are chosen carefully, the predicted position will be close to the actual position. If the errors are small, they can be effectively compressed, using an entropy encoder, as individual errors are likely to occur more frequently. There are several types of prediction that is used. We will discuss, specifically, first-order prediction, K-th order prediction and Kalman Filtering.
+Interframe prediction takes advantage of the correlation between the current frame and previous frames. Objects that are identified are predicted to be in a new position. Most of the time, the prediction will be incorrect, but, if the predictors are chosen carefully, the predicted position will be close to the actual position. If the errors are small, they can be effectively compressed, using an entropy encoder, as individual errors are likely to occur more frequently. There are several types of prediction that in common use. We will discuss, specifically, first-order prediction, K-th order prediction and Kalman Filtering.
 
-There are several noticable differences with the prediction schemes used in standard video formats and the molecular dynamics simulations. The first difference derives from the fact that these schemes require some information to bootstrap the prediction. Frames in molecular dynamics simulations can use positions of the atoms in previous frames to predict on, while videos often only have pixels. The latest compression schemes break the video up into blocks. Objects are identified within these blocks. Prediction can the be performed on the objects giving a high rate of compression. The MPEG-4 format specifies a single prediction scheme with a large number of features\cite{wiegand2003oha}. 
+There are several noticable differences with the prediction schemes suitable for standard video formats and the molecular dynamics simulations. The first difference derives from the fact that these schemes require some information to bootstrap the prediction. Frames in molecular dynamics simulations can use positions of the atoms in previous frames to predict on, while videos often only have pixels. The latest compression schemes break the video up into blocks. Objects are identified within these blocks. Prediction can the be performed on the objects giving a high rate of compression. The MPEG-4 format specifies a single prediction scheme with a large number of features\cite{wiegand2003oha}. 
 
-A related topic is that of index frames. One of the reasons this prediction is not used completely throughout a video file is that it makes every frame in the file dependant on all the frames that precede it. In order to decode a frame in the file, every prior frame must be decoded. To allow for random access in a video, certain frames are labelled as Index frames or I-frames which are compressed only using Intraframe compression. Typically, a structure called a Group Of Pictures will be given that defines the order of the I-frames, and predicted frames, or P-frames\cite{vandalore2001sal}. There are also frames that can predicted from the previous or the following frames, called B-frames. This structure is useful to have in any compression scheme for molecular dynamics simulations to allow for random access in the simulation using both intraframe and interframe compression.
+A related topic is that of index frames. One of the reasons this prediction is not used completely throughout a video file is that it makes every frame in the file dependant on all the frames that precede it. In order to decode a frame in the file, every prior frame must be decoded. To allow for random access in a video, certain frames are labelled as Index frames or I-frames which are compressed only using Intraframe compression. Typically, a structure called a Group Of Pictures will be given that defines the order of the I-frames, and predicted frames, or P-frames\cite{vandalore2001sal}. There are also frames that can predicted from the previous or the following frames, called B-frames. This structure is useful to have in any compression of molecular dynamics simulations since it allows for random access in the simulation using both intraframe and interframe compression.
 
 \subsubsection{First Order Predictors}
 
-First order predictors use the current velocity of an object as a predictor to where the object will appear in the next frame. The velocity is calculated as the difference of the between the positions of the object in the previous two frames. This scheme would be particularly easy to implement in a molecular dynamics simulation where objects are explicitly given.
+First order predictors use the current velocity of an object as a predictor of where the object will appear in the next frame. The velocity is calculated as the difference between the positions of the object in the previous two frames. This scheme would be particularly easy to implement in a molecular dynamics simulation where objects are explicitly provided.
 
 The error is coded as the difference between the predicted and actual position of the object. Given the physical nature of the simulations, this error is likely to be small, however, in a normal video there can be situations where this predictor does not perform very well.
 
+[TODO: picture fix]
 \begin{figure}[h]
  \center
  \includegraphics[width=0.6\textwidth]{resources/FirstOrderEncoding.png}
@@ -229,8 +264,9 @@ The error is coded as the difference between the predicted and actual position o
 
 \subsubsection{K-th Order Predictors}
 
-K-th order predictors are an enhancement of the first order predictor by instead of just the positional data of the last two frames, they use object's positional data of the last $K+1$ frames to calculate the first $K$ derivatives of the object's position. Essentially, what is been calculated is a curve that passes through all $K+1$ previous positions. These predictors are updated when the next frame is encoded and used to predict the next position of the object.
+K-th order predictors are an enhancement of the first order predictor. Instead of just the positional data of the last two frames, they use an object's positional data over the last $K+1$ frames to calculate the first $K$ derivatives of the object's position. Essentially, a curve is calculated that passes through all $K+1$ previous positions. These predictors are updated when the next frame is encoded and used to predict the next position of the object.
 
+[TODO: picture fix]
 \begin{figure}[h]
  \center
  \includegraphics[width=0.6\textwidth]{resources/DeltaEncoding.png}
@@ -238,9 +274,7 @@ K-th order predictors are an enhancement of the first order predictor by instead
 \label{deltaencoding}
 \end{figure}
 
-The error is again coded as the difference between the predicted and actual position of the object. However, there are several drawbacks to using K-th order predictors. The positional data of each of the objects must be kept from the previous $K+1$ frames. Also, each prediction requires $O(K^2)$ work to be performed per object. Another problem is that as $K$ increases, the quality of the predictions need not necessarily increase, and could even decrease resulting in large error rates.
-
-
+The error is again coded as the difference between the predicted and actual position of the object. However, there are several drawbacks to using K-th order predictors. The positional data of each of the objects must be kept from the previous $K+1$ frames. Also, each prediction requires $O(K^2)$ work to be performed per object. Another problem is that as $K$ increases, the quality of the predictions does not necessarily increase, and could even decrease, resulting in large error rates. If the points are not moving in a coherent fashion, that is their motion is not unpredictable, then this prediction will not do well.
 
 \subsubsection{Kalman Filtering}
 
@@ -248,63 +282,68 @@ Kalman Filters are a relatively advanced prediction system that represent the mo
 \begin{center} $p_k = Ap_{k-1} + Bu_{k-1} + w_{k-1}$  \end{center}
 The actual measurement data, $x$, is related to the current predicted state by:
 \begin{center} $x_k = Hp_k + v_k$ \end{center}
-$w_k$ and $v_k$ are random variables which are normally distributed which are related to the noise that occurs within the stochastic process. $A$ is a matrix relating the previous prediction to the current prediction. $B$ is a matrix relating optional control input, for instance additional prediction information. $H$ is a time-dependant matrix which relates the current prediction to the current actual measurement. The Kalman Filtering process adjusts the matrices within the equations to get better and better approximations of the motion of the object.
+$w_k$ and $v_k$ are random variables which are normally distributed and are related to the noise that occurs within the stochastic process. $A$ is a matrix relating the previous prediction to the current prediction. $B$ is a matrix capturing optional control input, for instance additional prediction information. $H$ is a time-dependant matrix which relates the current prediction to the current actual measurement. The Kalman Filtering process adjusts the matrices within the equations to get better and better approximations of the motion of the object.
 
 Kalman filters provides increasingly better predictions as more frames are encoded. The drawback is that several matrix multiplications are required to acheive this accuracy, which can be computationally expensive to do on a per-object basis. This is especially true in large scale molecular dynamics simulations where there could be millions of atoms. This extra computation, however, could have a dramatic impact on the rate of interframe compression due to the very small error rates.
 
 \section{Summary}
 
-There are two main techniques for compressing videos. Intraframe techniques reduce each frame to a collection objects, in molecular simulations these are the atoms, which are encoded using either entropy encoders or dictionary encoders. Entropy encoders include the techniques of Huffman Coding and Arithmetic Coding. Huffman Coding uses an algorithm to construct a prefix-free tree to map symbols to bits, but can waste up to $1-bit$ per symbol. Arithmetic Coding is a more complicated technique which uses rational numbers to encode symbols. Arithmetic Coding can encode symbols as a fractional number of bits, avoiding the wastage that exists in Huffman Coding.
+There are two main techniques for compressing videos. Intraframe techniques reduce each frame to a collection objects, in molecular simulations these are the atoms, which are encoded using either entropy encoders or dictionary encoders. Entropy encoders include the techniques of Huffman Coding and Arithmetic Coding. Huffman Coding uses an algorithm to construct a prefix-free tree to map symbols to bits, but can waste up to $1$ bit per symbol. Arithmetic Coding is a more complicated technique which uses rational numbers to encode symbols. Arithmetic Coding can encode symbols as a fractional number of bits, avoiding the wastage that exists in Huffman Coding.
 
-Interframe techniques use temporal coherence to better encode each frame, however it introduces a dependence on some of the previous frames. Interframe compression attempt to guess the next state of objects and encode any errors. If the predictions are accurate, a better compression rate can be acheived. There were two main techniques that were investigated. First order and K-th order prediction compute curves that fit through a window and extrapolate from this curve. Kalman filters treat the motion as a stochastical process that can be estimated with some accuracy through the use of matrices.
+Interframe techniques use temporal coherence to better encode each frame, however this introduces a dependence on some of the previous frames. Interframe compression attempt to guess the next state of objects and encode any errors. If the predictions are accurate, a better compression rate can be acheived. There were two main techniques that were investigated. First order and K-th order prediction compute curves that fit data over a selected window of framesand extrapolate from this curve. Kalman filters treat the motion as a stochastical process that can be estimated with some accuracy through the use of matrices.
 
 \chapter{Design}
 
-The project's main aim was to provide research into how effective certain methods of compression would be on molecular simulations. Our system was designed in order to test the effectiveness of the compression schemes. Using our system we could measure the performance of the compression methods, in terms of speed and size of the compressed file. The actual testing of the system would accomplished via scripting and not directly through our system.
+[TODO: detail]
+
+The project's main aim was to investigate how effective certain methods of compression would be on molecular simulations. Our system was thus designed in order to test the effectiveness of the compression schemes. Using our system we measure the performance of the compression methods, in terms of speed and size of the compressed file. The actual testing of the system is accomplished via scripting and not directly through our system.
 
 \section{Design Methodology}
 
-We settled for an iterative design methoodlogy. The system was designed so that the first iteration would have very little functionality, but still be able to compress simulations. The first iteration had only two compressors based on reference schemes working. The second iteration had more compressors, including schemes based on interframe prediction compressions. The third and final iteration had all the compressors and visualisation completed.
+We settled for an iterative design methodology. The system was designed so that the first iteration would have very little functionality, but still be able to compress simulations. In the first iteration, only two compressors based on reference schemes were implemented. The second iteration had more compressors, including schemes based on interframe prediction. The third and final iteration had all the compressors and visualisation completed.
 
-The initial design of the program was to have an integrated system that could handle compression, decompression and visualisation of the molecular simulation data. This was changed as we learnt that the compression would possibly be included in VMD. VMD allows the simulations to be visualised using several different representations and so our visualisation would not be useful for VMD.
+The initial design of the program consisted of an integrated system that could handle compression, decompression and visualisation of the molecular simulation data. This was changed once we learnt that the compression would possibly be included in VMD. VMD allows the simulations to be visualised using several different representations and so our visualisation would not be useful for VMD.
 
-The program was then split-up into components that could shared across multiple programs; the visualisation and the compressors. This was necessary as there was functionality that needed to be in both the visualisations and each compressor, such as quantising and dequantising points. The graphical front-end of the program would be handled entirely by Min-Young Wu, while the compression back-end would be split-up fairly between Keegan Smith and myself. 
+The program was then split-up into components that could be shared across multiple programs, namely the visualisation and the compressors. This was necessary as there was functionality that needed to be in both the visualisations and each compressor, such as quantising and dequantising points. The graphical front-end of the program would be handled entirely by Min-Young Wu, while the compression back-end would be split-up fairly between Keegan Smith and Julian Kenwood. 
 
-Another motivation for splitting up the work load is that testing would require each part to be separated in order to more efficiently gather results. The final design was that the compressors would be able to run separately with a separate driver program for each one.
+Another motivation for splitting up the work load is that testing requires each part to be separated in order to more efficiently gather results. The final design allowed the compressors to run independently with a separate driver program for each one.
 
-Another important design choice that was made was to separate the Interframe and the Intraframe compression schemes. In normal video compression schemes they are combined into a single scheme. In order to measure the performance of the interframe compression schemes it is necessary decouple them. The use of other schemes would make it difficult to measure the compression time and compression rate. 
+Another important design choice was to separate the Interframe and the Intraframe compression schemes. In normal video compression schemes they are combined into a single scheme. In order to adequetely measure the performance of the interframe compression schemes it is necessary decouple them. The use of other schemes would make it difficult to measure the compression time and compression rate. 
  
-The system was intended to be very memory efficient. As little memory would be used as possible in order to carry out the compression. Our main reason for this was that the data we were dealing with was very large. Individual frames were potentially several gigabytes in size. However, according to an email with John Stone[TODO: ref?] we were informed that the current state of the art in simulations had a much lower size limit of several megabytes. We settled for a design that was a lot less stringent on memory which simplified the implementation greatly.
+The system is designed to be very memory efficient. As little memory would be used as possible in order to carry out the compression. Our main reason for this was that the data we were dealing with was very large. Individual frames were potentially several gigabytes in size. The current state of the art in simulations has a much lower size limit of several megabytes.[TODO: John Stone Ref] The system that is implemented is less stringent on memory which simplifies it greatly.
 
-The final requirements for the compression section of our system was that it would need to be able compress large simulations with large numbers of atoms and frames. We defined large simulations as consisting of at least:
+The final requirements for the compression section of our system are that it would needs to be able compress large simulations with large numbers of atoms and frames. We define large simulations as consisting of at least:
 
 \begin{itemize}
  \item $2,000,000$ atoms
  \item $10,000$ frames
 \end{itemize}
 
-From these requirements, we calculated that the size of each frame is only about $20MB$ at maximum. All of the intraframe compression schemes only require each frame once as they are being compressed, however the interframe compression schemes require a window of previous frames. Typically, this window is very small, so the impact of storing each frame in the window is negligble.
+From these requirements, we calculated that the size of each frame is about $20MB$ at maximum. The intraframe compression schemes only hold each frame once as they are being compressed. However, the interframe compression schemes require a window of previous frames. Typically, this window is very small, so the impact of storing each frame in the window is negligble.
 
-It is predicted that in the next 2 years, the state of the art clusters will be to create simulations containing between $10,000,000$ to $100,000,000$ atoms. In order to handle these increases our system may need to optimised in order to allocate as little memory as possible.
+It is predicted that in the next 2 years, the state of the art clusters will be to create simulations containing between $10,000,000$ and $100,000,000$ atoms. In order to handle these increases our system may need to be optimised in order to allocate as little memory as possible.
 
 
 \section{System Overview}
 
-\begin{figure}
+\begin{figure}[h]
  \center
- \includegraphics[width=0.4\textwidth]{resources/Breakdown-connect.pdf}
+ \includegraphics[width=0.5\textwidth]{resources/Breakdown-connect.pdf}
 \caption{System breakdown}
 \label{sysbreak}
 \end{figure}
 
-The system was divided up into several sections: Visualisation, Compressors and Components. The Visualisation handles viewing the output of molecular simulations that have been compressed by our system. It allows users to see the effects of quantisation on the simulations. This section was implemented by Min-Young Wu and is explained more thoroughly in his report. 
+[TODO: reference all figures, add more section references]
 
-The Compressors section contains all the different compression techniques that were implemented. This compressors fall into one of two subsections: Intraframe and Interframe compression. The Intraframe compressors were mainly implemented by Keegan Smith, although the Omeltchenko Encoder was implemented by myself and its implementation will be explained later.
+The system is divided up into several sections(Figure \ref{sysbreak}): Visualisation, Compressors and Components. The Visualisation handles viewing of the output of molecular simulations that have been compressed by our system. It allows users to see the effects of quantisation on the simulations. This section was implemented by Min-Young Wu and is explained more thoroughly in his report. 
 
-The Components part of the system represented various subsystems that are shared among various parts of the project. The main reason for separating these components out was to avoid code duplication. There were additional benefits such as easier testing and better splitting of the work load among our team.
+The Compressors section contains all the compression techniques that were implemented. The compressors fall into one of two subsections: Intraframe and Interframe compression. The Intraframe compressors were mainly implemented by Keegan Smith, although the Omeltchenko Encoder was implemented by Julian Kenwood and its implementation will be explained later in this thesis. (Section \ref{imp_omelt})
+
+The Components part of the system represented various subsystems that are shared among various parts of the project. The main reason for separating these components out was to avoid code duplication. There are additional benefits such as easier testing and better subdivision of the work load among our team.
 
 The following is a list of the components and their roles in the systems. \\ \\ \\
 
+[TODO: beef up the next stuff]
 \begin{itemize}
  \item Quantiser
  \begin{itemize}
@@ -341,7 +380,7 @@ The following is a list of the components and their roles in the systems. \\ \\ 
 
 \section{Compressed File Format}
 
-We chose a standard file format for all compressors to write to. This decision simplified the implementation of the compressors and easily allow adding new compressors in future. The format has several sections that allow it to reconstitute an uncompressed DCD file.
+We chose a standard file format for all compressors. This decision simplified the implementation of the compressors and allowed easy addition of new compressors. The format has several sections that allow it to reconstitute an uncompressed DCD file.
 
 The header of the file is broken up into two segments. The first segment stores the DCD file's header which includes the number of atoms and frames in the simulation. The second segment stores header information relevant to the compression. In many of the compression schemes this is only the quantisation levels, however some of the interframe schemes require additional information about prediction window sizes.
 
@@ -350,11 +389,13 @@ The remainder of the file consists of records, one per frame. Each record contai
 \begin{figure}
  \center
  \includegraphics[width=0.4\textwidth]{resources/FileFormat.png}
-\caption{File format}
+\caption{Compressed File format: The green blocks represent per-file header information that is stored only once. The blue blocks represent data that occur in a per frame basis.}
 \label{fileformat}
 \end{figure}
 
 % \subsection{Overview}
+
+[TODO: Future implementation]
 
 \section{Experiment Design}
 
@@ -374,6 +415,7 @@ Only one Intraframe Compression scheme was implemented by myself, the others wer
 
 \subsection{Omeltchenko Scheme}
 
+\label{imp_omelt}
 The Omeltchenko Scheme was implemented with slight differences to the algorithm described in the paper. The algorithm was initially implemented with the prescribed sorting algorithm for sorting the list of octree indices. 
 
 The paper describes using a large array of lists such that, for uniform distributions of atoms, maps approximately $O(1)$ atoms to each list. Each of the lists are then sorted using a heapsort and the merged into a final sorted list. The size of the array is equal to the number of atoms in the frame and divides the range of octree indices into roughly equal parts. The benefit of this approach is that, for uniform distributions, all indices can be sorted in approximately linear time.  In large simulations, the memory usage and overhead of running many heapsorts grows quickly. In order to reduce the running time, the paper suggests splitting the molecular simulation up into smaller boxes and then merging the sorted indices of these boxes. The paper does not give any instruction on how to split the simulation up. In our implementation, the STL sort is used. This is an implementation of the Introsort algorithm which has linearithmic worst case behaviour and is heavily optimised.
@@ -656,6 +698,256 @@ The Byte Model is a light implementation of a static section of the Static Arith
 % \section{Verification Components}
  
 
+\chapter{Results}
+
+The testing process was performed on a cluster using a single Intel Xeon 3.00GHz processor and 3GB of RAM. Each compressor was run on several data sets. Two of the datasets were donated by Dr. James Gain and Dr. Michelle Kuttel. The remaining datasets were generated by Julian Kenwood using software called Nanoscale Molecular Dynamics(NAMD). 
+
+NAMD is a program, which is included with VMD, that is able to produce simulation that are compatible with our project. The program requires three files to be present in order to run the simulation. The first is the PDB file which determines which atoms are present in the simulation. The PDB files cannot be automatically generated as they correspond to positions of atoms in an actual molecule. Several PDB files were download from the RCSB, which maintains archives of many free PDB files. [REF: http://www.rcsb.org/] Finally, an important function that VMD can perform is to modify PDB files in order to embed the molecules in water. This was used to increase the number of atoms in several simulations.
+
+The second file is the PSF file which contains information on the bonds between atoms in the PDB file. VMD can generate these files automatically from the PDB files. 
+
+Finally, a configuration is necessary that allows the user to set various parameters for the simulation. There are two important settings that control the granularity of the simulation and length of the simulations. These settings control the total number of simulation steps and how many simulations steps are performed for each step that is output to file. The greater the granularity, the less the coherent the steps in the simulations and the greater the size of the output file. One last setting that affects the motion in the simulation is the initial temperature at which the simulation is run.
+
+In the next section, the datasets that were used for experiments will be discussed.
+
+\begin{section}{Datasets}
+
+A total of 16 datasets were used in the experiment, however only a representative set of 7 will be displayed here. These datasets represent a range of parameters such as being run at fine granularity or high temperatures. 
+
+\begin{itemize}
+ \item HIV: This is a small dataset which represents part of the Human Immunodeficiency Virus(HIV) surrounded by water. It consists of 6345 atoms simulated over 200 frames and run at room temperature(25 degrees celcius). For each output frame in the file, there are 50 frames of simulation.
+ \item Water: This dataset consists completely of water molecules. There are 96,603 atoms simulated over 220 frames. The simulation is run at room temperature and for each output frame there are 50 frames of simulation.  
+ \item Hot Water: This dataset is the same as the Water dataset, but at a much higher temperature. The temperature is run at 1000 degrees celcius.
+ \item MSCL: MSCL is a medium-sized dataset that was donated by Dr. James Gain. It contains two volumes of water, separated by a protein called Mechanosensitive Channels(MSCL). This is a protein is responsible for opening pores in response to mechanical stress. It is believed to be a vital part in many of our senses. [TODO: REF] It contains over 100,000 thousand atoms simulated over 300 frames. The output rate is unknown, but from looking at the simulation it can be seen to be quite erratic.
+ \item Small Water: This is a very small dataset which also contains only water. There are 699 atoms in 100 frames of data. The simulation is run at a very fine granularity of 1 frame of simulation for each output frame. The simulation is run at room temperature.
+ \item Rabies: This is the rabies virus, which looks similar to the sides of a cylinder. At each end of the molecule there are two areas of water which cover the openings. The simulation contains 175,790 atoms and 1,200 frames. The simulation is run at room temperature and output at 1 simulation frame per output frame. There is very little motion in this simulation, as there is only a small area for the water and virus to interact. This results in motion that is very coherent.
+ \item Polysaccharide: A polysaccharide is a carbohydrate that is an important biological polymer, a long chain of molecules. This dataset was donated by Dr. Michelle Kuttel. There are only 1,509 atoms in this simulation, but there are over 100,000 frames. The granularity and temperature are unknown, but from looking at the simulation in VMD, one can see that the motion is very erratic and sometimes appears to jump a large amount.
+\end{itemize}
+
+The next section will show the results from the experiments that were performed.
+
+\section{Experiment Results}
+
+Several statistics were gathered from running the experiments: The compression size, compression time and decompression time. The decompression time is not shown in the tables below as they follow a similar pattern as the encoding time. One difference is that the decoding is typicall slower due to the Arithmetic Decoder not being optimised as heavily as the Arithmetic Encoder. 
+
+A selection of window sizes were chosen for each compressor. Polynomial Extrapolation, Spline Extrapolation, Smallest Error Encoding and Common Error Encoding have one input parameter that is the window size. The values chosen were: 1, 2, 3, 5 and 10. In the case of k-Nearest Neighbour Encoding there are two parameters that can vary, the size of the window and the dimension of the feature space vectors. The window sizes of 2, 3, 4, 5 and 10 were chosen, but for each of the sizes a different set of feature vector sizes was chosen. The size of the feature vectors allowed is 2, 3, 4 and 9. There is an added restriction, however, that for each window size the feature vector size must be strictly less than the window size.
+
+These tests were run using several quantisation levels, namely 8, 12 and 16 bit quantisation across all the dimensions. The results are similar across all quantisation levels. In order to save space, only the 8-bit quantisation is shown here. The difference between results of the different quantisation levels is that a higher quantisation corresponds to a lower compression ratio and a larger compression time. The relative ordering of the results for differing parameters remains the same.
+
+\subsection{Polynomial Extrapolation}
+
+%INTERFRAME
+
+\begin{table}
+\begin{center}
+\resizebox{\textwidth}{!}{
+        \begin{tabular}{ | l | l | l | ll | ll | ll | ll | ll |}
+                \hline
+                Dataset & Original & Quantised & K=1 & & K=2 & & K=3 & & K=5 & & K=10 & \\ \hline
+                HIV & 14.53 & 25.04 & 8.37 & 2.01 & 10.17 & 2.12 & 12.68 & 2.33 & 18.16 & 2.76 & 27.64 & 3.73 \\ \hline
+                Water  & 243.22 & 25 & 4.82 & 33.32 & 6.88 & 33.72 & 9.42 & 37.69 & 14.46 & 44.69 & 26.58 & 62 \\ \hline
+                Hot Water & 221.11 & 25 & 5.77 & 30.67 & 7.62 & 31.07 & 10.23 & 35.1 & 15.75 & 41.11 & 26.68 & 56.15 \\ \hline
+                MSCL & 381.15 & 25 & 9.46 & 57.14 & 11.61 & 58.12 & 14.23 & 63.21 & 19.67 & 75.04 & 27.77 & 98.42 \\ \hline
+                Small Water & 0.8 & 25.35 & 3.57 & 0.15 & 5.31 & 0.12 & 7.77 & 0.13 & 12.43 & 0.16 & 24.02 & 0.23 \\ \hline
+                Rabies & 2414.14 & 25 & 1.19 & 281.89 & 2 & 305.03 & 2.88 & 332.34 & 4.4 & 386.95 & 9.75 & 524.77 \\ \hline
+                Polysaccharide & 1886.41 & 25.17 & 10.62 & 259.99 & 12.94 & 287.46 & 15.59 & 313.65 & 20.97 & 377.02 & 28.14 & 497.27 \\ \hline
+        \end{tabular}}
+\end{center}
+\caption{Compression information for the Polynomial Extrapolation Prediction using different prediction window parameters. The first column represents the name of the dataset that the compression scheme was used on. The second column represents the size of the original file in MB. The third column shows the final size from quantisation only as a percentage of the original size. The remaining columns show two numbers: The first number is the compressed file sizes as a percentage of the original, the second number represents the time in seconds to compress the file.}
+\label{intres}
+\end{table}
+
+As can be seen in Table \ref{intres}, the best parameters for the Polynomial Extrapolation is when the parameters are low. In general, the best compression scheme is for K = 1. This corresponds to the delta encoding of coordinates. As the prediction window size is increased, the compression gets worse. This is because the polynomials created from interpolation tend to oscillate as their degree increases. This oscillation leads to very poor predictions to be made which results in very large, uncommon errors to be encoded. Additionally, the extra work required for constructing larger degree polynomials contribute a little, although significant, amount to the running time.
+
+The scheme tends to do better for simulations with very stable motion. The scheme is able to acheive a compression ratio of 1.19\% on the very coherent simulations such as the Rabies dataset. The datasets containing only water molecules are compressed better than the simulations containing other molecules as well. This could be due to the interaction between the water and the molecule, in these areas the atoms motion is less predictable due to the complex interactions involved.
+
+%SPLINE
+\subsection{Spline Extrapolation}
+
+\begin{table}
+\begin{center}
+\resizebox{\textwidth}{!}{
+        \begin{tabular}{ | l | l | l | ll | ll | ll |}
+                \hline
+                Dataset & Original & Quantised & K=3 & & K=5 & & K=10 & \\ \hline
+                HIV & 14.53 & 25.04 & 10.86 & 2.25 & 11.55 & 2.54 & 12.44 & 3.2 \\ \hline
+                Water & 243.22 & 25 & 7.41 & 36.34 & 8.34 & 40.98 & 9.41 & 52.22 \\ \hline
+                Hot Water & 221.11 & 25 & 8.24 & 33.74 & 9.14 & 37.87 & 10.18 & 47.91 \\ \hline
+                MSCL & 381.15 & 25 & 12.43 & 62.92 & 13.11 & 69.18 & 13.78 & 86.46 \\ \hline
+                Small Water & 0.8 & 25.35 & 5.7 & 0.13 & 7.63 & 0.15 & 9.93 & 0.2 \\ \hline
+                Rabies & 2414.14 & 25 & 2.08 & 332.73 & 2.61 & 379.16 & 2.96 & 492.64 \\ \hline
+                Polysaccharide & 1886.41 & 25.17 & 13.74 & 307.19 & 14.37 & 344.14 & 14.86 & 433.15 \\ \hline
+        \end{tabular}}
+\caption{Compression information for the Spline Extrapolation using different prediction window parameters. The first column represents the name of the dataset that the compression scheme was used on. The second column represents the size of the original file in MB. The third column shows the final size from quantisation only as a percentage of the original size. The remaining columns show two numbers: The first number is the compressed file sizes as a percentage of the original, the second number represents the time in seconds to compress the file.}
+\end{center}
+\label{res_spline}
+\end{table}
+
+Table \ref{res_spline} provides similar results in terms of the best window size. The columns for K = 1 and K = 2 are not shown in the table as they correspond to delta encoding and first order prediction respectively. To save space these results can be found in Table \ref{intres}. The best scheme, in terms of general compression ratios still correspond to a window size of 1, or delta encoding. The higher order splines that are created do worse than delta compression, but when comparing to Polynomial Extrapolation it does significantly better. This is because, although it is not a great predictor of atomic motion, it does not oscillate as much. There is also less work required in terms of floating point operations, so the speed of the predictor is faster.
+
+Again, the scheme does better for simulations that are coherent. Although the scheme acheives the same compression ratio as delta encoding, it achieves acheives a compression ratio 2.08\% for a window size of 3, while the Polynomial Extrapolation has a 2.88\% compression ratio. The water-only simulations also compress better than mixed simulations.
+
+%NEAREST
+\subsection{Smallest Error Encoding}
+
+\begin{table}
+\begin{center}
+\resizebox{\textwidth}{!}{
+        \begin{tabular}{ | l | l | l | ll | ll | ll | ll |}
+                \hline
+                Dataset & Original & Quantised & K=2 & & K=3 & & K=5 & & K=10 & \\ \hline
+                HIV & 14.53 & 25.04 & 10.35 & 5.05 & 11.48 & 6.53 & 12.94 & 8.12 & 15.02 & 9.9 \\ \hline
+                Water & 243.22 & 25 & 6.29 & 81.21 & 7.42 & 105.41 & 9.11 & 129 & 11.65 & 162.72 \\ \hline
+                Hot Water & 221.11 & 25 & 7.39 & 74.11 & 8.59 & 97 & 10.32 & 119.73 & 12.81 & 161.32 \\ \hline
+                MSCL & 381.15 & 25 & 11.1 & 134.56 & 12.11 & 173.8 & 13.4 & 216.27 & 15.26 & 278.41 \\ \hline
+                Small Water & 0.8 & 25.35 & 5.31 & 0.27 & 6.88 & 0.35 & 9.22 & 0.42 & 13.19 & 0.52 \\ \hline
+                Rabies & 2414.14 & 25 & 1.56 & 750.03 & 1.95 & 977.8 & 2.63 & 1194.86 & 4.12 & 1492.62 \\ \hline
+                Polysaccharide & 1886.41 & 25.17 & 12.03 & 663.84 & 12.87 & 776.39 & 13.91 & 1072.1 & 15.37 & 1351 \\ \hline
+        \end{tabular}}
+\end{center}
+\caption{Compression information for the Smallest Error Encoding using different prediction window parameters. The first column represents the name of the dataset that the compression scheme was used on. The second column represents the size of the original file in MB. The third column shows the final size from quantisation only as a percentage of the original size. The remaining columns show two numbers: The first number is the compressed file sizes as a percentage of the original, the second number represents the time in seconds to compress the file.}
+\label{res_small}
+\end{table}
+
+The table(Table \ref{res_small}) for the Smallest Error Encoding scheme gives results similar to other schemes. The higher the prediction window, the worse the scheme does. Again, the best result is when K = 1, which is not shown on the table as it corresponds almost precisely to delta encoding. There is a difference here, however, in that index information must also be encoded for each prediction. This makes it actually perform worse than delta encoding by a few bytes. As can be seen in the table, the higher the window size, the worse the compression becomes. This is due to the fact that the indices always lie in the range $0..K-1$. As the window size increases the number of different symbols increases. The probability of these symbols being encoding is very similar, instead of a single symbol having a high probability leading to an increase in compression ratio. This offsets any gain from using a larger window. Finally, since the current implementation sorts many times, the compression time increases greatly as the window size is increased.
+
+For the simulations with coherent motion the scheme performs very well compared with to Polynomial Extrapolation, however it does worse than Spline Extrapolation. Also, although water-only simulations perform well at low window sizes when compared to mixed simulations, at higher window sizes the compression rates tend to be less distinguishable.
+
+%COMMON
+\subsection{Common Error Encoding}
+
+\begin{table}
+\begin{center}
+\resizebox{\textwidth}{!}{
+        \begin{tabular}{ | l | l | l | ll | ll | ll | ll |}
+                \hline
+                Dataset & Original & Quantised & K=2 & & K=3 & & K=5 & & K=10 & \\ \hline
+                HIV & 14.53 & 25.04 & 8.99 & 4.1 & 9.44 & 5.71 & 10.18 & 7.22 & 11.41 & 11.4 \\ \hline
+                Water & 243.22 & 25 & 5.3 & 62.7 & 5.68 & 79.04 & 6.3 & 124.4 & 7.28 & 163.88 \\ \hline
+                Hot Water & 221.11 & 25 & 6.48 & 60.17 & 7.13 & 74.23 & 8.29 & 107.43 & 10.34 & 175.61 \\ \hline
+                MSCL & 381.15 & 25 & 9.79 & 123.66 & 10.14 & 141.25 & 10.77 & 203.88 & 11.92 & 308.53 \\ \hline
+                Small Water & 0.8 & 25.35 & 4.66 & 0.21 & 5.58 & 0.27 & 7.05 & 0.35 & 9.89 & 0.54 \\ \hline
+                Rabies & 2414.14 & 25 & 1.4 & 560.72 & 1.61 & 709.05 & 1.9 & 1006.62 & 2.47 & 1395.88 \\ \hline
+                Polysaccharide & 1886.41 & 25.17 & 10.71 & 582.64 & 10.9 & 692.06 & 11.26 & 1049.7 & 11.92 & 1724.53 \\ \hline
+        \end{tabular}}
+\end{center}
+\caption{Compression information for the Common Error Encoding using different prediction window parameters. The first column represents the name of the dataset that the compression scheme was used on. The second column represents the size of the original file in MB. The third column shows the final size from quantisation only as a percentage of the original size. The remaining columns show two numbers: The first number is the compressed file sizes as a percentage of the original, the second number represents the time in seconds to compress the file.}
+\label{res_common}
+\end{table}
+
+Table \ref{res_common} shows the results for the Common Error Encoding scheme. The column K = 1, is not shown as it corresponds to K = 1 in the Smallest Error Encoding scheme, which in turn corresponds almost directly to delta encoding. The table shows that Common Error scheme always does better than the Smallest Error Encoding scheme. Again, a noticable increase in compression ratio can be seen as the window size increases. Even though this scheme is an improvement on the Smallest Error scheme, the improvements are not good enough to overcome the impact of encoding indices. The scheme does best in terms of having the slowest compression ratio growth among the interframe prediction schemes, although it also has one of the slowest compression times on average due to the sorting and additional data structures that are required. 
+
+The scheme has the same benefits to Smallest Error Encoding, but tends to do much better on average at each prediction window size. Simulations with very stable motion are compressed very well. The scheme has the second best performance for encoding the Rabies dataset of 1.4\%. A similar effect is seen in Smallest Error Encoding where the water-only simulations are compressed much better at low window sizes. This benefit also disappears at higher window sizes.
+
+\subsection{k-Nearest Neighbour Encoding} 
+%NN part 1
+
+\begin{table}
+\begin{center}
+\resizebox{\textwidth}{!}{
+        \begin{tabular}{ | l | l | l | ll | ll | ll |}
+                \hline
+                Dataset & Original & Quantised & K=3;V=1 & & K=4;V=1 & & K=4;V=2 & \\ \hline
+                HIV & 14.53 & 25.04 & 9.91 & 1.84 & 10.53 & 1.99 & 9.97 & 1.92 \\ \hline
+                Water & 243.22 & 25 & 6 & 28.64 & 6.69 & 31.21 & 6.1 & 29.78 \\ \hline
+                Hot Water & 221.11 & 25 & 7.3 & 26.9 & 8.15 & 29.32 & 7.4 & 27.74 \\ \hline
+                MSCL & 381.15 & 25 & 10.56 & 50 & 11.18 & 53.92 & 10.61 & 51.46 \\ \hline
+                Small Water & 0.8 & 25.35 & 5.71 & 0.11 & 7.05 & 0.12 & 6.06 & 0.11 \\ \hline
+                Rabies & 2414.14 & 25 & 1.65 & 264.14 & 2.05 & 281.85 & 1.67 & 273.08 \\ \hline
+                Polysaccharide & 1886.41 & 25.17 & 11.35 & 245.19 & 11.88 & 264.65 & 11.35 & 253.29 \\ \hline
+        \end{tabular}}
+\end{center}
+\caption{}
+\label{res_nn1}
+\end{table}
+
+%NN part 2
+
+\begin{table}
+\begin{center}
+\resizebox{\textwidth}{!}{
+        \begin{tabular}{ | l | l | l | ll | ll | ll |}
+                \hline
+                Dataset & Original & Quantised & K=5;V=1 & & K=5;V=2 & & K=5;V=3 & \\ \hline
+                HIV & 14.53 & 25.04 & 10.63 & 2.12 & 10.53 & 2.11 & 10.04 & 2.01 \\ \hline
+                Water & 243.22 & 25 & 6.82 & 32.81 & 6.76 & 32.96 & 6.19 & 32.33 \\ \hline
+                Hot Water & 221.11 & 25 & 8.34 & 30.97 & 8.07 & 30.87 & 7.5 & 28.67 \\ \hline
+                MSCL & 381.15 & 25 & 11.3 & 57.52 & 11.17 & 56.45 & 10.66 & 53.01 \\ \hline
+                Small Water & 0.8 & 25.35 & 7.36 & 0.13 & 7.19 & 0.13 & 6.4 & 0.12 \\ \hline
+                Rabies & 2414.14 & 25 & 2.03 & 297.93 & 2.07 & 301.25 & 1.69 & 282.53 \\ \hline
+                Polysaccharide & 1886.41 & 25.17 & 11.92 & 280.21 & 11.84 & 276.67 & 11.35 & 259.61 \\ \hline
+        \end{tabular}}
+\end{center}
+\caption{}
+\label{res_nn2}
+\end{table}
+
+% NN part 3
+
+\begin{table}
+\begin{center}
+\resizebox{\textwidth}{!}{
+        \begin{tabular}{ | l | l | l | ll | ll | ll | ll |}
+                \hline
+                Dataset & Original & Quantised & K=10;V=1 & & K=10;V=2 & & K=10;V=3 & & K=10;V=4 & \\ \hline
+                HIV & 14.53 & 25.04 & 10.99 & 3.33 & 11.2 & 3.25 & 11.31 & 3.46 & 11.23 & 3.59 \\ \hline
+                Water & 243.22 & 25 & 7.16 & 48.03 & 7.33 & 52.19 & 7.5 & 56.8 & 7.49 & 59.67 \\ \hline
+                Hot Water & 221.11 & 25 & 8.92 & 46.33 & 8.83 & 48.8 & 8.76 & 52.3 & 8.68 & 54.66 \\ \hline
+                MSCL & 381.15 & 25 & 11.58 & 83.34 & 11.69 & 88.26 & 11.75 & 94.92 & 11.71 & 99.15 \\ \hline
+                Small Water & 0.8 & 25.35 & 8.76 & 0.24 & 8.74 & 0.2 & 8.85 & 0.21 & 8.77 & 0.22 \\ \hline
+                Rabies & 2414.14 & 25 & 2.19 & 417.72 & 2.12 & 481.66 & 2.18 & 529.74 & 2.19 & 557.83 \\ \hline
+                Polysaccharide & 1886.41 & 25.17 & 12 & 373.49 & 12.1 & 428.81 & 12.19 & 458.1 & 12.19 & 476.76 \\ \hline
+        \end{tabular}}
+\end{center}
+\caption{Compression information for k-Nearest Neighbour Encoding using different prediction window parameters. The first column represents the name of the dataset that the compression scheme was used on. The second column represents the size of the original file in MB. The third column shows the final size from quantisation only as a percentage of the original size. The remaining columns show two numbers: The first number is the compressed file sizes as a percentage of the original, the second number represents the time in seconds to compress the file.}
+\label{res_nn3}
+\end{table}
+
+Tables \ref{res_nn1}, \ref{res_nn2} and \ref{res_nn3} show the results for the k-Nearest Neighbour Encoding scheme. These results are slightly more difficult to analyse as there are two parameters that vary. There are also many different choices of parameters that correspond to delta encoding. In general, if V = K - 1, then the encoding represents delta compression. In this regard, K=2;V=1, K=3;V=2, K=4;V=3, K=5;V=4 and K=10,V=9 were removed from the above tables to save space. 
+
+The results show the same trend that occurs in the other schemes. As K increases, the compressed file size increases. However, as V increases for each K value, the compression ratio decreases and yields better the compression. This scheme, like the Smallest Error Encoding and Common Error Encoding, requires that two symbols are output per atom. It tends to perform on par with the Smallest Error Encoding at low window sizes, but at high window sizes the growth rate means that it can do a bit worse. The best value, however, coincides with delta compression as V approaches K - 1. This scheme performs faster than Smallest Error Encoding and Common Error Encoding, but slower than both Polynomial Extrapolation and Spline Extrapolation.
+
+Simulations with very stable motion is compressed moderately well at low prediction levels. This scheme performs poorly on almost every other dataset. Water-only simulations are also compressed moderately well at low window size, but for mixed datasets it does worse still.
+
+\end{section}
+
+\section{Summary}
+
+From the results, it can be seen that delta encoding performs the best among all Interframe Compression schemes. All of the schemes show that. as the window size increases, there is an increase in the time required to perform the compression, as well as an increase in the output compressed file size. This decrease in overall compression is due to the fact the motion in the file is generally not coherent, it is simulated at a much faster rate than it is output. There are also complex interactions that tend to make the prediction-based schemes more inaccurate, while the non-prediction based schemes also perform poorly due to the additional encoding of indices.
+
+Simulations that were compressed well had very coherent motion. These simulations were able to be compressed to around the 5\% region at the 8-bit quantisation level. The results were similar at the 12-bit and 16-bit quantisation levels acheiving around 15\% and 40\% average compression respectively. This non-linear increase is due to the exponential effects of quantisation. At 8-bit quantisation, very slight motion is removed, while at 12-bit and 16-bit quantisation there is enough fidelity for these motions still to occur.
+
+An effect that also isn't shown here is the consequence of increasing the prediction window size. An increased window size will require more frames to be compressed with Intraframe prediction in order to fill up the window with enough frames to perform the Interframe schemes. This could lead to an increase in compression time and compressed file size depending on what Intraframe scheme is chosen. 
+
+\chapter{Conclusion}
+
+The compression schemes were chosen fall into two categories: Intraframe compression and Interframe compression. The former category has schemes which are rely on the spatial and chemical properties of the simulation, while the latter category has schemes which use the temporal properties of the simulation. Intraframe Compression was tested by Keegan Smith and Interframe being tested by Julian Kenwood and covered in this report. 
+
+There were five Interframe compression schemes were covered and tested:
+
+\begin{itemize}
+ \item Polynomial Extrapolation which uses polynomial interpolation for prediction the next location of an atom.
+ \item Spline Extrapolation which uses spline interpolation for predicting the next location of an atom.
+ \item Smallest Error Encoding which encodes both an index into the the prediction window and an error offset such that the errors sizes are minimised.
+ \item Common Error Encoding which, like the previous scheme, encodes an index into the prediction window and an error offset, however it uses a heuristic to estimate the effects of encoding items from the window and greedily chooses the best one.
+ \item k-Nearest Neighbour Encoding is loosely based on a machine classification algorithm to attempt to encode the best result. 
+\end{itemize}
+
+Each of thesse schemes was tested at the low, medium and high window sizes ranging from between 1 and 10 previous frames. 
+
+[TODO: This might change when I get the actual results from Keegan, although it is looking like it won't]
+
+From results in Keegan Smith's Report, the Intraframe compression schemes typically take longer in order to compress a frame and do not yield better results than Interframe compression. The main reason for this, as discussed in Keegan Smith's report, is that the order of atoms is usually destroyed which means that extra information must be compressed to recover it. The majority of an Intraframe compressed file's size comes from the ordering information.
+
+The Interframe compression does not suffer from this as it compresses the atoms in the order they appear in the simulation file. The best choice of parameters and compression scheme correspond to delta encoding of the points where typically the compression produces a file that is 10\% of the original's size. The best running time also occurs for delta encoding. However, the results on the time of delta compression reflected in the previous chapter does not necessarily show the true running time of a system specifically designed for this compression which can be more heavily optimised. The molecular simulation dataset were chosen based on several properties that are present in simulations, namely granularity and temperature and size of the dataset in number of atoms and number of frames.
+
+\section Future Work
+
+There are several parts on the compression side that was left for future work. Firstly, several of the prediction schemes, namely the Smallest Error Encoding and the Common Error Encoding have simple implementations that are not as optimised as possible, and can be made faster by using sorted data structures instead of sorting the frames at each step. 
+
+The current system is also not so stringent on memory usage. The next generation of parallel and distributed computers will be able to generate simulations which are 10 to 100 times larger than they are currently. This will put a larger memory constraint on the compressors which sometimes require multiple copies of the frames to operate, for instance in Interframe compression. This could be possible by using a caching system that stores only single copies of each frame, but makes it available for each part of the system to use it. Various schemes, such as delta encoding, can also be made to operate using much less memory than they currently consume.
+
+One of the compression schemes, the Common Error Encoding scheme, uses an heuristic function to approximate the effects of performing a compression. This approximation is then acted on in a greedy fashion, however better compression could be acheived by performing a complete search of the space. This search space can grow exponentially so better exact algorithms such as branch-and-bound or approximation algorithms such as Genetic Algorithms or Simulated Annealing could be used instead.
 
 \bibliography{report_julian}
 

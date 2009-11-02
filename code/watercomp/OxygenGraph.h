@@ -55,7 +55,7 @@ private:
 
     int prediction_error(int water_idx,
                          WaterPredictor::Prediction & pred) const;
-    bool create_component(Graph * graph, Graph * tree, int v) const;
+    bool create_component(Graph * graph, Graph * tree, int v, int r) const;
 
     WaterPredictor m_predictor;
     const QuantisedFrame & m_qframe;
