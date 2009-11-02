@@ -41,25 +41,35 @@ bool QuantReader::next_frame(QuantisedFrame & qframe)
     // Read in qframe per dimension
     size_t dims[3] = { qframe.m_xquant, qframe.m_yquant, qframe.m_zquant };
     for (int d = 0; d < 3; d++) {
-        assert(8 <= dims[d]);
-        assert(dims[d] <= sizeof(unsigned int) * 8);
-        assert(dims[d] % 8 == 0);
-
-        // Read in from file
-        size_t bytes = dims[d] / 8;
-        size_t size = natoms() * bytes;
-        size_t read = 0;
+        // Setup buf
+        size_t size = (qframe.natoms() * dims[d] + 7) / 8;
         unsigned char buf[size];
+
+        // Read into buf from file
+        size_t read = 0;
         while (read < size)
             read += fread(buf + read, sizeof(char), size - read, m_fin);
 
+        // Position in buf
+        int byte_offset = 0;
+        int bit_offset = 0;
+
         // Copy to qframe buffer
         for (int i = 0; i < natoms(); i++) {
-            size_t offset = i * bytes;
-
             unsigned int val = 0;
-            for (size_t j = 0; j < bytes; j++)
-                val |= (buf[offset + j] << (8*j));
+
+            for (int j = 0; j < dims[d]; j++) {
+                // Get and write j'th bit of val
+                int bit = (buf[byte_offset] >> bit_offset) & 1;
+                val |= (bit << j);
+
+                // Adjust the bit and byte offset in buf
+                bit_offset++;
+                if (bit_offset == 8) {
+                    byte_offset++;
+                    bit_offset = 0;
+                }
+            }
 
             qframe.quantised_frame[3*i + d] = val;
         }
