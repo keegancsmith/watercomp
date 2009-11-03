@@ -1,0 +1,42 @@
+Min
+
+Introduction is sparse. Make the problem clear, why other methods have failed.
+Emphasise the experiment more. Justify the implementation, e.g. provides a
+framework for the test. Other systems are limited to what they can do, over
+complicated, produce a testbed, infrastructure.
+
+Refer to other people's work by component, not name.
+
+Background, what I have learnt. Mention that nothing visualises water.
+Move statistical analysis background into Background.
+
+Explain what water clusters are.
+
+Move the experiment design into Design chapter.
+
+Combine the experiment procedure with the experiment results. Then have
+discussion in a separate chapter, which discusses all the results.  Move or
+highlight certain areas/columns of the tables of data.
+
+
+Julian
+
+Introduction is too general, provide context. Rephrase the problem statement,
+to be a research question. Detail how and why the work is split up. Stress
+that everything is compressed, not just the water molecules.
+
+Refer to other people's work by component, not name.
+
+Move the ethics section somewhere else, does not belong in the Introduction.
+Into the Design chapter?
+
+Explain what water clusters are.
+
+In the Design chapter, emphasise the design goals. What are the key success
+factors, problem statement.
+
+New schemes should be in Design, not Implementation. Some of the schemes may
+need some background? Experiment design should also be in the Design chapter.
+
+Highlight results in the tables.
+
