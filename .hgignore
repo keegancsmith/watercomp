@@ -5,6 +5,7 @@ code/ann
 dcd
 *.swp
 *.o
+*.pyc
 
 # Tex output
 *.aux
