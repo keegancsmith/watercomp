@@ -10,7 +10,7 @@ import sys
 import time
 
 RESULTS      = os.path.expanduser('~/dcd_results')
-QUANTISATION = '8 12 16'.split()
+QUANTISATION = ['8', '12']
 PERMUTATIONS = 'null best naive interframe delta'.split()
 CMD_PATH     = os.path.abspath(sys.argv[0])
 WORKING_DIR  = os.path.dirname(os.path.dirname(CMD_PATH))

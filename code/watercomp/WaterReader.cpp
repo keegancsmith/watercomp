@@ -73,12 +73,39 @@ void WaterReader::next_frame_water(QuantisedFrame & qframe)
 
 void WaterReader::next_frame_other(QuantisedFrame & qframe)
 {
-    for (size_t i = 0; i < m_other_atoms.size(); i++) {
-        int idx = m_other_atoms[i];
-        for (int d = 0; d < 3; d++) {
-            unsigned int v = 0;
-            m_adaptive.decode_bytes(&v);
-            qframe.at(idx, d) = v;
+    // Read in qframe per dimension
+    size_t dims[3] = { qframe.m_xquant, qframe.m_yquant, qframe.m_zquant };
+    for (int d = 0; d < 3; d++) {
+        // Setup buf
+        size_t size = (m_other_atoms.size() * dims[d] + 7) / 8;
+        unsigned char buf[size];
+
+        // Read into buf from file
+        for (int i = 0; i < size; i++)
+            m_adaptive.decode_bytes(buf + i);
+
+        // Position in buf
+        int byte_offset = 0;
+        int bit_offset = 0;
+
+        // Copy to qframe buffer
+        for (int i = 0; i < m_other_atoms.size(); i++) {
+            unsigned int val = 0;
+
+            for (int j = 0; j < dims[d]; j++) {
+                // Get and write j'th bit of val
+                int bit = (buf[byte_offset] >> bit_offset) & 1;
+                val |= (bit << j);
+
+                // Adjust the bit and byte offset in buf
+                bit_offset++;
+                if (bit_offset == 8) {
+                    byte_offset++;
+                    bit_offset = 0;
+                }
+            }
+
+            qframe.at(m_other_atoms[i], d) = val;
         }
     }
 }
