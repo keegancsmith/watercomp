@@ -167,6 +167,7 @@ void QuantiseErrorView::setupPreferenceWidget(QWidget* preferenceWidget)
 
 void QuantiseErrorView::initGL()
 {
+    glPointSize(_pointSize);
     glLineWidth(_lineSize);
 
     glEnable(GL_BLEND);

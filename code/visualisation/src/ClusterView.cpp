@@ -71,7 +71,8 @@ void ClusterView::updatePreferences()
     if (current_cluster == -1) countLabel->setNum((int)(num_clusters-1));
     toleranceSpinBox->setValue(tolerance);
     totalSpinBox->setValue(totalToDraw);
-    totalSpinBox->setMaximum(num_clusters-1);
+    if (totalToDraw <= num_clusters)
+        totalSpinBox->setMaximum(num_clusters-1);
 }//updatePreferences
 
 void ClusterView::setupPreferenceWidget(QWidget* preferenceWidget)

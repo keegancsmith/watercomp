@@ -218,11 +218,11 @@ void MainWindow::setupMenu()
 
     QMenu* viewMenu = menuBar()->addMenu(tr("&View"));
     addRenderMode(new PointView(), viewMenu);
+    addRenderMode(new BallStickView(), viewMenu);
     metaballsView = new MetaballsView();
     addRenderMode(metaballsView, viewMenu);
     addRenderMode(new ClusterView(), viewMenu);
     addRenderMode(new QuantiseErrorView(), viewMenu);
-    addRenderMode(new BallStickView(), viewMenu);
 
     QAction* processAllFramesAction = new QAction(tr("Process all frames for Metaballs view"), fileMenu);
     connect(processAllFramesAction, SIGNAL(triggered()), this, SLOT(doProcessAllFrames()));
