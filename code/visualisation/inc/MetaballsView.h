@@ -41,6 +41,7 @@ class MetaballsView : public BaseView
     Q_OBJECT
 
     public:
+        static int surface_extraction;
         // std::map<GtsPoint*, int> vertex_map;
         std::map<Point3f, int> vertex_map;
         int vertex_num;

@@ -29,6 +29,9 @@
 #include "Util.h"
 
 
+int MetaballsView::surface_extraction = 0;
+
+
 bool Point3f::operator<(const Point3f& p) const
 {
     if (fabs(x - p.x) < 1e-6)
@@ -141,6 +144,14 @@ int draw_face(gpointer item, gpointer data)
         assert(false);
         // return 0;
     }//else
+
+    // stupid stupid winding
+    if (MetaballsView::surface_extraction)
+    {
+        p1 = v1;
+        v1 = v2;
+        v2 = p1;
+    }//if
 
     float e1[] = {v1->x - v2->x, v1->y - v2->y, v1->z - v2->z};
     float e2[] = {v1->x - v3->x, v1->y - v3->y, v1->z - v3->z};
@@ -321,6 +332,7 @@ MetaballsView::MetaballsView()
     isoValue = settings->value("MetaballsView/isoValue", 100).toInt();
     decimateSurface = settings->value("MetaballsView/decimateSurface", false).toBool();
     surfaceExtraction = settings->value("MetaballsView/surfaceExtraction", 0).toInt();
+    MetaballsView::surface_extraction = surfaceExtraction;
 
     g_surface = 0;
 
@@ -930,6 +942,7 @@ void MetaballsView::setSurfaceExtraction(int value)
 {
     surfaceExtraction = value;
     settings->setValue("MetaballsView/surfaceExtraction", surfaceExtraction);
+    MetaballsView::surface_extraction = surfaceExtraction;
 }//setSurfaceExtraction
 
 void MetaballsView::updateFaces()
