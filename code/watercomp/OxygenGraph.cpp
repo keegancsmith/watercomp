@@ -14,12 +14,13 @@ using namespace std;
 
 OxygenGraph::OxygenGraph(const QuantisedFrame & qframe,
                          const vector<WaterMolecule> & waters)
-    : m_predictor(qframe), m_qframe(qframe), m_waters(waters)
+    : m_predictor(qframe), m_qframe(qframe), m_waters(waters),
+      nClusters(0), nConstant(0), nHydrogen(0)
 {
 }
 
 
-void OxygenGraph::writeout(SerialiseEncoder & enc) const
+void OxygenGraph::writeout(SerialiseEncoder & enc)
 {
     int root;
     Graph * graph = create_oxygen_graph();
@@ -156,11 +157,13 @@ bool OxygenGraph::create_component(Graph * graph, Graph * tree, int v,
 
             // Find the best prediction from v to u
             int error = INT_MAX;
-            int cur_prediction;
+            int cur_prediction = -1;
             for (int j = 0; j < 3; j++) {
                 int e = prediction_error(u, preds[j]);
-                if (e < error)
+                if (e < error) {
                     cur_prediction = j;
+                    error = e;
+                }
             }
 
             // This prediction is worse than our current best for u
@@ -177,7 +180,7 @@ bool OxygenGraph::create_component(Graph * graph, Graph * tree, int v,
     return true;
 }
 
-Graph * OxygenGraph::create_spanning_tree(Graph * graph, int & root) const
+Graph * OxygenGraph::create_spanning_tree(Graph * graph, int & root)
 {
     int nWaters = m_waters.size();
     int * prediction = new int[nWaters];
@@ -185,13 +188,20 @@ Graph * OxygenGraph::create_spanning_tree(Graph * graph, int & root) const
 
     fill(prediction, prediction + nWaters, -1);
 
-    int nClusters = 1;
+    nClusters = 1;
     root = 0;
     create_component(graph, tree, root, root);
 
     for (int v = 1; v < nWaters; v++)
         if (create_component(graph, tree, v, root))
             nClusters++;
+
+    for (int i = 0; i < nWaters; i++) {
+        if (prediction[i] == 0)
+            nConstant++;
+        else
+            nHydrogen++;
+    }
 
     return tree;
 }

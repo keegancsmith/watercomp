@@ -10,7 +10,7 @@ import sys
 import time
 
 RESULTS      = os.path.expanduser('~/dcd_results')
-QUANTISATION = ['8', '12', '16']
+QUANTISATION = ['8', '12']#, '16']
 PERMUTATIONS = 'null best naive interframe delta'.split()
 CMD_PATH     = os.path.abspath(sys.argv[0])
 WORKING_DIR  = os.path.dirname(os.path.dirname(CMD_PATH))
@@ -164,8 +164,8 @@ if __name__ == '__main__':
 
         pdb_path = '%s/%s.pdb' % (INPUT_DIR, dcd)
         dcd_path = '%s/%s.dcd' % (INPUT_DIR, dcd)
-        cmp_path = '/tmp/foo.cmp'
-        dec_path = '/tmp/foo.dcd'
+        cmp_path = '/tmp/%s.cmp' % '_'.join([dcd, quant, name])
+        dec_path = '/tmp/%s.dcd' % '_'.join([dcd, quant, name])
 
         flags = []
         if test['author'] is 'keegan':

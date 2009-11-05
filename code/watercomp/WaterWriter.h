@@ -33,6 +33,11 @@ private:
     SerialiseEncoder * m_adaptive_water;
     ByteEncoder m_byte;
 
+    // Some stats
+    std::vector<int> nClusters;
+    std::vector<int> nConstant;
+    std::vector<int> nHydrogen;
+
     std::vector<WaterMolecule> m_water_molecules;
     std::vector<unsigned int> m_other_atoms;
 };
