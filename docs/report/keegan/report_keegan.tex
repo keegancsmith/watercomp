@@ -1,4 +1,4 @@
-\documentclass{report}
+\documentclass[a4paper]{report}
 
 % Misc packages
 \usepackage{amsmath}
@@ -27,6 +27,7 @@
 % Custom Commands
 \newcommand{\degree}{\ensuremath{^\circ}}
 \newcommand{\todo}{\textbf{TODO} }
+
 
 \title{Literature Review of Point Cloud Compression}
 \author{Keegan Smith\\ksmith@cs.uct.ac.za}
@@ -71,40 +72,85 @@ frame consisting of atom types, coordinates and velocities.
 
 This report surveys techniques used in point cloud compression. A point cloud
 is a collection of points in 3D space. It then investigates the structure of
-water. We then present a method for compressing MD data using connectivity
-based point cloud compression with predictors tailored towards the structure
-of water. We compare this method to more generic point cloud and data
-compressors.
+water. 
 
-\todo Talk about results etc once they have been produced!
+The main contribution of the report is the specification of a MD compressor
+which targets simulations with large amounts of water in it. It uses an
+approach based on predictive point cloud compressors, but with predictors
+tailored towards models of water.
+
+The method improves on existing point cloud compressors when applied to MD
+data. It also improves on the existing MD compressor by
+\citeauthor{omeltchenko2000sls}.
+
+At $8$-bit quantisation the mean and average compression rate for water
+compression is $19\%$. At $12$-bit quantisation the mean and average
+compression rate for water compression is $31\%$.
+
+The report also presents techniques for compressing permutations. It presents
+a technique which has a worst case performance which is approximately the
+lower bound on the performance of general permutation encoder. It also
+presents a technique which probabilistically performs better than the lower
+bound.
 
 \tableofcontents
 
 \chapter{Introduction}
 
 Molecular dynamics (MD) simulations generate vast amounts of data. A typical
-100-million atom MD simulation produces approximately 5 gigabytes of data per
-frame consisting of atom types, coordinates and velocities. This will generate
-17 terabytes of data a day if run for $35\,000$ steps with every 10th frame
-being saved \citep{omeltchenko2000sls}. Generating this much data makes
-compression desirable.
+$100$-million atom MD simulation produces approximately 5 gigabytes of data
+per frame consisting of atom types, coordinates and velocities. This will
+generate 17 terabytes of data a day if run for $35\,000$ steps with every
+$10$\textsuperscript{th} frame being saved
+\citep{omeltchenko2000sls}. Generating this much data makes compression
+desirable.
 
-We have developed a method which compresses MD simulations. It targets
-simulations which have a large amount of water in them. It uses a connectivity
-based point cloud technique, but with predictors which are based on models of
-the structure of water.
+Many MD simulations contain large amounts of water molecules in them. There
+are models on how water connect. Using this we have developed a method which
+compresses MD simulations. It uses a connectivity based point cloud technique,
+but with predictors which are based on models of the structure of water.
 
-\todo Flesh out introduction
+The method is compared against other point cloud compressors, as well as the
+\citep{omeltchenko2000sls} MD compressor.
+
+
+\paragraph{Research Question}
+
+This report investigates the implementation and results of a MD data
+compressor which targets water. This compressor will be successful if
+
+\begin{itemize}
+  \item It can exploit water models.
+  \item It can improve on other methods. Specifically point cloud compression
+    methods.
+  \item It can compress in an efficient manner? ($O(n^2)$ where $n$ is the
+    number of atoms)
+  \item It can decompress in an efficient manner? ($O(n)$)
+\end{itemize}
+
+The research question is whether it is possible to implement a compressor with
+the listed properties.
+
+
+\paragraph{Outline}
+
+In chapter two background information on MD file formats, compression, point
+cloud compression and water models are discussed. Chapter three details the
+design and implementation of the water compressor. Chapter four presents and
+discusses the results from the implementation. Finally chapter five concludes
+the report.
+
+
 
 \chapter{Background}
 
-\todo update for new sections. When updating fix tense and ``we'' usage
-
-This section introduces common techniques used in point cloud compression
-algorithms, and then moves onto different categorizations and how they are
-applied. We discuss how to apply these techniques to water molecule
-compression. Finally, we will conclude with two general categorisations of
-what the compression algorithms exploit.
+This section starts by introducing the common file format used for storing MD
+simulation data. It then moves onto the topic of compression which is relevant
+to the rest of the report. This includes entropy encoding, quantisation and
+predictive encoding. Point cloud compression algorithms are then presented, as
+well as a taxonomy of point cloud compressors. The water dimer model is also
+presented, with information on how it could be applied to existing predictive
+point clouding techniques.
 
 \section{Molecular Dynamics Format}
 \label{sec:molec-dynam-form}
@@ -280,7 +326,7 @@ geometric properties.
 
 A rooted spanning tree of the point is used in both \citep{gumholdcomp} and
 \citep{merrycomp}. The creation of the spanning tree depends on what
-predictor(s) are used and will be described in \ref{sec:serialization}. For
+predictor(s) are used and will be described in \ref{sec:serialisation}. For
 each point $v$ in the spanning tree let $v'$ be the point's parent and $v''$
 be the point's grandparent.
 
@@ -375,6 +421,7 @@ before the data can be decompressed. \citep{omeltchenko2000sls},
 
 
 \section{Modelling Water}
+\label{sec:modelling-water}
 
 \begin{figure}[h]
 \centering
@@ -719,8 +766,8 @@ should do worse than this.
 
 \paragraph{Na\"{\i}ve}
 Na\"{\i}ve writes the permutation list straight to the file. Each index is
-stored as a $32$-bit integer. Every other permutation compressor should do
-better than this.
+stored as an unsigned $32$-bit integer. Every other permutation compressor
+should do better than this.
 
 \paragraph{Delta}
 Delta transforms the permutation into a list $L$, where $L_0 = P_0$ and $L_i =
@@ -789,15 +836,15 @@ To encode $P_i$, we encode $pop\_index(P_i)$. To decode, we return
 $pop\_symbol(val)$ where $val$ is a value returned from the arithmetic
 decoder.
 
-The optimal permutation encoder is optimal in the general case. If we have $M$
+The optimal permutation encoder is optimal in the worst case. If we have $M$
 indicies left to encode, each unseen index has probability $\frac{1}{M}$ of
 occurring and every seen index has probability $0$ of occurring. So for each
 $i$ we have that $S_{tot}=M, S_i = i, S_{i-1} = i-1$. This gives a probability
 of $\frac{i-(i-1)}{M} = \frac{1}{M}$.
 
-If there are $M$ indicies left, the lower-bound on the number bits to encode
-an index is $\log_2(M)$. So if $P$ has $N$ indicies a lower-bound on the
-number of bits to encode $P$ is
+If there are $M$ indicies left, the lower-bound on the number of bits to
+encode an index is $\log_2(M)$. So if $P$ has $N$ indicies a lower-bound on
+the number of bits to encode $P$ is
 \begin{equation}
   \displaystyle\sum^{N}_{i=1} \log_2(i)
   \label{eq:optimal-lowerbound}
@@ -811,7 +858,7 @@ permutation increases, the gains made by the optimal scheme decrease.
 \begin{table}
   \center
   \resizebox{\textwidth}{!}{
-  \begin{tabular}{|l||r|r|r|r|r|r|r|}
+  \begin{tabular}{|l|rrrrrr|}
     \hline
     \emph{Permutation Size} & $1$ & $2$ & $10$ & $1000$ & $10\,000$ &
     $100\,000$ \\
@@ -828,8 +875,16 @@ permutation increases, the gains made by the optimal scheme decrease.
   \caption{Number of bytes needed for storing permutations of different
     sizes. See Equation (\ref{eq:optimal-lowerbound}) for the lower bound. The
     effective upper-bound is
-    $\lceil\log_2(N)\rceil/8$} \label{tab:optimal-lowerbound}
+    $\lceil\log_2(N)\rceil/8$.} \label{tab:optimal-lowerbound}
 \end{table}
+
+The optimal encoder is optimal since on its worst permutation it does better
+than any other encoder, but most of the encoders have a low probability of
+encountering a bad permutation. There may also be inter-correlation amongst
+subsets of the permutation. So probabilistically the \emph{delta} encoder will
+do better than the \emph{optimal} encoder. If the permutations between frames
+are correlated, then the \emph{interframe} encoder will likely do better than
+the \emph{optimal} encoder.
 
 
 \section{Water Compressor}
@@ -866,8 +921,10 @@ DecompressFrame(arithmetic_decoder):
   return list_of_other_atoms + list_of_water_atoms
 \end{verbatim}
 
-\todo once we get more substantial results we can pick which point cloud
-compressor to use
+The compression of the other atoms is simply writing out the quantised
+positions of the frame. This is done for two reasons: the permutation
+information is stored for ``free'' and the number of other atoms is expected
+to be a small number.
 
 An explanation of each step follows, along with motivation of why each step is
 done.
@@ -892,6 +949,7 @@ general compression method is used on the other atoms.
 
 
 \subsection{Water Predictors}
+\label{sec:water-predictors}
 
 The predictors are based on the models of water dimers explained in the
 background chapter. There are three predictors used, the constant predictor
@@ -1056,15 +1114,307 @@ while q not empty:
   water_molecules[index].hydrogen2 = H2_position
 \end{verbatim}
 
+Since this is done for each atom once per frame, decoding takes $O(N)$ time.
 
 
-\chapter{Random sections to be integrated properly}
+\chapter{Results}
+
+Testing was done on an Intel Quad Core 2.66GHz machine with 4GB of RAM. Each
+encoding scheme was tested against 6 DCD files at $8$-bit and $12$-bit
+quantisation.
+
+Each encoding scheme was tested with all the permutation encoders listed in
+Section \ref{sec:compr-perm}. When showing the result of an encoding scheme,
+the \emph{null} permutation encoder is shown. What is also shown is the best
+performing permutation encoder, excluding \emph{null}, on the run.
+
+Two additional compressors are also tested. These are straight quantisation
+(referred to as \emph{quant}) and quantisation followed by the data compressor
+gzip (referred to as \emph{gzip}).
+
+The encoder by \citep{gumholdcomp} has two possible predictors to use, the
+\emph{constant} predictor and the \emph{linear} predictor. The results here
+indicate only the use of the \emph{constant} predictor since it always did
+better than the \emph{linear} predictor. This is due to a non-linear
+relationship between points in molecular dynamics data, unlike rectilinear
+scans.
+
+\section{Datasets}
+
+\begin{table}[t]
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|lrrrrl|}
+\hline
+
+\emph{Name} & \emph{Size} & \emph{Atoms} & \emph{Frames} & \emph{\% Water} &
+\emph{Comment} \\
+
+\hline
+
+smallwater & $0.8$ & $699$ & $100$ & $100\%$ & Small water box \\
+
+rabies & $11$ & $464\,099$ & $2$ & $68\%$ & Rabies virus with two areas of water \\
+
+hiv & $38$ & $16\,470$ & $200$ & $93\%$ & HIV in water \\
+
+hotwater & $222$ & $96\,603$ & $200$ & $100\%$ & Water at $1\,000\degree$C \\
+
+water & $244$ & $96\,603$ & $220$ & $100\%$ & Water at room temperature \\
+
+mscl & $382$ & $111\,016$ & $300$ & $61\%$ & Mechanosensitive Channel \\
+
+\hline
+\end{tabular}
+}
+\caption{Description of DCD files used in compression tests. Size is in
+  megabytes.} \label{tab:testdata}
+\end{table}
+
+Six different DCD files were used in the experiments. Every DCD file excluding
+MSCL was generated by Julian Kenwood using the Nanoscale Molecular Dynamics
+(NAMD). A summary of each file is given in Table \ref{tab:testdata}.
+
+\begin{itemize}
+\item{\textbf{Small Water}} is a simulation containing $233$ water
+  molecules. The simulation is run at room temperature. The file contains
+  every frame of the simulation.
+\item{\textbf{Water}} is a simulation of $32\,301$ water molecules. The
+  simulation is run at room temperature ($25\degree$C). The file contains
+  every $50^{th}$ frame of simulation.
+\item{\textbf{Hot Water}} is the same simulation as \emph{Water}, but at
+  $1\,000\degree$C.
+\item{\textbf{HIV}} is a simulation of a part of the Human Immunodeficiency
+  Virus(HIV) surrounded by water. It is simulated at room temperature
+  ($25\degree$C). The file contains every $50^{th}$ frame of simulation.
+\item{\textbf{Rabies}} is a simulation of the rabies virus. The simulation is
+  run at room temperature. The file contains every frame of the simulation.
+\item{\textbf{MSCL}} is a simulation of a protein which is separating two
+  volumes of water. The protein is called Mechanosensitive Channels. This DCD
+  file was donated by Dr.~James Gain. The output rate is unknown, but
+  inspection of the simulation in VMD indicates erratic movement of the atoms.
+\end{itemize}
+
+The two most important attributes of the simulation is the temperature and the
+number of atoms. The number of atoms affect the run time of the schemes per
+frame. The temperature affects the accuracy of the water model. The higher the
+temperature, the worse the expected performance of the water compressor is.
+
+\section{Compression Results}
+
+For each run the compression size and time where recorded. The decompression
+time where also tested, but are not listed. This is since every schemes
+excluding \citep{devillers2000gci} has linear decompression
+complexity. \citep{devillers2000gci} has $O(n \log n)$ decompression
+complexity, which is the same as the compression complexity, so times are
+similiar. The results for $8$-bit and $12$-bit compression are presented
+separately.
+
+\subsection{8-bit Quantisation}
+
+\begin{table}[h]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|lr|rrr|rr|rr|rr|}
+  \hline
+  \multirow{2}{*}{\textbf{DCD}} & \multirow{2}{*}{\textbf{atoms}} & \multirow{2}{*}{\textbf{quant}} & \multirow{2}{*}{\textbf{gzip}} & \multirow{2}{*}{\textbf{omel}} & \multicolumn{2}{|c|}{\textbf{gumhold}} & \multicolumn{2}{|c|}{\textbf{dg}} & \multicolumn{2}{|c|}{\textbf{watercomp}} \\
+   &  &  &  &  & \emph{null} & \emph{best} & \emph{null} & \emph{best} & \emph{null} & \emph{best} \\
+
+  \hline
+
+  smallwater & $699$ & $25.35$ & $\textbf{\emph{12.30}}$ & $30.00$ & $19.34$ & $27.66$ & $21.74$ & $26.45$ & $19.87$ & $22.97$ \\
+
+  water & $96\,603$ & $25.00$ & $21.47$ & $27.72$ & $\emph{11.20}$ & $26.00$ & $12.86$ & $24.10$ & $11.77$ & $\textbf{17.05}$ \\
+
+  hotwater & $96\,603$ & $25.00$ & $19.08$ & $26.43$ & $\emph{10.48}$ & $25.56$ & $11.31$ & $22.67$ & $11.35$ & $\textbf{16.65}$ \\
+
+  rabies & $464\,099$ & $25.00$ & $\textbf{13.86}$ & $27.78$ & $\emph{9.28}$ & $25.69$ & $10.17$ & $22.05$ & $15.01$ & $19.44$ \\
+
+  hiv & $16\,470$ & $25.02$ & $24.12$ & $27.96$ & $\emph{13.89}$ & $26.98$ & $15.81$ & $26.67$ & $14.69$ & $\textbf{18.74}$ \\
+
+  mscl & $111\,016$ & $25.00$ & $20.17$ & $27.69$ & $\emph{11.22}$ & $25.89$ & $12.41$ & $23.39$ & $16.88$ & $\textbf{20.05}$ \\
+
+  \hline
+\end{tabular}
+}
+\caption{Compression rates at $8$-bit quantisation. The best ratio is
+  bolded. The \emph{null} permutation values are also included, but are not
+  considered since they do not restore the correct order of
+  points. \emph{Best} is the permutation encoder which did the best out of
+  \emph{delta}, \emph{interframe}, \emph{na\"{i}ve} and \emph{optimal}.}
+\label{tab:res8}
+\end{table}
+
+See Table \ref{tab:res8} for the $8$-bit compression ratios. The results
+indicate that in general that the water compression scheme performs best. If
+the ordering of the points is not important, the best scheme is
+\citep{gumholdcomp} (see column gumhold null). The water compression scheme
+without ordering information has ratios which are very close to gumhold
+null. So without ordering information water compression still performs well.
+
+See Figure \ref{fig:speed8} for the $8$-bit compression speeds. This graph
+indicates that the water compression algorithm can perform relatively worse in
+terms of speed. This is due to the $O(e \log e)$ spanning tree creation
+step. All other algorithms are $O(n \log n)$ where $n$ is usually an order of
+magnitude less than $e$. The algorithm is still efficient though since it is
+sub $O(n^2)$.
+
+The worst running time the water compression algorithm had was $693$ seconds
+on \emph{water}. This further indicates that it may be worse relatively, but
+still acceptable. The algorithm performs best in terms of compression ratio,
+so the trade-off is valid.
+
+\begin{figure}[h]
+\centering
+\includegraphics{images/speed8}
+\caption{The relative time taken for each compression scheme at $8$-bit quantisation.}
+\label{fig:speed8}
+\end{figure}
+
+
+\subsection{12-bit Quantisation}
+
+\begin{table}[h]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|lr|rrr|rr|rr|rr|}
+  \hline
+  \multirow{2}{*}{\textbf{DCD}} & \multirow{2}{*}{\textbf{atoms}} & \multirow{2}{*}{\textbf{quant}} & \multirow{2}{*}{\textbf{gzip}} & \multirow{2}{*}{\textbf{omel}} & \multicolumn{2}{|c|}{\textbf{gumhold}} & \multicolumn{2}{|c|}{\textbf{dg}} & \multicolumn{2}{|c|}{\textbf{watercomp}} \\
+   &  &  &  &  & \emph{null} & \emph{best} & \emph{null} & \emph{best} & \emph{null} & \emph{best} \\
+
+  \hline
+
+  smallwater & $699$ & $37.83$ & $37.39$ & $43.86$ & $\emph{32.75}$ & $41.07$ & $34.99$ & $39.69$ & $34.11$ & $\textbf{36.61}$ \\
+
+  water & $96\,603$ & $37.50$ & $37.26$ & $40.23$ & $\emph{23.62}$ & $38.40$ & $26.50$ & $37.74$ & $23.97$ & $\textbf{29.21}$ \\
+
+  hotwater & $96\,603$ & $37.50$ & $36.82$ & $38.92$ & $\emph{22.95}$ & $38.03$ & $25.19$ & $36.54$ & $23.37$ & $\textbf{28.70}$ \\
+
+  rabies & $464\,099$ & $37.50$ & $32.92$ & $40.27$ & $\emph{21.64}$ & $38.00$ & $24.12$ & $36.00$ & $27.16$ & $\textbf{31.59}$ \\
+
+  hiv & $16\,470$ & $37.51$ & $37.52$ & $40.51$ & $\emph{26.30}$ & $39.39$ & $29.25$ & $40.10$ & $27.28$ & $\textbf{31.33}$ \\
+
+  mscl & $111\,016$ & $37.50$ & $37.19$ & $40.19$ & $\emph{23.63}$ & $38.22$ & $26.06$ & $37.04$ & $29.29$ & $\textbf{32.47}$ \\
+
+  \hline
+\end{tabular}
+} \caption{Compression rates at $12$-bit quantisation. The best ratio is
+  bolded. The \emph{null} permutation values are also included, but are not
+  considered since they do not restore the correct order of
+  points. \emph{Best} is the permutation encoder which did the best out of
+  \emph{delta}, \emph{interframe}, \emph{na\"{i}ve} and \emph{optimal}.}
+\label{tab:res12}
+\end{table}
+
+See Table \ref{tab:res12} for the $12$-bit compression ratios. The results
+indicate that the water compression scheme performs best for all the DCD
+files. If the ordering of the points is not important, the best scheme is
+\citep{gumholdcomp} (see column gumhold null).
+
+Similiar to the $8$-bit results, the water compression scheme without ordering
+information has ratios which are very close to gumhold null. The cases where
+it does not are the rabies and mscl. Both of these do not contain as much
+water as the good result, so the non-water points compression make up the
+difference. Without ordering information water compression still performs
+well.
+
+See Figure \ref{fig:speed12} for the $12$-bit compression speeds. This graph
+is nearly identical to the $8$-bit graph (\ref{fig:speed8}). The difference is
+that the water compression scheme has run times closer in speed to the other
+schemes. This is since the run-time is dominated by the spanning tree
+creation, which is not affected by the granularity of the quantisation.
+
+The worst increase in run time for the water compression scheme from $8$-bit
+to $16$-bit is on MSCL. It increased by $21$ seconds, from $479$ seconds to
+$500$ seconds. The increase in time is probably accountable to the increased
+number of different residuals due to the higher precision. If the number of
+residuals increase, the performance of the arithmetic encoder decreases (but
+the decrease is logarithmic, which can be ignored).
+
+
+\begin{figure}[h]
+\centering
+\includegraphics{images/speed12}
+\caption{The relative time taken for each compression scheme at $12$-bit quantisation.}
+\label{fig:speed12}
+\end{figure}
+
+
+\section{Permutation Results}
+
+Studying the differences between the null and best columns in Tables
+\ref{tab:res8} and \ref{tab:res12} indicate that a significant portion of the
+compression is lost due to the encoding of the permutation. In some cases
+encoding the permutation causes the scheme to perform worse than just
+quantising the file.
+
+Figure \ref{fig:perm} shows the relative performance of each permutation
+encoder with the water compressor at $12$-bit quantisation. The best
+permutation encoder is the \emph{delta} encoder. The pathological cases which
+cause poor performance are unlikely, which is why the \emph{delta} encoder
+performed well.
+
+The most stable encoder is the \emph{optimal} encoder. This is since the size
+of the encoding is related to the size of the permutation (see Equation
+(\ref{eq:optimal-lowerbound}).
+
+\begin{figure}[h]
+\centering
+\includegraphics{images/perm}
+\caption{The relative performance of the permutation encoders on different DCD
+  files. The encoder used is the water compressor at $12$-bit quantisation.}
+\label{fig:perm}
+\end{figure}
+
+
+\section{Summary}
+\label{sec:summary}
+
+From the results it can be seen that the water compression scheme performs
+best. If the order of the points does not need to be recovered then the
+encoder by \citep{gumholdcomp} performs best. However water compression
+performs nearly as well as \citep{gumholdcomp}.
+
+The speed of the water compressor can be up to three times slower than the
+next slowest scheme. However the water compressor performs best, and the
+actual elapsed time was at most $11$ minutes.
+
+The permutation information requires a significant portion of the compressed
+file. In some of the references scheme it caused the compression to be worse
+than simply quantising the file. The best permutation encoder was the
+\emph{delta} encoder, while the most stable was the \emph{optimal} encoder.
+
+
+
+\chapter{Conclusion}
+
+The water compression scheme compresses better than existing other point cloud
+compressors (Section \ref{sec:summary}). This is since it exploits the
+water-dimer model (Section \ref{sec:modelling-water} and
+\ref{sec:water-predictors}). At $8$-bit quantisation the mean and average
+compression rate for water compression is $19\%$. At $12$-bit quantisation the
+mean and average compression rate for water compression is $31\%$.
+
+The permutation information required a significant portion of the compressed
+file. A permutation encoder called \emph{optimal} was shown to take
+approximately $\sum^{N}_{i=1} \log_2(i)$ where $N$ is the size of the
+permutation (Section \ref{sec:compr-perm}). The formula is a lower bound on
+the worst performance of a permutation encoder.
+
+Probabilistically the worst case permutation will not occur when using the
+\emph{delta} encoder. The results indicate that this encoder performs best.
+
+The complexity of encoding in the water compression scheme is $O(n + n \log n
++ e \log e + n) = O(e \log e)$ where $e = O(n^2)$ and $n$ is the number of
+water molecules. Empirically and due to the theoretical models of water, $e$
+is bounded by $10 \times n$, and so $e = O(n)$. So the encoding time is $O(n
+\log n)$. The decoding time is $O(n)$.
+
 
 \section{Future Work}
 
 \paragraph{Parallelism}
 
-The intra-frame compressor works independently of each frame. This allows
+Intra-frame compressors work independently of each frame. This allows
 parallising over frames.
 
 \paragraph{General Molecular Dynamics Predictors}
@@ -1076,12 +1426,19 @@ store the permutation information.
 \paragraph{Better joining of components in spanning tree}
 
 The water compressor implementation joins up the components by adding an edge
-to a route. Explore ways of joining up better. Possible ways include using a
-MST of the components or encoding the components separate to the errors.
+to a route. This is currently done in a na\"{i}ve way. Possible ways include
+using a MST of the components or encoding the components separate to the
+errors. Adapting \citep{chen2005lcp} is another possibility.
+
+\paragraph{Point Cloud Compressor which preserve ordering}
+
+A large portion of the compressed data involved storing the permutation. A
+point cloud compressor which preserves the ordering is likely to perform very
+well at MD compression.
 
 \nocite{*}
 \bibliography{report_keegan}
 
 \end{document}
 
-% LocalWords:  oxygens Deserialisation deserialisation BFS
+% LocalWords:  oxygens Deserialisation BFS MSCL

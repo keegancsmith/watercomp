@@ -1,4 +1,5 @@
 \documentclass[a4paper,11pt]{report}
+\usepackage{amsmath}
 \usepackage{graphics}
 \usepackage{color}
 \usepackage{epsf}
@@ -11,6 +12,11 @@
 \usepackage{url}
 \usepackage{multicol}
 \usepackage[pdfborder=0 0 0]{hyperref}
+\usepackage{float}
+
+% \floatstyle{ruled}
+\newfloat{eqn}{thb}{lob}
+\floatname{eqn}{Equation}
 
 \usepackage[T1]{fontenc}
 \usepackage[sc]{mathpazo}
@@ -107,18 +113,18 @@ These simulations need to be archived so that they can be reviewed by a molecula
 To date, there has been little research on compressing large-scale molecular dynamics simulations. The current method\cite{RefWorks:3} for compression is able to acheive output sizes smaller than the original by an order of magnitude. The method does not have any specific name, so for the remainder of this report we will refer to it as Omeltchenko's algorithm. There are two other algorithms of note that are useful for this situation. These are the Gandoin \& Devilliers Algorithm[TODO: cite] and the Predictive Point Cloud Compression Algorithm[TODO: cite]. Both of which are used for compressing point cloud data. A point cloud is a collection of points, where each point has position and possibly other attributes. This is of releavance because atoms stored in a PDB file may be treated as a point cloud.
 
 \subsection{Omeltchenko's Algorithm}
-
+\label{bgomel}
 
 The algorithm works by quantising the space that the simulation occurs in. This space is usually taken to be the axis-aligned bounding box that encompasses all the atoms, and this has to be recalculated on a per-frame basis. A three dimensional grid of a particular granularity is embedded into the space. Atoms are snapped to the centers of the closest grid cell. This transformation introduces a small error, which can be controlled by the granularity of the grid, but enables the algorithm to reduce the floating point coordinates to integer-based grid cell indices. This step, known as quantisation, is commonplace in point compression. It allows insignificant variations in the data to be removed, while introducing a quality setting to allow for better compression at the cost of accuracy. This stage produces a quantised $(x, y, z)$ coordinate for each atom. As a post operation, the points are translated so that all coordinates are non-negative. This process is made reversible by storing the bounding box of the original atoms.
 
-The atoms' indices are mapped to Octree Indices. An Octree is a spatial partitioning data structure[TODO: ref], which recursively splits space up into 8 subdivisions. The subdividing process typically stops when there are few points in a cell or a maximum depth has been reached. A related variant of Octrees is Linear Octrees[TODO: ref], where the data structure is represented in a 1D array. Instead of using pointers in a tree data structure, the Linear Octree uses arithmetic in an array to calculate each node's index in an array. This usually uses more memory than a normal Octree as it requires the tree to be complete, however we are not interested in constructing the Linear Octree, only calculating the indices at which atoms would fall under. Octree Indexing is a reversable spatial hashing algorithm where 3D points are mapped to 1D indices, by using the Linear Octree cells. In this case, the quantised points are mapped to single non-negative integers. The algorithm uses Octree Indexing to interleave the bits of the coordinates of each point. The index, itself, is cleverly assembled so that points are only interleaved up to the largest most significant bit of every coordinate.
-
-\begin{figure}
+\begin{figure}[!h]
  \center
- \includegraphics[width=0.5\textwidth]{resources/OctreeIndexingVerticalCropped.png}
+ \includegraphics[width=0.7\textwidth]{resources/OctreeIndexingVerticalCropped.png}
 \caption{Demonstration of the Octree Indexing Process on a system of 2 atoms. The first step of the process is conversion to binary. From this we can see that the $x$ components require 4-bits to encode as an index, while the $y$ and $z$ components require 3-bits. The final step of the prcoess is the interleaving of the bits in each atom's coordinates to produce a final number. }
 \label{octree}
 \end{figure}
+
+The atoms' indices are mapped to Octree Indices. An Octree is a spatial partitioning data structure[TODO: ref], which recursively splits space up into 8 subdivisions. The subdividing process typically stops when there are few points in a cell or a maximum depth has been reached. A related variant of Octrees is Linear Octrees[TODO: ref], where the data structure is represented in a 1D array. Instead of using pointers in a tree data structure, the Linear Octree uses arithmetic in an array to calculate each node's index in an array. This usually uses more memory than a normal Octree as it requires the tree to be complete, however we are not interested in constructing the Linear Octree, only calculating the indices at which atoms would fall under. Octree Indexing is a reversable spatial hashing algorithm where 3D points are mapped to 1D indices, by using the Linear Octree cells. In this case, the quantised points are mapped to single non-negative integers. The algorithm uses Octree Indexing to interleave the bits of the coordinates of each point. The index, itself, is cleverly assembled so that points are only interleaved up to the largest most significant bit of every coordinate.
 
 The resulting indices are stored in a list and sorted in increasing order. These indices are written to the file using a delta encoding scheme. The first atom's position indicates its actual grid index, while the rest are stored as differences between the previous index and the current one. This final transformation typically allows a better compression rate to be acheived. Delta encoding reduces the amount of data that needs to be compressed by keeping things small and making it more amenable for compression, however it introduces a dependancy on decoding all the previous atoms in the list first. The output, itself, is performed by an adaptive, variable-length compressor. Typically, each index can be stored in a single 4-byte integer which results in an immediate size reduction from 12-bytes per atom to 4-bytes per atom. 
 
@@ -290,21 +296,21 @@ Kalman filters provides increasingly better predictions as more frames are encod
 
 There are two main techniques for compressing videos. Intraframe techniques reduce each frame to a collection objects, in molecular simulations these are the atoms, which are encoded using either entropy encoders or dictionary encoders. Entropy encoders include the techniques of Huffman Coding and Arithmetic Coding. Huffman Coding uses an algorithm to construct a prefix-free tree to map symbols to bits, but can waste up to $1$ bit per symbol. Arithmetic Coding is a more complicated technique which uses rational numbers to encode symbols. Arithmetic Coding can encode symbols as a fractional number of bits, avoiding the wastage that exists in Huffman Coding.
 
-Interframe techniques use temporal coherence to better encode each frame, however this introduces a dependence on some of the previous frames. Interframe compression attempt to guess the next state of objects and encode any errors. If the predictions are accurate, a better compression rate can be acheived. There were two main techniques that were investigated. First order and K-th order prediction compute curves that fit data over a selected window of framesand extrapolate from this curve. Kalman filters treat the motion as a stochastical process that can be estimated with some accuracy through the use of matrices.
+Interframe techniques use temporal coherence to better encode each frame, however this introduces a dependence on some of the previous frames. Interframe compression attempt to guess the next state of objects and encode any errors. If the predictions are accurate, a better compression rate can be acheived. There were two main techniques that were investigated. First order and K-th order prediction compute curves that fit data over a selected window of frames and extrapolate from this curve. Kalman filters treat the motion as a stochastical process that can be estimated with some accuracy through the use of matrices.
 
 \chapter{Design}
 
-[TODO: detail]
+The project's main aim was to investigate how effective certain methods of compression would be on molecular simulations. The key success factors of the . This was thus designed in order to test the effectiveness of the compression schemes. Using our system we measure the performance of the compression methods, in terms of speed and size of the compressed file. The actual testing of the system is accomplished via scripting and not directly through our system.
 
-The project's main aim was to investigate how effective certain methods of compression would be on molecular simulations. Our system was thus designed in order to test the effectiveness of the compression schemes. Using our system we measure the performance of the compression methods, in terms of speed and size of the compressed file. The actual testing of the system is accomplished via scripting and not directly through our system.
+In the remainder of this chapter we will discuss some of the decisions that affected our design. We will follow with a system breakdown and discuss the design of file format used in our compressed files. Finally, there will be a discussion of the experiment design. 
 
-\section{Design Methodology}
+\section{Design Considerations}
 
 We settled for an iterative design methodology. The system was designed so that the first iteration would have very little functionality, but still be able to compress simulations. In the first iteration, only two compressors based on reference schemes were implemented. The second iteration had more compressors, including schemes based on interframe prediction. The third and final iteration had all the compressors and visualisation completed.
 
 The initial design of the program consisted of an integrated system that could handle compression, decompression and visualisation of the molecular simulation data. This was changed once we learnt that the compression would possibly be included in VMD. VMD allows the simulations to be visualised using several different representations and so our visualisation would not be useful for VMD.
 
-The program was then split-up into components that could be shared across multiple programs, namely the visualisation and the compressors. This was necessary as there was functionality that needed to be in both the visualisations and each compressor, such as quantising and dequantising points. The graphical front-end of the program would be handled entirely by Min-Young Wu, while the compression back-end would be split-up fairly between Keegan Smith and Julian Kenwood. 
+The program was then split-up into components that could be shared across multiple programs, namely the visualisation and the compressors. This was necessary as there was functionality that needed to be in both the visualisations and each compressor, such as quantising and dequantising points. The graphical front-end of the program would be handled entirely in the Visualisation section, while the compression back-end would be split-up between the Intraframe section and Interframe section. 
 
 Another motivation for splitting up the work load is that testing requires each part to be separated in order to more efficiently gather results. The final design allowed the compressors to run independently with a separate driver program for each one.
 
@@ -328,7 +334,7 @@ It is predicted that in the next 2 years, the state of the art clusters will be 
 
 \begin{figure}[h]
  \center
- \includegraphics[width=0.5\textwidth]{resources/Breakdown-connect.pdf}
+ \includegraphics[width=0.7\textwidth]{resources/Breakdown-connect.pdf}
 \caption{System breakdown}
 \label{sysbreak}
 \end{figure}
@@ -339,33 +345,78 @@ The system is divided up into several sections(Figure \ref{sysbreak}): Visualisa
 
 The Compressors section contains all the compression techniques that were implemented. The compressors fall into one of two subsections: Intraframe and Interframe compression. The Intraframe compressors were mainly implemented by Keegan Smith, although the Omeltchenko Encoder was implemented by Julian Kenwood and its implementation will be explained later in this thesis. (Section \ref{imp_omelt})
 
-The Components part of the system represented various subsystems that are shared among various parts of the project. The main reason for separating these components out was to avoid code duplication. There are additional benefits such as easier testing and better subdivision of the work load among our team.
+The Components part of the system represents various subsystems that are shared among various parts of the project. The main reason for separating these components out is to avoid code duplication. There are additional benefits such as easier testing and better subdivision of the work load among our team.
 
-The following is a list of the components and their roles in the systems. \\ \\ \\
-
-[TODO: beef up the next stuff]
+The following is a list of the component sections that are described in this thesis.
 \begin{itemize}
- \item Quantiser
- \begin{itemize}
-   \item This component is responsible for the quantisation and dequantisation of the points in each frame of a simulation.
- \end{itemize}
- \item I/O
- \begin{itemize}
-   \item These components performs I/O to and from the original DCD and PDB formats. 
- \end{itemize}
- \item Water Cluster Extractor
- \begin{itemize}
-   \item The Water Cluster Extractor transforms the list of atoms into a list of water clusters and other atoms.
- \end{itemize}
+ \item Intraframe Compressors
+ \item Interframe Compressors
+ \item Simulation I/O
+ \item Simulation Processing
  \item Verifiers
- \begin{itemize}
-   \item These components verify the results of compression and gather statistics on the error in quantisation.
- \end{itemize}
  \item Encoder
- \begin{itemize}
-   \item These components transform a list of symbols into a compressed bitstream.
- \end{itemize}
 \end{itemize}
+
+The design of these sections and the components within them will now be described.
+
+\subsection{Intraframe Compressors}
+
+Only one Intraframe Compressor's design will be discussed in this paper, the remaining compressors are described in the Intraframe Compression thesis. 
+
+\subsubsection{Omeltchenko Compressor}
+
+The reference Omeltchenko compression scheme is based on the algorithm outlined in Section \ref{bgomel}. The design is the same as the compression scheme described in the Background Chapter.
+
+\subsection{Interframe Compressors}
+
+There are five Interframe Compressors that were implemented: Polynomial Extrapolation, Spline Extrapolation, Smallest Error Encoding, Common Error Encoding and k-Nearest Neighbour Encoding. The following sections will describe their workings motivate why they were chosen.
+
+\subsubsection{Polynomial Extrapolation}
+
+\subsubsection{Spline Extrapolation}
+
+\subsubsection{Smallest Error Encoding}
+
+\subsubsection{Common Error Encoding}
+
+\subsubsection{k-Nearest Neighbour Encoding}
+
+
+\subsection{Simulation I/O}
+
+\subsection{Simulation Processing}
+
+\subsection{Verifiers}
+
+\subsection{Encoder}
+
+
+The compressed file format will be described.
+
+
+% The following is a list of the components and their roles in the systems. 
+% \begin{itemize}
+%  \item Quantiser
+%  \begin{itemize}
+%    \item This component is responsible for the quantisation and dequantisation of the points in each frame of a simulation.
+%  \end{itemize}
+%  \item I/O
+%  \begin{itemize}
+%    \item These components performs I/O to and from the original DCD and PDB formats. 
+%  \end{itemize}
+%  \item Water Cluster Extractor
+%  \begin{itemize}
+%    \item The Water Cluster Extractor transforms the list of atoms into a list of water clusters and other atoms.
+%  \end{itemize}
+%  \item Verifiers
+%  \begin{itemize}
+%    \item These components verify the results of compression and gather statistics on the error in quantisation.
+%  \end{itemize}
+%  \item Encoder
+%  \begin{itemize}
+%    \item These components transform a list of symbols into a compressed bitstream.
+%  \end{itemize}
+% \end{itemize}
 
 
 % This section will describe the design of the compression side of the project. The design of the visualisation aspect of the project is not described in this section as they are not necessary for measuring compression rates. The visualisation does, however, impact on some of the design choices required for the compression which are described in the appropriate sections.
@@ -382,9 +433,9 @@ The following is a list of the components and their roles in the systems. \\ \\ 
 
 We chose a standard file format for all compressors. This decision simplified the implementation of the compressors and allowed easy addition of new compressors. The format has several sections that allow it to reconstitute an uncompressed DCD file.
 
-The header of the file is broken up into two segments. The first segment stores the DCD file's header which includes the number of atoms and frames in the simulation. The second segment stores header information relevant to the compression. In many of the compression schemes this is only the quantisation levels, however some of the interframe schemes require additional information about prediction window sizes.
+The header of the file is broken up into two segments. The first segment stores the DCD file's header, which includes the number of atoms and frames in the simulation. The second segment stores header information relevant to the compression. In many of the compression schemes this is simply the quantisation levels, however some of the Interframe schemes require additional information about prediction window sizes.
 
-The remainder of the file consists of records, one per frame. Each record contains a frame header followed by the compressed data. The frame header contains information about the bounding box of each frame. Using the bounding box and the quantisation levels, a quantised approximation to the original data can be constructed. The compressed data section is specific to each compression scheme.
+The remainder of the file consists of records, one per frame. Each record contains a frame header followed by the compressed data. The frame header records information about the bounding box of each frame. Using the bounding box and the quantisation levels, a quantised approximation to the original data can be constructed. The compressed data section is specific to each compression scheme.
 
 \begin{figure}
  \center
@@ -395,156 +446,243 @@ The remainder of the file consists of records, one per frame. Each record contai
 
 % \subsection{Overview}
 
-[TODO: Future implementation]
+In the following section, we will describe the design of the experiment to test the compressors.
 
 \section{Experiment Design}
 
-The experiments that are performed for evaluating the system are designed to test both compression rate and speed of the implementations. The important questions that we are requiring to ask is which compressor performs the best. [TODO: this is not really the question I set myself to answer in the proposal, I believe I only had to answer the question for Omeltchenko and Predictive Pointcloud Compression while Keegan Smith handled the Gandoin \& Devillier's and Predictive Pointcloud Compression]
+The experiments that are performed in evaluating the system are designed to test both compression rate and speed of the implementations. The experiments must be able to answer the question of which Interframe compression scheme performs the best. The main metrics that we need to gather for this experiment is the compression ratio for each file and the running time for the compression. The important question is can we are requiring to ask is which compressor performs the best. As discussed in Chapter 1, the compression ratio is a measurement of how effective the compression is. A small compression ratio implies a small compressed file. The compression ratio is calculated by dividing the size of the compressed file by the size of the original file. The running time is determined as the CPU time elapsed from the start of the compression process and the end.
 
-The performance of the schemes will be compared by measuring the compression rate and speed on two levels. For each dataset the compression rate and computation time will be measured for each simulation in the entire dataset. Using this data, a mean running time per atom can be determined as well as the variation of these running times. Significant running times ocan point to issues that can cause the algorithms to perform slower. A similar argument can be made for the compression rate. The causes of high variation may be determined by looking at the number of water clusters in each frame in the case of Predictive Pointcloud Compression, while Omeltchenko may require further information to analyse.
+The performance of the schemes will be compared by measuring the compression rate and speed, on two levels. For each dataset the compression rate and computation time will be measured. Significant changes running times can point to issues that can cause the algorithms to perform slower. A similar argument can be made for the compression rate. The causes of high variation may be determined by looking at the number of the motion of the particles, while Omeltchenko may require further information to analyse. The results and analysis of the Omeltchenko scheme may be found in the report on Intraframe compressors.
 
-Several datasets will be used. The sizes of the simulations will vary from very large, approximately one million atoms with one hundred to one thousand frames, to very small simulations of only a few thousand atoms and a few dozen frames, with several datasets in between. There will also be datasets that consist completely and of water and datasets that contain no water. Finally, we will also have datasets that contain a very complex molecule in solution.
+Several datasets will be used. The sizes of the simulations will vary from very large, a few hundred thousand atoms with one hundred to one thousand frames, to very small simulations of only a few hundred atoms and a few dozen frames, with several datasets in between. There will also be datasets that consist completely and of water and datasets that contain no water. Finally, we will also have datasets that contain a very complex molecule in solution.
+
+\section{Summary}
+
+In this chapter we discussed the design of the system as a whole. The various components required for compression are discussed. In particular the quantisation, I/O
 
 \chapter{Implementation}
 
-This chapter will describe the implementation of each component used in the system.
+This chapter will describe the implementation details of each component used in the system, namely the Omeltchenko scheme, each of the Interframe compressors, components for processing the simulations into more workable formats, components for ensuring that the compression schemes produce the correct output and the Arithmetic Coder component which contains the components for performing compression.. 
+
+As stated before, five interframe compression schemes are used in our project and their implementation is described here:
+\begin{itemize}
+ \item Polynomial Extrapolation
+ \item Spline Extrapolation
+ \item Smallest Error Encoding
+ \item Common Error Encoding 
+ \item k-Nearest Neighbour Encoding
+\end{itemize}
+
+The simulation processing components are split up into two categories. The I/O components handle processing and storage of uncompressed data to and from the files as well as the processing of quantisation necessary for compression. The verification components gather statistics on the effects of quantisation as well indicate whether the compression has failed and the original and uncompressed files differ too much. Finally, the Arithmetic Coder components handle the I/O of all compressed files.
 
 \section{Intraframe Compressors}
 
-Only one Intraframe Compression scheme was implemented by myself, the others were implemented by Keegan Smith. Implementation details may be found in his report. The reference Omeltchenko compression scheme is based on the algorithm outlined in [TODO: label to background chapter]
+Only one Intraframe Compression scheme is described here, the others were implemented by Keegan Smith. Implementation details may be found in his report.
 
 \subsection{Omeltchenko Scheme}
 
 \label{imp_omelt}
-The Omeltchenko Scheme was implemented with slight differences to the algorithm described in the paper. The algorithm was initially implemented with the prescribed sorting algorithm for sorting the list of octree indices. 
+The Omeltchenko Scheme was implemented with slight differences to the algorithm described in the paper. The main reason for these differences is that the paper describing left out details. The algorithm was initially implemented with the prescribed sorting algorithm for sorting the list of octree indices. The paper describes using a large array of lists that, for uniform distributions of atoms, maps approximately $O(1)$ atoms to each list. Each of the lists are then sorted using a heapsort and merged into a final sorted list. The size of the array is equal to the number of atoms in the frame and divides the range of octree indices into roughly equal parts. The benefit of this approach is that, for uniform distributions, all indices can be sorted in approximately linear time.  In large simulations, however, the memory usage and overhead of running many heapsorts grows quickly. In order to reduce the computation, the paper suggests splitting the molecular simulation up into smaller boxes and then merging the sorted indices of these boxes. No instruction on how to split the simulation up is provided. In our implementation, the STL sort is used. This algorithm has O(NlogN) worst-case behaviour.
 
-The paper describes using a large array of lists such that, for uniform distributions of atoms, maps approximately $O(1)$ atoms to each list. Each of the lists are then sorted using a heapsort and the merged into a final sorted list. The size of the array is equal to the number of atoms in the frame and divides the range of octree indices into roughly equal parts. The benefit of this approach is that, for uniform distributions, all indices can be sorted in approximately linear time.  In large simulations, the memory usage and overhead of running many heapsorts grows quickly. In order to reduce the running time, the paper suggests splitting the molecular simulation up into smaller boxes and then merging the sorted indices of these boxes. The paper does not give any instruction on how to split the simulation up. In our implementation, the STL sort is used. This is an implementation of the Introsort algorithm which has linearithmic worst case behaviour and is heavily optimised.
-
-The encoding of each symbol in the Omeltchenko scheme is done using an adaptive encoding scheme. The details of the encoding scheme is clear, however the criterion for adapting the various parameters are not fully explained. They do give a name to each of the adaptive parameters, but do not rigorously explain how they implement it. In our system, we used the implementations which made the best sense.
+The encoding of each symbol in the Omeltchenko scheme is done using an adaptive encoding scheme. The details of the encoding scheme are clear, however, the criterion for adapting the various parameters is not fully explained. They do give a name to each of the adaptive parameters, but do not rigorously explore how adaptation is implemented. This forced use to make several assumptions in our implementation. [TODO: here]
 
 \section{Interframe Compressors}
 
-Five interframe compression schemes were implemented: Polynomial extrapolation, Spline Extrapolation, Smallest Error Encoding, Common Error Encoding and k-Nearest Neighbour Encoding. Each of these compressors have an adjustable parameter that allow the users to change how large the window of previous quantised frames are. The window, itself, was implemented as an STL deque rather than an STL queue. The main reason for this is that STL queues do not support iteration over the elements without removing elements. 
+This section will described the implementation of the Interframe schemes. Each of these compressors have an adjustable parameter that allow the users to change the number of previous in the prediction window. The window, itself, was implemented as an STL deque rather than an STL queue. The main reason for this is that STL queues do not support iteration over the elements without removing elements. STL deques, on the other hand, support both constant time random-access and iteration over all elements and all the queue operations have the same complexity. The one drawback is that STL deques do not keep their elements in a single contiguous block of memory, but rather lots of smaller blocks of contiguous memory. As a result there is potential loss in spatial coherence of memory access, which will likely not cause any any problems as the windows are likely to be very small. When the window is filled, frames which are no longer necessary are popped off the front. New frames are always pushed onto the back the deque.
 
-STL deques, on the other hand, support both constant time random-access and iteration over all its element and all the queue operations in the same complexity. The one drawback is that STL deques do not keep their elements in one contiguous block of memory, but rather lots of smaller blocks of contiguous memory. As a result there is potential loss of spatial coherence of memory, which will likely not cause any any problems as the windows are likely to be very small. When the window is filled up, frames which are no longer necessary are popped off the front. New frames are always pushed onto the back the deque.
+All of the Interframe Compressors work on the coordinate level, as opposed to the atom level. This means that each individual $x$, $y$ and $z$ coordinate is treated as separate and compressed individually. There are two reasons for this. The first is motivated by efficiency: many of the operations performed are much simpler to code when working with one dimensional data as opposed to three dimensional data and have more efficient solutions. The second reason is that it can lead to better compression. Experiments were run on certain compression schemes testing both coordinate-based and atom-based variants. The coordinate-based approach has the advantage that the number of symbols tend to be considerably lower than the atom-based with error values being shared across dimensions as seen in Figure \ref{High}
 
-All of the Interframe Compressors work on the coordinate level as opposed to the atom level. There are two reasons for this. The first is in terms of efficiency, many of the operations performed are much simpler to code when working with one dimensional data as opposed to three dimensional data and have more efficient solutions. The second reason is that it can lead to a better compression. Experiments were run on certain compression schemes testing both coordinate-based and atom-based. The coordinate-based has the advantage of that number of symbols can be considerably lower than the atom-based with error values being shared across dimensions.
-
-[TODO: pic to clarify?]
+\begin{figure}
+ \center
+ \includegraphics[width=0.5\textwidth]{resources/HigherSymbols.png}
+\caption{A prediction scheme can only generate as many symbols as the size of the space. In the atom-based variant(left), shown in 2D here, the size of the space is larger than in the coordinate-based variant. }
+\label{High}
+\end{figure}
 
 \subsection{Polynomial Extrapolation}
 
-The Polynomial Extrapolation Compressor is the system's implementation of a K-th order predictor. Instead of using deriviatives, it uses polynomial interpolation to construct a function, $F$, that passes through each position. These two approaches yield exactly the same result. The first data point is at is treated as lying at position $(0, x_0)$, while the last data point will lie at position $(K-1, x_{K-1})$. Here, $K$ represents the size of the window.  The compressor then predicts that the next position will lie at $F(K)$. The degree of the constructed polynomial is $K-1$.
+The Polynomial Extrapolation Compressor is the implementation of a K-th order predictor. Instead of using deriviatives, we use polynomial interpolation to construct a function, $F$, that passes through each position. In the end, these two approaches yield exactly the same result. The first data point is treated as lying at position $(0, x_0)$, while the last data point will lie at position $(K-1, x_{K-1})$. Here, $K$ represents the size of the window.  The compressor then predicts that the next position will lie at $F(K)$. The degree of the constructed polynomial is $K-1$.
 
-The method used for constructing the polynomial is Lagrange Polynomial Interpolation. Typically, this method requires quadratic time(in the size of the window) to construct and evaluate a polynomial which needs to be done for each coordinate of each atom for every frame in the simulation. However, an optimisation was made to decrease the time to linear at each step. Using the fact that we only evaluate $F(K)$ at each step, we can precompute several factors of each term. It requires us to use linear extra space for certain weights. We also require that $K!$ be calculated. This puts a limit on the size of the prediction window. IEEE 754 64-bit floating point numbers can only represent factorials upto 170!. This is not a problem as window sizes are usually small.
+[TODO: Why this method?]
 
-[TODO: Image to show difference between polynomial extrapolation and spline extrapolation]
+The method used for constructing the polynomial is Lagrange Polynomial Interpolation. Typically, this method requires quadratic time (in the size of the window, K) to construct and evaluate a polynomial, and this needs to be done for each coordinate of each atom for every frame in the simulation. However, an optimisation was made to decrease the time to linear at each step. Using the fact that we only evaluate $F(K)$ at each step, we can precompute several factors of each term. It requires us to use linear extra space for certain weights. We also require that $K!$ be calculated. This puts a limit on the size of the prediction window. IEEE 754 64-bit floating point numbers can only represent factorials upto 170!, but this not a problem as window sizes are usually small.
+
+[TODO: explain linearisation]
+
+\begin{figure}
+ \center
+ \includegraphics[width=0.75\textwidth]{resources/PolynomialInterpolation.png}
+\caption{A polynomial of degree 5 being interpolated throught 6 points. }
+\label{PolyDescrip}
+\end{figure}
 
 \subsection{Spline Extrapolation}
 
-The Spline Extrapolation Compressor uses a similar technique to the Polynomial Extrapolation Compressor. The main difference is that instead of forcing the polynomial to pass through each point, it only enforces the polynomial to go through the first point and the last point. The remaining points are control points which can be thought to be attractors of the curve. The specific spline that is implemented is called B\'ezier curves. The degree of the polynomial is the same as that Polynomial Extrapolation Compressor.
+The Spline Extrapolation Compressor uses a similar technique to the Polynomial Extrapolation Compressor. The main difference is that instead of forcing the polynomial to pass through each point, it only enforces the polynomial to go through the first and last points. The remaining points are control points which can be considered as attractors of the curve.
 
-As with Lagrange Polynomial Interpolation, the na\"ive implementation performs quadratically with the size of the prediction window. The implementation in the system was optimised to perform linearly with the use of precomputed lookup tables. Our implementation requires the storage of multiple factorial values so it suffers from the same drawback as Polynomial Extrapolation.
+[TODO: Why?]
 
-The spline extrapolation at window sizes of $1$ and $2$ output exactly the same symbols as the Polynomial Extrapolation compression at these window sizes. This refers to delta compression or $0-th$ order prediction and linear prediction or $1-st$ order prediction.  
+The specific spline that is implemented is called B\'ezier curves. The degree of the polynomial is the same as that Polynomial Extrapolation Compressor. [TODO: ref] As with Lagrange Polynomial Interpolation, the na\"ive implementation performs quadratically with the size of the prediction window. The implementation in the system was optimised to perform linearly with the use of precomputed lookup tables. Our implementation requires the storage of multiple factorial values so it suffers from the same drawback as Polynomial Extrapolation.
 
-[TODO: Image to show difference between polynomial extrapolation and spline extrapolation]
+The spline extrapolation at window sizes of $1$ and $2$ outputs exactly the same symbols as the Polynomial Extrapolation compression at these window sizes. This refers to delta compression or $0th$ order prediction and linear prediction or $1st$ order prediction.  
+
+\begin{figure}
+ \center
+ \includegraphics[width=0.75\textwidth]{resources/SplineInterpolation.png}
+\caption{A spline of degree 5 being interpolated throught 6 points. }
+\label{SplineDescrip}
+\end{figure}
 
 \subsection{Smallest Error Encoding}
 
-Smallest Error Encoding uses a different technique to the previous Compression schemes. Instead of extrapolating based on some function, it uses the previous frame as a 'memory bank'. The compression scheme looks in the memory bank for the closest data point in the window. Just encoding the error from the nearest point is not enough, so the index of the nearest point is also encoded. This scheme represents a trade-off between keeping the errors from the predictions as small as possible, and hopefully very frequent, and encoding as few symbols as possible.
+Smallest Error Encoding uses a different technique to the previous Compression schemes. Instead of extrapolating based on some function, it uses the previous frames as a 'memory bank'. The compression scheme looks in the memory bank for the closest data point in the window. Just encoding the error from the nearest point is not sufficient as it does not allow reconstruction of the point. Another piece of information, the index of that nearest point, must also be encoded. This scheme represents a trade-off between keeping the errors from the predictions as small as possible, and hopefully very frequent, and encoding as few symbols as possible. This scheme could, however, encode more symbols than necessary due to the additional index symbols that must be output.
 
-As an improvement, the window is copied into a separate data structure which keeps the items in a sorted order in an effort to improve the encoding of index symbols. This results in an algorithm that runs in $O(KlogK)$ per coordinate. Several enhancements could be made to reduce the running time to $O(logK)$ by maintaining the sorted window rather than recreating it every frame. This was cut, however, due to time constraints it was not implemented.
+As an improvement, the window is copied into a separate data structure which keeps the items in a sorted order in an effort to improve the encoding of index symbols. This results in an algorithm that runs in $O(KlogK)$ per coordinate. Several enhancements could be made to reduce the running time to $O(logK)$ by maintaining the sorted window rather than recreating it every frame. However, due to time constraints, this was not implemented.  
+
+\begin{figure}
+ \center
+ \includegraphics[width=0.75\textwidth]{resources/Nearest.png}
+\caption{Example encoding of via Smallest Error Encoding: The point to be encoded is 3. The nearest point, 2, in the prediction window occurs at index 4. The error that is encoded is 1.}
+\label{NearestDescrip}
+\end{figure}
 
 \subsection{Common Error Encoding}
 
-Common Error Encoding is a variation of the Smallest Error Encoding scheme. It keeps track of the frequency of each error and index encoded. Instead of relying on small errors to keep the frequency of errors large, it uses the information about frequencies to make the 'best' possible choice. The algorithm requires a function to estimate the benefit of encoding a certain error and an index. The chosen function is simply the product of error and index frequencies. This is function has the characteristic that it is proportional to the probability of encoding the error followed by the index.
+Common Error Encoding is a variation of the Smallest Error Encoding scheme. The scheme still outputs two quantities, and error and an index, but it does not choose errors based on how small they are. It uses knowledge of how many times errors were encoded to make potentially better descisions. Arithmetic Coding is able to compress much better if very few symbols occur very often. The compressor takes advantage of this by keeping track of two sets of information: The number of times a specific error has been encoded and the number of times a specific index has been encoded. 
 
-The algorithm is a greedy approximation to the actual solution which can be more accurately solved using a complete search. The running time of the complete search technique is exponential in the number of atoms and so would be too slow to be an effective compression scheme. Various enhancements could be used to speed up the complete search such as branch-and-bound or Genetic Algorithms, however none of these improvements were implemented. 
+In order to determine what to encode, the compressor attempts to guess the impact of encoding each error and index in the prediction window. We made the assumption that the Arithmetic Coder will compress well if the probability of encoding an error and a symbol occurring is high. The algorithm then outputs the symbols that occur with highest probability. This probability of a symbol occuring can be calculated as the number of times it has occured divided by the total number of symbols encoded. The probability of an error index and symbol index occuring is equal to the product of their individual probablities, we assume they are independent events.
+
+The algorithm can be classified as being greedy. It makes an assumption that it should encode the symbol and index with the highest probablity at each step in order to get the best compression. This assumption is false, as it could be beneficial to encode symbols with lower probabilty, thus increasing their number of occurences and, hence, their probabilities. A more accurate solution would be to use a complete search, however this is slow as the search space has exponential size. Various enhancements could be used to accelerate the complete search, such as branch-and-bound or switching to a better method, for instance Genetic Algorithms. We leave these as an area of future work.
+
+Figure \ref{CommonDescrip} shows an example of the encoding scheme. The figure only demonstrates the process with errors and not errors and indices for simplicity.
 
 As with the Smallest Error Compression scheme, the window is sorted at every frame and leads to a large running time of $O(KlogK)$ per coordinate, however, it could be improved to $O(logK)$ in the same way.
 
+\begin{figure}
+ \center
+ \includegraphics[width=0.5\textwidth]{resources/Common.png}
+\caption{Example encoding of via Common Error Encoding: The point to be encoded is 3. Although, the closest point in the prediction window is 2, it has only been encoded once before. The scheme makes the assumption that encoding an error of 3 is best as it has occured 5 times before.}
+\label{CommonDescrip}
+\end{figure}
+
 \subsection{k-Nearest Neighbour Encoding}
 
-The final scheme implemented is based loosely on a machine learning technique called k-Nearest Neighbours. The scheme works using object classification. Objects are classified by embedding them in a 'feature space.' The feature space has a dimension for every distinguishes different objects. The similarity of two objects can be determined by using a metric such the Euclidean metric or Manhattan distance. Objects which are similar are likely to belong to the same category. In most implementations the algorithm measures similarity based on the $k$ nearest neighbours.
+The final scheme implemented is based loosely on a machine learning technique called k-Nearest Neighbours.[TODO: reference] The scheme works using object classification. Objects are classified by embedding them in a 'feature space.' This space has a dimension for every feature than can distinguish different objects. In this case, we break up the prediction window into contiguous, overlapping vectors of size $V$. 
 
-In our application, we require an additional input parameter for specifying the dimensionality, $V$ of the feature space. The prediction window is treated as a series of 'situations.' Each situation is given as a vector of $V$ points existing in $\Re^V$. Similarity is determined using the Euclidean Metric and $k$ is fixed at $1$.
+These vectors make up the objects in our feature space and represent a snapshot of the path in the history of the point. We can use these snapshots to predict where the point should appear next. A similarity metric, such as Euclidean or Mahalanobis metrics, in order to determine the similarity between the current feature vector to previous features vectors in the prediction window. The error from the most likely position is encoded.
 
-\section{Quantiser}
+The vectors are assigned an expected value. This expected value is set to the value directly after the vector in the prediction window, or the place where the point is expected to be.
 
-The quantiser was implemented as a class which wraps around a vector. The class provides methods to convert to and from the normal unquantised frame. In order to easily incorporate the Omeltchenko scheme, it adjusts the points that are being quantised to be non-negative. Non-negative indices are required by the Octree Indexing method of the Omeltchenko scheme due to the bit-wise operations that must be performed.
+The similarity of two feature vectors is determined by using the Euclidean metric. In most implementations the algorithm measures similarity based on the $k$ nearest neighbours, however, in our implementation we have $k$ set to $1$.
 
-Objects of this class store all the information necessary to 'dequantise' the points.
+\begin{figure}
+ \center
+ \includegraphics[width=0.5\textwidth]{resources/NN.png}
+\caption{Example encoding of via k-Nearest Neighbour Encoding: In the top left, the prediction window of \{1, 2, 3, 2, 5, 7\} has been broken up into vectors. In the top right, the latest feature vector, representing the current snapshot in the history of the point. The current point to be encoded is 6. The most similar vector in the prediction window to the current one is last one in the window. The expected value is 7, so an error of -1 is encoded as 7 - 1 = 6}
+\label{kNNDescrip}
+\end{figure}
 
-\section{I/O}
+\section{Simulation I/O}
 
-We chose to use the PDB and DCD file types exclusively as our target formats since these are the main formats used in VMD. We had separate components for each function we required from our project. 
+We chose to use the PDB and DCD file types exclusively as our target formats, since these are the main formats used in VMD. We had separate components for each function we required from our project. The DCD I/O component performs writing and read of the simulation files. The PDB I/O component reads the PDB files which store information on the atoms of the simulation. The Frame component acts as a storage area for simulation frames. The Quantiser is able to quantise simulation frames as well as store them.
 
 \subsection{DCD I/O}
 
-We used code from the VMD project for loading and saving of DCD files. This is mainly due to the DCD files have a complex binary format which is exacerbated by the unspecified nature of the endianess for each file. From reading the comments in the code we found that the loading of DCD files is not as efficient possible as it requires copying to separate buffers to reorder the coordinates in the atoms. We did not see this as a problem as it is mainly an issue with the DCD format. This does not impact the relative performance of each of our compressors as it adds a similar overhead to each file of the same size.
+We used code from the VMD project for loading and saving of DCD files. This was mainly due to the DCD files having a complex binary format, further exacerbated by the unspecified nature of the endianess for each file. From reading the comments in the code we found that the loading of DCD files is not as efficient as possible since it requires copying to separate buffers to reorder the coordinates in the atoms. This is not a problem since it is mainly an issue with the DCD format. This does not impact the relative performance of each of our compressors as it adds a similar overhead to each file of the same size.
 
 \subsection{PDB I/O}
 
-Although there are many features of the PDB standard, only a very small subset of it is necessary. The PDB file is a text file that stores the data in several records. Our implementation of the PDB I/O only supports reading in of a PDB file. 
+Although there are many features of the PDB standard, only a very small subset is necessary. The PDB file is a text file that stores the data in several records. Our implementation of PDB I/O only supports reading in of a PDB file. 
 
-We also ignore any records which are not labelled ATOM. ATOM records store information regarding the type of each atom and what molecule it exists in, which is useful for detecting water molecules.
+We also ignore any records which are not labelled ATOM. These ATOM records store information regarding the type of each atom and what molecule it exists in, which is useful for detecting water molecules.
 
 \subsection{Frame}
 
-The frame component is simply a container that simply wraps a vector. It provides convenience methods that allow it to look more like a stream of floating-point atom coordinates.
+The frame component is simply a container that simply wraps around an STL vector. It provides convenient methods that allow it to look more like a stream of floating-point atom coordinates.
 
-\section{Water Cluster Extractor}
+\subsection{Quantiser}
 
-The water cluster extractor components were necessary for both the visualisation and the compression. The visualiser requires all the water clusters in order for certain visualisation modes to work. The Predictive Point Cloud Compressor requires the water clusters to use heuristic predictors. The task of extracting water clusters was broken in two parts: The Frame Splitter and the Cluster Extractor
+The quantiser was implemented as a class which wraps around a vector. The class provides methods to convert to and from a normal unquantised frame. In order to easily incorporate the Omeltchenko scheme, it adjusts the points that are being quantised to be non-negative. Non-negative indices are required by the Octree Indexing method of the Omeltchenko scheme due to the bit-wise operations that must be performed.
+
+Objects of this class store all the information necessary to 'dequantise' the points.
+
+\section{Simulation Processing}
+
+The most significant task that is necessary for visualisation and the Intraframe compression schemes is the grouping of the water molecules in the file into water clusters. A water cluster is simply a collection of water molecules that are bonded together by the attractive force between the oxygen and hydrogen atoms of adjacent water molecules. 
+
+The visualiser requires all the water clusters in order for certain visualisation modes to work. The Predictive Point Cloud Compressor requires the water clusters to use heuristic predictors. 
+
+The task of extracting water clusters was broken in two parts: The Frame Splitter and the Cluster Extractor. Atoms within the simulation must first be identified based on what molecule they belong to. The most important group is the water molecule category. The water molecules from the Frame Splitter are sent to the Cluster Extractor. The Cluster Extractor's job is to connect the individual water molecules into water cluster groups using a graph data structure.
 
 \subsection{Frame Splitter}
 
-The Frame Splitting is used to break the atoms in a frame into two groups: Water molecules and non-water atoms. The splitting up is necessary for both visualisation and compression. The visualisation needs to know which atoms are water consitituents and which atoms are part of other molecules. 
+The Frame Splitting is used to break the atoms in a frame into two groups: Water molecules and non-water atoms. This is necessary for both visualisation and compression. The visualisation needs to know which atoms are water consitituents and which atoms are part of other molecules so it can apply different visualisation algorithms to both. On the compression side we need to know which atoms form water molecules for the Predictive Point Cloud Compressor so it apply the heuristics that exploit the characteristics of water molecules.
 
-On the compression side we also only need to  know which atoms form water molecules for the Predictive Point Cloud Compressor. Our implementation of the Frame Splitter requires that a valid PDB file be used in order to work correctly, so if the PDB is not available or not accessible, the Visualisation and Predictive Point Cloud Compressor will not work. 
+Our implementation of the Frame Splitter requires that a valid PDB file be used in order to function correctly, so if the PDB is not available or inaccessible, the Visualisation and Predictive Point Cloud Compressor will not work. 
 
-There are various other implementations of the Frame Splitter that we could have tried which do not rely on the PDB file. In this implementation, we would assume that every atom was part of a water molecule and assign the bonds based on the two closest atoms. This was not implemented for two reasons. Firstly, the algorithm is likely to make incorrect assumptions about what the atoms are in the simulations. Secondly, VMD requires that a PDB file be loaded to view a DCD file so the required information is always likely to be available.
+There are other implementations of the Frame Splitter that we could have tried which do not rely on the PDB file. One alternative is to assume that every atom is part of a water molecule and assign the bonds based on the two closest atoms. This was not implemented for two reasons. Firstly, the algorithm is likely to make incorrect assumptions about what the function of atoms are in the simulations. Since the atoms in the simulation are simulated realistically, each of the atoms are likely to have react in different ways instead of all acting like water. The final reason is that VMD requires that a PDB file be loaded to view a DCD file, so the required information is always likely to be available.
 
-The algorithm to extract the water molecules uses a series of map data structures to connect the atoms into separate water molecules. The ATOM records collected from the PDB file are linearly scanned through. ATOM records with names other than ``OH2'', ``H1'' or ``H2'' can be safely categorised as not belonging to a water molecule. If the names do match, they are added to the maps.
+The algorithm to extract the water molecules uses a series of map data structures, equation \ref{eqn:pdbmap} to connect the atoms into separate water molecules. The ATOM records loaded from the PDB file are scanned linearly. ATOM records with names other than ``OH2'', ``H1'' or ``H2'' can be safely categorised as not belonging to a water molecule. These labels correspond to the oxygen atom, first hydrogen atom and second hydrogen atom respectively. If the names do match, they are added to the maps. 
 
-\begin{figure*}[!h]
-\begin{center}
- \small
- $map[atom\ name][residue\ name][residue\ sequence\ number][segment\ id] \rightarrow index into PDB file$
- \caption{The mapping system in order to determine the water molecule.}
-\end{center} 
-\end{figure*}
+% [caption=]
+% \begin{eqnarray*}
+%   
+% \end{eqnarray*}
 
-Using the STL map, this algorithm runs in average and worst-case time linearithmic time, however it could be improved to average case linear time using a hashtable-based data structure.
+% \begin{eqnarray*}
+%  map[atom\ name][residue\ name][residue\ sequence\ number][segment\ id] \rightarrow index
+% \label{eqn:pdbmap}
+% \end{eqnarray*}
+
+% \begin{center}
+% \caption{The mapping system used to determine a water molecule. Atoms in each water molecule will have the first entry as ``OH2'', ``H1'' or ``H2'', but the following entries will be exactly the same.}
+% \end{center}
+
+\begin{eqn}
+\begin{eqnarray*}
+ map[atom\ name][residue\ name][residue\ sequence\ number][segment\ id] \rightarrow index
+\end{eqnarray*}
+\caption{The mapping system used to determine a water molecule. Atoms in each water molecule will have the first entry as ``OH2'', ``H1'' or ``H2'', but the following entries will be exactly the same.}
+\end{eqn}
+
+Using the STL map, this algorithm runs in average and worst-case $O(NlogN)$ time, however it could be improved to average case linear time using a hashtable-based data structure. This was not implemented because the standard hashtable in the STL is deprecated and there was not enough time to implement a hashtable for our use.
 
 \subsection{Cluster Extractor}
 
-The cluster extraction component's main job is to join water clusters into a clusters according to how these clusters form. Using the information from the Frame Splitter, the cluster extracter uses the polar nature of the atoms to predict where other water molecules in the same clusters are. Water molecules are connected if they are close to the predicted position.
+The cluster extraction component's main job is to join water molecule into a clusters according to a heuristic. The heuristic used is that oxygen atom and hydrogen atoms of adjacent water molecules will line up. The distance between  Using the information from the Frame Splitter, the cluster extracter uses the polar nature of the atoms to predict where other water molecules in the same clusters are. Water molecules are connected if they are close to the predicted position. Figure \ref{WCDescrip} shows an example of water clusters connecting the water molecules in 2D.
 
-[TODO: Pic]
+\begin{figure}
+ \center
+ \includegraphics[width=0.5\textwidth]{resources/WaterClusters.png}
+\caption{Water clusters connecting water molecules. The dotted lines represent bonds between water molecules. The top two water molecules and bottom-right water molecules is in a single water cluster. The bottom-right water molecule connects to no other water molecules and is in a water cluster with only itself. }
+\label{WCDescrip}
+\end{figure}
 
-The clusters, themselves, are stored as a graph data structure. The graph will have several components, one for each cluster. Edges between water molecules indicate a possible direct link between two water molecules. Although this may not be physically accurate, one can adjust a tolerance setting. A low tolerance will usually have lots of small water clusters consisting only of few water clusters. A high tolerance will have very few clusters which are a lot larger than they should be.
+The clusters themselves are stored as a graph data structure. This graph will have several disconnected components, one for each cluster. Edges between water molecules indicate a possible direct link between two water molecules. Although this may not be physically accurate, one can adjust a tolerance setting. A low tolerance will result in many small water clusters consisting only of few water clusters. A high tolerance will have very few clusters which are a lot larger than they should be. Some experiments showed that smaller tolerances are best for visualisation purposes. 
 
-Since the core algorithm of the cluster extraction is a nearest neighbour lookup in a fixed radius, we tested two implementations. The first implementation used a 3-dimensional grid. The grid was implemented using the STL map data structure. The benefit of this was to decrease the space requirements for the grid. If a 3D array was used the memory usage could be quite large and grow with the size of the bounding box. Different methods of minimising the size of the grid by using coarser grid cells could have been used, but there are cases where the nearest neighbour lookup can degrade into a slower linear time operation.
+Since the core algorithm of the cluster extraction is a nearest neighbour lookup in a fixed radius, we tested two acceleration strategies. The first implementation used a three dimensional grid. The closest atom within a fixed radius to a point in space can be accomplished by examining all cells within the radius. A better technique for searching in the grid approach uses a simple breadth-first search of neighbouring cells. The fixed radius properties allows only $O(1)$ cells to be examined in the worst case, and the physical properties of the atoms mean that very few atoms will exist in each cell. Our algorithm could be improved to the breadth-first search approach, but due to the small tolerances used, the optimisation was necessary. 
 
-\begin{figure*}[!h]
-\begin{center}
- \small
- $grid[\lfloor x\rfloor][\lfloor y\rfloor][\lfloor z\rfloor] \rightarrow water\ molecules$
- \caption{Grid mapping}
-\end{center} 
-\end{figure*}
+The grid was implemented using the STL map data structure. The benefit of this was a decrease in the requirements of storing the grid. If a 3D array was used the memory usage could be considerably large and grow with the size of the bounding box. Different methods of minimising the size of the grid by using coarser grid cells could have been employed, but there are cases where the nearest neighbour lookup can degrade into a slower linear time operation.
 
-Using a map data structure allows one to have the size of the size of the data structure dependant only on the number of atoms and not the size of the bounding box. There is a drawback with this approach in that a cell look-up now requires logarithmic time, while the array method offers constant time cell look-up. The average case efficiency of this approach could be accelerated by using a hashtable based data structure or other spatial hashing method. The grid approach allows one to find the nearest neighbour to within a fixed radius by simple breadth-first search of the cells. The fixed radius properties allow only $O(1)$ cells to be examined in the worst case, and the interactive properties of the atoms mean that very few atoms will exist in each cell.
 
-The other implementation used a library called Approximate Nearest Neighbour(ANN). [TODO: ref] ANN allows one to defer the task of nearest neighbour to a library. Although name implies that answers given are approximate, ANN has a setting to return the exact neighbours. ANN typically uses one of two data structures to accomplish the searches: KD-trees and box-decomposition trees. The KD-trees discussed in [TODO: section reference] can also be used to find the nearest neighbour. The box decomposition tree uses various rules to decompose the space into a collection of boxes, but is otherwise similar to a KD-tree. The main differences lie in how boxes are split and shrunk to form different boxes. The parameters for both the kd-tree and box-decomposition trees were experimented with, however, in practice there was no difference between them. We settled for the standard kd-tree implementation because it is easier to use.
+\begin{eqn}
+\begin{eqnarray*}
+ grid[\lfloor x\rfloor][\lfloor y\rfloor][\lfloor z\rfloor] \rightarrow water\ molecules
+\end{eqnarray*}
+\caption{The mapping system used to determine a water molecule. Atoms in each water molecule will have the first entry as ``OH2'', ``H1'' or ``H2'', but the following entries will be exactly the same.}
+\end{eqn}
+
+Using a series of STL map data structures, the size of the grid can be made to be dependant only on the number of atoms and not the size of the bounding box. This is because the number of items in each map is proportional to number of $x,y,z$ coordinates. This quantity is bounded by the number of atoms. There is a drawback with this approach in that a cell look-up now requires logarithmic time, while the array method offers constant time cell look-up. The average case efficiency of this approach could be accelerated by using a hashtable based data structure or other spatial hashing method.
+
+The other implementation used a library called Approximate Nearest Neighbour(ANN). [TODO: ref] ANN allows us to defer the task of nearest neighbour search to a library. Although the name implies that answers given are approximate, ANN has a setting to return the exact neighbours. ANN typically uses one of two data structures to accomplish searches: KD-trees and box-decomposition trees. The KD-trees discussed in [TODO: section reference] can also be used to find the nearest neighbour. The box decomposition tree uses various rules to decompose the space into a collection of boxes, but is otherwise similar to a KD-tree. The main differences lie in how boxes are split and shrunk to form different boxes. The parameters for both the KD-tree and box-decomposition tree versions were explored. However, we found in practice that there was no difference between them. We settled for the standard kd-tree implementation because it is easier to use.
 
 \section{Verifiers}
 
-The verifiers were implemented as separate driver programs in the system. This separation allows the information to be collected without affecting the performance of the compression schemes. The verifiers can run after the compression and quantisation has been performed.
+The verifiers were implemented as separate driver programs in the system. This separation allows the information to be collected without impacting the performance of the compression schemes. The verifiers can be run after the compression and quantisation has been performed.
 
-In our implementation we collect 4 statistics for each dimension separately.
+The main algorithm that is implemented for this component is the algorithm for computing the variance. This is implemented using a linear algorithm, after calculating the mean.
+
+In our implementation we collect 4 statistics for each dimension separately:
 \begin{itemize}
  \item Minimum Error: 
  \begin{itemize}
@@ -560,48 +698,64 @@ In our implementation we collect 4 statistics for each dimension separately.
  \end{itemize}
  \item Error Variance:
  \begin{itemize}
-   \item The variance of the errors statistics between the original and quantised data. This is implemented using a linear algorithm after calculating the mean.
+   \item The variance of the errors statistics between the original and quantised data.  
  \end{itemize}
 \end{itemize}
 
 
 \section{Encoder}
 
-Our implementation uses an Arithmetic Coder to convert streams of symbols to a compressed bitstream that can be written and read from a file. We also implemented several models that facilitate the mapping of symbols to ranges that the Arithmetic Coder can encode and vice versa.
+Our implementation uses an Arithmetic Coder to convert streams of symbols to a compressed bitstream that can be written and read from a file. We also implemented several models that facilitate the mapping of symbols to ranges for the Arithmetic Coder can encode and vice versa.
 
 \subsection{Arithmetic Coder}
 
-The implementation of the Arithmetic Coder was based on the paper [TODO: reference]. There are several differences to the usual implementation Arithmetic Coders. Most Arithmetic Coders are implemented using 32-bit integers to represent ranges. This puts a limit on the maximum number of symbols and the maximum frequency of each symbol. To handle this, most Arithmetic Coders only allow a fixed number of symbols, typically 256. 
+We decided to implement our own Arithmetic Coder instead of using an existing open source package. We are building our own Arithmetic Coder for several reasons. Most Arithmetic Coders use 32-bit integers for their computations. However, this puts limits on the maximum symbol frequency and the maximum number of symbols, typically 256, as the product must fit into the data-types being used.[TODO: ref to thing] The maximum symbol frequency is solved in most existing implementations by frequency scaling, however the maximum number of symbols is strict and the user is left to solve it. Both of these effects can have a detrimental effect on compression. 
 
-In order to deal with frequency limit, a scaling operation is performed on every symbol if a limit is hit. This scaling can adversely affect the quality of the compression results. Due to the large nature of molecular simulations, our implementation for the system uses 64-bit integers to represent ranges. Although this does not eliminate the above problems, they occur at such large numbers that it is safe to ignore their effects. The downside of this is that the use of 64-bit data types adversely affects the speed of the computations. 
+At the start of our project, we were unsure of the number of symbols that might be generated for compression, for instance due to a prediction scheme that performs poorly. Another reason is that the simulations can be very large with billions of symbols being encoded. Our main aim for our Arithmetic Coder was to produce an implementation that overcomes these problems.
 
-Since the encoding and decoding functions are called very often, they are inlined. A lot of the range computation requries multiplying by ranges by $2$, which are replaced by shift operators. Many micro-benchmarks were run in order to get the speed comparable to that of other available Arithmetic Coders.
+The implementation of the Arithmetic Coder on the work of X [TODO: reference]. We made several changes to their implementation Arithmetic Coders. To cope with the symbol and frequency limits, 64-bit integers are used. Although this does not eliminate range problems, they occur at such large numbers that it is safe to ignore their effects.
 
-A problem with the system's Arithmetic Coder implementation is that there is only allowed to be one Arithmetic Coder writing to a file. Once an Arithmetic Coder has been initialised to write to a file, the file cannot be written to in any other way. Also, once the Arithmetic Coder has been initialised to a file it cannot be stopped until all output to the file is complete and the end of file is signalled. These issues do not present a serious problem. The first two problems are solved by using different models for the Arithmetic Coder. The third problem does not affect us our file format has no extraneous data after each frame of compressed data.
+Several low-level changes were also made. The encoding and decoding functions are called frequently, so these functions are inlined. A lot of the range computation requries multiplying ranges by $2$, which are instead replaced by shift operators. Many micro-benchmarks were run in order to get the speed comparable to that of other available Arithmetic Coders.
+
+A problem with our implementation is that there is only allowed to be one Arithmetic Coder writing to a file. Once an Arithmetic Coder has been initialised to write to a given file, the file cannot be written to in any other way. Also, once the Arithmetic Coder has been associated with a file it cannot be stopped until all output to the file is complete and the end of file is signalled. The reason for this is that the decoder is unaware how many bits of file actually correspond to Arithmetic Coder output after the end of file symbol is decoded. The safe assumption is taken that the entire file corresponds to Arithmetic Coder output. These issues do not present a serious problem, however the first two problems are solved by using different models for the Arithmetic Coder. The third problem does not affect us since our file format has no extraneous data after each frame of compressed data.
 
 \subsection{Models}
 
-The models store the information about the current status of compression. Specifically, it needs to implicitly or explicitly store the list of symbols with their frequencies. Two different models were made for separate for separate circumstances. These are the Adaptive Model and the Byte Model.
+A model stores the information about the current status of compression. Specifically, it needs to implicitly or explicitly store the list of symbols with their frequencies. Two different models were made for separate circumstances. These are the Adaptive Model and the Byte Model.
 
 \subsubsection{Adaptive Model}
 
-The Adaptive Model is a heavy weight implementation of the adaptive parts of Adaptive Arithmetic Coder. The Adaptive Model uses a data structure called a Fenwick Tree[TODO: reference] to store a dynamic cumulative frequency table. 
+The Adaptive Model is a heavy-weight implementation of the adaptive parts of an Adaptive Arithmetic Coder. The Adaptive Model uses a data structure called a Fenwick Tree[TODO: reference] to store a dynamic cumulative frequency table and a data structure called a Trie[TODO: reference] to map the symbol bytes to positive numbers that the Fenwick Tree can work with.
 
-The Fenwick Tree was chosen as the main data structure for the ease to code. The Fenwick Tree also supports the required operations of updating and querying of frequencies and determining which symbols belong to a cumulative frequency range in logarithmic time. Fenwick Trees do not usually support dynamically growing the list of symbols, so a modification to the data structure was performed. The Fenwick Trees was implemented in an array, so adding new symbols may also require this array to grow. The arrays are initialised with enough space to hold $1000$ symbols. When the array is full, the array size is doubled and the Fenwick Tree invariants are re-enforced by re-adding the symbols with their frequencies. Enforcing this takes $O(NlogN)$ where $N$ is the number of symbols. When the array is not full, symbols can be added in $O(1)$. This gives an amortised time to add new symbols of $O(logN)$. This usually cause an issue as the number of symbols in the model tends to be small.
+% \paragraph{Fenwick Trees} \ \\
+The Fenwick Tree is a variant of a range tree which was specifically designed for cumulative frequency tables. This makes it especially useful for Adaptive Arithmetic Coders for representing the changing list of symbol frequencies. It works by using the fact that postive integers can be written as a sum of powers of two to answer range queries quickly. The Fenwick Tree was chosen as the main data structure for ease of coding. It also supports the required operations of updating and querying of frequencies and determining which symbols belong to a cumulative frequency range in $O(logN)$. 
 
-The Fenwick Tree only supports symbols labelled from $[1..N]$ so an additional mappings are required to convert to and from this representation. The Adaptive Model was designed to have symbols which are arbitrary length byte strings. Data structures are required in order to map the byte strings to symbol numbers for the encoding process and symbol numbers to byte strings for the decoding process. The encoding mapping originally used an STL map. This has worst case performance which is logarithmic in the size of the symbol table, however there are hidden costs due to the comparing strings, which is not a constant operation. The current implementation uses a Trie data structure[TODO: ref?] to accomplish the mapping. Tries can accomplish lookups in roughly constant time(it technically requires linear time proportional to the number of bytes in the byte string). Tries do not tend to perform well with large numbers of entries due to the large number of memory allocations and lack of spatial locality, but for the application of symbol tables they aren't expected to grow very large. For the decoding mapping an STL vector was used. New symbols are appended to the vector and can be looked up by using the symbol ID from the Fenwick Tree as in index into the array.
+Fenwick Trees do not usually support dynamically growing a list of symbols, so a modification to the data structure was performed. The Fenwick Trees are implemented in an array, so adding new symbols also requires this array to grow. The arrays are initialised with enough space to hold $1000$ symbols. When the array is full, the array size is doubled and the Fenwick Tree invariants are re-enforced by re-adding the symbols with their frequencies. This enforcing takes $O(NlogN)$ time where $N$ is the number of symbols. 
 
-The main problem with the Adaptive Arithmetic Coders, is that the symbol table needs to be stored in the file, so that the file can be reconstructed correctly. It is not possible to know the symbols which should be encoded beforehand, as this requires substantial preprocessing and limits all of our compression to off-line processes. This is solved in our implementation by outputting new symbols while the encoding process is occuring. This technique is similar to Vitter's algorithm for Adaptive Huffman Compression, however unlike Vitter's algorithm the bit pattern for each symbol cannot be simply output. Outputting of the bits need to be performed through the Arithmetic Coder. 
+When the array is not full, symbols can be added in $O(1)$. This gives an amortised time to add new symbols of $O(logN)$. This usually does not cause an issue as the number of symbols in the model tends to be small.
 
-The Adaptive Model contains an escape symbol that represents that the next symbols to follow represent the byte string. The byte string is output via a separate static model. The model implicitly stores a symbol table which contains $257$ symbols. The first $256$ symbols are used for the encoding the individual byte values in the byte string. The last symbol is used as a terminator to indicate that the byte string has ended and normal symbol encoding should continue. New symbols can be handled on the decoding side by following a similar process.
+% \paragraph{Tries} \ \\
+The Fenwick Tree only supports symbols labelled from $[1..N]$ so an additional mapping is required to convert to and from this representation which requires data structures. The data structures must map byte strings to symbol numbers for the encoding process and symbol numbers to byte strings for the decoding process. The Adaptive Model is designed to have symbols which are arbitrary length byte strings so any data structure that we implement must be able to handle this. 
+
+The encoding mapping originally used an STL map. This has worst case performance which is logarithmic in the size of the symbol table, however, there are hidden costs due to string comparison, which is not a constant operation. The current implementation uses a Trie data structure to accomplish the mapping. A Trie is tree data structure where the edges are labelled as byte values and paths from the root to a leaf represent items. Tries keep their data in sorted order and allow roughly constant time access to each item. They technically require linear time proportional to the number of bytes in the byte string. Tries tend not to perform well with large numbers of entries due to the large number of memory allocations and a lack of spatial locality, but for the application of symbol tables they aren't expected to grow very large. 
+
+For the decoding mapping an STL vector was used. New symbols are appended to the vector and can be looked up by using the symbol ID from the Fenwick Tree as in index into the array.
+
+% \paragraph{Symbol Table Encodign} \ \\
+
+The main problem with the Adaptive Arithmetic Coders, is that the symbol table needs to be stored in the file, so that the file can be reconstructed correctly. It is not possible to know the symbols which should be encoded beforehand, as this requires substantial preprocessing and limits all of our compression to off-line processes. This is solved in our implementation by outputting new symbols while the encoding process is occuring. This technique is similar to Vitter's algorithm for Adaptive Huffman Compression, however, unlike Vitter's algorithm the bit pattern for each symbol cannot be simply output. This is because there is more state in an Arithmetic Coder than Huffman Coder, specifically the current range. For this reason, outputting of the bits needs to be performed through the Arithmetic Coder using a model. 
+
+The Adaptive Model contains an escape symbol which signals that the next symbols to follow represents the byte string. The byte string is output via a separate static model. The model implicitly stores a symbol table which contains $257$ symbols. The first $256$ symbols are used for the encoding the individual byte values in the byte string. The last symbol is used as a terminator to indicate that the byte string has ended and normal symbol encoding should continue. New symbols can be handled on the decoding side by following a similar process.
 
 % TODO dictionary encoding.
 
 \subsubsection{Byte Model}
 
-The Byte Model is a light implementation of a static section of the Static Arithmetic Coder. It features an implicit static symbol table of $256$ elements and all the frequencies are kept at a constant value of $1$. The symbol values correspond to byte values between $0$ and $255$. The effect of this model is that bytes can be written out in an uncompressed form to the file using the Arithmetic Coder. The benefit of this model is that raw byte can be written with out storing a symbol table in the Arithmetic Coder, thus saving space. 
+The Byte Model is a light implementation of a static section of the Static Arithmetic Coder. It features an implicit static symbol table of $256$ elements and all the frequencies are kept at a constant value of $1$. The symbol values correspond to byte values between $0$ and $255$. The effect of this model is that bytes can be written out in an uncompressed form to the file using the Arithmetic Coder. The benefit of this model is that raw bytes can be written without storing a symbol table in the Arithmetic Coder, thus saving space. 
 
+\section{Summary}
 
+In this chapter we discussed the implementation details of various components in the system. We explained our implementation of the Omeltchenko Intraframe scheme along with the assumptions and subsequent modifications that were made. The various Interframe compression schemes, Polynomial Extrapolation, Spline Extrapolation, Smallest Error Encoding, Common Error Encoding and k-Nearest Neighbour Encoding, were detailed. Simulations processing components were analysed including the various tested implementations of the Frame Splitter and Cluster Extractor. The statistics gathered in the Verifiers were analysed. Finally, the Arithmetic Coder implementation was detailed along with the various Models used in the compression.
 
 % \section{Simulation I/O}
 % 
@@ -700,7 +854,7 @@ The Byte Model is a light implementation of a static section of the Static Arith
 
 \chapter{Results}
 
-The testing process was performed on a cluster using a single Intel Xeon 3.00GHz processor and 3GB of RAM. Each compressor was run on several data sets. Two of the datasets were donated by Dr. James Gain and Dr. Michelle Kuttel. The remaining datasets were generated by Julian Kenwood using software called Nanoscale Molecular Dynamics(NAMD). 
+The testing process was performed on a cluster using a single Intel Xeon 3.00GHz processor and 3GB of RAM. Each compressor was run on several data sets. Two of the datasets were donated by Dr. John Stone and Dr. Michelle Kuttel. The remaining datasets were generated using software called Nanoscale Molecular Dynamics(NAMD). 
 
 NAMD is a program, which is included with VMD, that is able to produce simulation that are compatible with our project. The program requires three files to be present in order to run the simulation. The first is the PDB file which determines which atoms are present in the simulation. The PDB files cannot be automatically generated as they correspond to positions of atoms in an actual molecule. Several PDB files were download from the RCSB, which maintains archives of many free PDB files. [REF: http://www.rcsb.org/] Finally, an important function that VMD can perform is to modify PDB files in order to embed the molecules in water. This was used to increase the number of atoms in several simulations.
 
@@ -941,7 +1095,7 @@ From results in Keegan Smith's Report, the Intraframe compression schemes typica
 
 The Interframe compression does not suffer from this as it compresses the atoms in the order they appear in the simulation file. The best choice of parameters and compression scheme correspond to delta encoding of the points where typically the compression produces a file that is 10\% of the original's size. The best running time also occurs for delta encoding. However, the results on the time of delta compression reflected in the previous chapter does not necessarily show the true running time of a system specifically designed for this compression which can be more heavily optimised. The molecular simulation dataset were chosen based on several properties that are present in simulations, namely granularity and temperature and size of the dataset in number of atoms and number of frames.
 
-\section Future Work
+\section{Future Work}
 
 There are several parts on the compression side that was left for future work. Firstly, several of the prediction schemes, namely the Smallest Error Encoding and the Common Error Encoding have simple implementations that are not as optimised as possible, and can be made faster by using sorted data structures instead of sorting the frames at each step. 
 

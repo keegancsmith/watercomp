@@ -8,7 +8,7 @@ SRC += $(wildcard ../components/*/*.cpp)
 SRC += $(wildcard ../dcd_loader/*.cpp)
 OBJS = $(patsubst %.cpp, %.o, $(filter-out %/main.cpp, $(SRC)))
 
-default: checkcomp checkdcd frameextract atomextract
+default: checkcomp checkdcd frameextract atomextract metadata
 
 checkcomp: checkcomp.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) $(CXXLIBS) -o checkcomp checkcomp.cpp $(OBJS)
@@ -22,8 +22,11 @@ frameextract: frameextract.cpp $(OBJS)
 atomextract: atomextract.cpp $(OBJS)
 	$(CXX) $(CXXFLAGS) $(CXXLIBS) -o atomextract atomextract.cpp $(OBJS)
 
+metadata: metadata.cpp $(OBJS)
+	$(CXX) $(CXXFLAGS) $(CXXLIBS) -o metadata metadata.cpp $(OBJS)
+
 clean:
-	rm -f checkdcd frameextract atomextract $(OBJS)
+	rm -f checkdcd frameextract atomextract metadata $(OBJS)
 
 check-syntax:
 	$(CXX) $(CXXFLAGS) -Wextra -Wno-sign-compare -fsyntax-only $(CHK_SOURCES)

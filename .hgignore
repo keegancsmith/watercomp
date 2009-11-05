@@ -5,6 +5,7 @@ code/ann
 dcd
 *.swp
 *.o
+*.pyc
 
 # Tex output
 *.aux
@@ -31,4 +32,5 @@ code/verifiers/atomextract
 code/verifiers/checkcomp
 code/verifiers/checkdcd
 code/verifiers/frameextract
+code/verifiers/metadata
 code/watercomp/watercomp

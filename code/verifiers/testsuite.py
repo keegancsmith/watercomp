@@ -10,7 +10,7 @@ import sys
 import time
 
 RESULTS      = os.path.expanduser('~/dcd_results')
-QUANTISATION = '8 12 16'.split()
+QUANTISATION = ['8', '12', '16']
 PERMUTATIONS = 'null best naive interframe delta'.split()
 CMD_PATH     = os.path.abspath(sys.argv[0])
 WORKING_DIR  = os.path.dirname(os.path.dirname(CMD_PATH))
@@ -31,10 +31,10 @@ TESTS = {
         'author' : 'keegan',
     },
 
-    # 'omeltchenko': {
-    #     'bin'    : './omeltchenko/driver',
-    #     'author' : 'julian',
-    # },
+    'omeltchenko': {
+        'bin'    : './omeltchenko/driver',
+        'author' : 'julian',
+    },
 
     'quant': {
         'bin'    : './quantcomp/quantcomp',
@@ -167,24 +167,34 @@ if __name__ == '__main__':
         cmp_path = '/tmp/foo.cmp'
         dec_path = '/tmp/foo.dcd'
 
-        flags = ['-q ' + quant]
-        if os.path.exists(pdb_path):
-            flags.append('--pdb ' + pdb_path)
+        flags = []
+        if test['author'] is 'keegan':
+            flags = ['-q ' + quant]
+            if os.path.exists(pdb_path):
+                flags.append('--pdb ' + pdb_path)
         flags = ' '.join(flags)
 
+        
         cmp_cmd = '%s %s %s %s %s' % (test['bin'], cflag, flags,
                                       dcd_path, cmp_path)
 
+        if test['author'] is 'julian':
+            cmp_cmd += ' ' + ' '.join('-%s %s' % (x, quant) for x in 'xyz')
+
         t = time.time()
-        os.system(quiet(cmp_cmd))
+        v = os.system(quiet(cmp_cmd))
         t = time.time() - t
         s = os.stat(cmp_path).st_size
 
-        # Give 5 seconds for the user to cancel
+        # Give 2 seconds for the user to cancel
         try:
-            time.sleep(5)
+            time.sleep(2)
         except:
             sys.exit(0)
+
+        if v != 0:
+            verify_failed.append(tag)
+            continue
 
         write_result(dcd, quant, name, s, t)
 
@@ -193,17 +203,21 @@ if __name__ == '__main__':
 
         dec_cmd = '%s %s %s %s %s' % (test['bin'], dflag, flags,
                                       cmp_path, dec_path)
+
+        if test['author'] is 'julian':
+            dec_cmd += ' ' + ' '.join('-%s %s' % (x, quant) for x in 'xyz')
+
         os.system(quiet(dec_cmd))
 
         check_cmd = './verifiers/checkdcd %s %s' % (dcd_path, dec_path)
         verified = os.system(check_cmd)
 
         if verified != 0:
-            verify_failed.append('%s_%s' % (dcd, name))
+            verify_failed.append(tag)
 
         print
 
-    if verify:
+    if verify or verify_failed:
         if verify_failed:
             print "The following tests failed:"
             for test in verify_failed:
