@@ -1,8 +1,43 @@
-\chapter{Statistical test results}
+\chapter{Tables of results}
 % {{{
-\label{cha:statsresults}
+\label{cha:tables}
 
-\begin{table}[h!]
+
+\begin{table}
+  \begin{tabular}{ | l | r | r | r | r | }
+  \hline
+                         & amall (233) & gala (488) & cmc (1814) & mscl (22487)  \\ \hline
+  Marching cubes         &    0.236807 &   0.660237 &   1.281246 &     4.899246  \\ \hline
+  Marching tetrahedrons  &    0.276200 &   1.502044 &   1.798471 &     5.223619  \\ \hline
+  \hline
+  Decimated cubes        &    0.873855 &  16.075655 &  13.458342 &    10.964464  \\ \hline
+  Decimated tetrahedrons &    2.207333 &  46.403451 &  20.520911 &    16.199253  \\ \hline
+  \end{tabular}
+  \caption{Table showing the time required to extract the surface for the given
+  datasets. The number in parenthesis next to the dataset name is the number of
+  water molecules present in the volume.}
+  \label{tab:appendix_surface_time}
+\end{table}
+
+\begin{table}
+  \begin{tabular}{ | l | r | r | r | r | }
+  \hline
+                         & amall (233) & gala (488) & cmc (1814) & mscl (22487)  \\ \hline
+  Marching cubes         &        6192 &     127916 &     131884 &        28770  \\ \hline
+  Marching tetrahedrons  &       16280 &     346408 &     323468 &        74188  \\ \hline
+  \hline
+  Decimated cubes        &        3092 &      63843 &     112013 &        14203  \\ \hline
+  Decimated tetrahedrons &        8135 &     173050 &     300822 &        36501  \\ \hline
+  \end{tabular}
+  \caption{Table showing the number of generated surface primitives for the
+  given datasets. The number in parenthesis next to the dataset name is the
+  number of water molecules present in the volume.}
+  \label{tab:appendix_surface_count}
+\end{table}
+
+
+
+\begin{table}
   \begin{tabular}{ | l | r | r | }
   \hline
                  & ball and stick p-value & metaballs p-value  \\ \hline
@@ -29,15 +64,14 @@
   gala (10 bit)  &               0.2525 * &           0.04283  \\ \hline
   mscl (10 bit)  &               0.1550 * &          0.1750 *  \\ \hline
   \end{tabular}
-  \caption{shapiro-wilks test results for the different datasets}
-  \label{tab:dataset_normality}
+  \caption{shapiro-wilks test results for the different datasets. A *
+  indicates that the null hypothesis cannot be rejected at the 95\% confidence
+  interval. i.e. the data is not a normal distribution.}
+  \label{tab:appendix_dataset_normality}
 \end{table}
 
-a * indicates that the null hypothesis cannot be rejected at the 95\%
-confidence interval. i.e. the data is not a normal distribution.
 
-
-\begin{table}[h!]
+\begin{table}
   \begin{tabular}{ | l | r | r | r | }
   \hline
                           & chi-squared & df &    p-value  \\ \hline
@@ -51,11 +85,11 @@ confidence interval. i.e. the data is not a normal distribution.
   Metaballs (10 bit)      &      5.0294 &  3 &     0.1697  \\ \hline
   \end{tabular}
   \caption{Friedman Test results for the different quantisation levels}
-  \label{tab:friedman_test_results}
+  \label{tab:appendix_dataset_friedman}
 \end{table}
 
 
-\begin{table}[h!]
+\begin{table}
   \begin{tabular}{ | l | r | r | }
   \hline
   Quantistion level &      W &   p-value  \\ \hline
@@ -66,11 +100,11 @@ confidence interval. i.e. the data is not a normal distribution.
   \end{tabular}
   \caption{Shapiro-Wilks test results for the ball and stick visualisation
   technique}
-  \label{tab:ballstick_normality}
+  \label{tab:appendix_ballstick_normality}
 \end{table}
 
 
-\begin{table}[h!]
+\begin{table}
   \begin{tabular}{ | l | r | r | r | r | r | }
   \hline
                &  Df & Sum Sq & Mean Sq & F value &   Pr($>$F)   \\ \hline
@@ -78,11 +112,28 @@ confidence interval. i.e. the data is not a normal distribution.
   Residuals    & 236 & 504.83 &    2.14 &         &              \\ \hline
   \end{tabular}
   \caption{ANOVA analysis of the ball and stick visualisation technique}
-  \label{tab:ballstick_anova}
+  \label{tab:appendix_ballstick_anova}
 \end{table}
 
 
-\begin{table}[h!]
+\begin{table}
+  \begin{tabular}{ | l | r | r | r | r |}
+  \hline
+         &       diff &        lwr &        upr &     p adj  \\ \hline
+  b4-b10 &  2.7833333 &  2.0924164 &  3.4742503 & 0.0000000  \\ \hline
+  b6-b10 &  0.8000000 &  0.1090830 &  1.4909170 & 0.0159128  \\ \hline
+  b8-b10 &  0.2833333 & -0.4075836 &  0.9742503 & 0.7135299  \\ \hline
+  b6-b4  & -1.9833333 & -2.6742503 & -1.2924164 & 0.0000000  \\ \hline
+  b8-b4  & -2.5000000 & -3.1909170 & -1.8090830 & 0.0000000  \\ \hline
+  b8-b6  & -0.5166667 & -1.2075836 &  0.1742503 & 0.2163136  \\ \hline
+  \end{tabular}
+  \caption{Tukey's HSD test results for the ball-and-stick visualisation
+  technique}
+  \label{tab:appendix_ballstick_tukeyhsd}
+\end{table}
+
+
+\begin{table}
   \begin{tabular}{ | l | r | r | }
   \hline
   Quantistion level &      W &   p-value  \\ \hline
@@ -93,11 +144,11 @@ confidence interval. i.e. the data is not a normal distribution.
   \end{tabular}
   \caption{Shapiro-Wilks test results for the metaballs visualisation
   technique}
-  \label{tab:metaballs_normality}
+  \label{tab:appendix_metaballs_normality}
 \end{table}
 
 
-\begin{table}[h!]
+\begin{table}
   \begin{tabular}{ | l | r | r | r | r | r | }
   \hline
                &  Df & Sum Sq & Mean Sq & F value &    Pr($>$F)  \\ \hline
@@ -105,12 +156,27 @@ confidence interval. i.e. the data is not a normal distribution.
   Residuals    & 236 & 565.90 &    2.40 &         &              \\ \hline
   \end{tabular}
   \caption{ANOVA analysis of the metaballs visualisation technique}
-  \label{tab:metaballs_anova}
+  \label{tab:appendix_metaballs_anova}
 \end{table}
 
 
+\begin{table}
+  \begin{tabular}{ | l | r | r | r | r |}
+  \hline
+         &       diff &        lwr &        upr &     p adj  \\ \hline
+  m4-m10 &  3.4833333 &  2.7518209 &  4.2148457 & 0.0000000  \\ \hline
+  m6-m10 &  1.2333333 &  0.5018209 &  1.9648457 & 0.0001127  \\ \hline
+  m8-m10 &  0.1166667 & -0.6148457 &  0.8481791 & 0.9762546  \\ \hline
+  m6-m4  & -2.2500000 & -2.9815124 & -1.5184876 & 0.0000000  \\ \hline
+  m8-m4  & -3.3666667 & -4.0981791 & -2.6351543 & 0.0000000  \\ \hline
+  m8-m6  & -1.1166667 & -1.8481791 & -0.3851543 & 0.0005950  \\ \hline
+  \end{tabular}
+  \caption{Tukey's HSD test results for the metaballs visualisation technique}
+  \label{tab:appendix_metaballs_tukeyhsd}
+\end{table}
 
-\begin{table}[h!]
+
+\begin{table}
   \begin{tabular}{ | l | r | r | r | }
   \hline
                           &  Mean & Median & Mode  \\ \hline
@@ -125,7 +191,7 @@ confidence interval. i.e. the data is not a normal distribution.
   \end{tabular}
   \caption{Statistics for the two visualisation techniques and different
   quantisation levels}
-  \label{tab:experiment_statistics}
+  \label{tab:appendix_experiment_statistics}
 \end{table}
 
 

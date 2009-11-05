@@ -1,28 +1,31 @@
 \thispagestyle{empty}
 
-\section*{Abstract}
+\begin{abstract}
 % {{{
 
-Molecular simulations generates large amounts of data, over many days. Being
-able to compress this data will be advantageous; both for storage, as well as
-data transmission. Performing compression by taking advantage of certain
-characteristics of the data is expected to yield promising results. The water
-compression project aims to achieve high compression ratios by exploiting the
-presence of large amounts of water in the simulation.
+Molecular simulations generates large amounts of data, over many days. The
+ability to compress this data will be advantageous; both for storage, as well
+as data transmission. As molecular simulations use water as the solvent for the
+simulation, there are large amounts of water present in the volume. The water
+compression project thus aims to achieve high compression ratios by exploiting
+certain structural properties of water to effectively compress water dominant
+molecular simulations.
 
 The visualisation aspect of the water compression project is there to support
-the main compression goal of the system. To facilitate compression, the
-molecular data is quantised, floating point values gets mapped to integer
-values. Thus, the visualisation aspect has been split up into two main parts:
-visualisation of the molecular data, and an experiment to measure the
-perceptual impact of quantisation.
+the main compression goal of the system, the compression of molecular
+simulations. To facilitate compression, the molecular data is quantised:
+floating point values are mapped to integer values. The visualisation component
+of the system has thus been split up into two main parts: visualisation of the
+molecular data, and an experiment to measure the perceptual impact of
+quantisation. The quantisation experiment is used to recommend a quantisation
+level for data used for viewing.
 
-A number of different visualisation techniques has been developed in order to
-visualise the molecular data, two of which was used in the quantisation
-experiment. The quantisation experiment results indicates that 8 and 10 bit
+A number of different visualisation techniques have been developed in order to
+visualise the molecular data, two of which were used in the quantisation
+experiment. The quantisation experiment results indicate that 8 and 10 bit
 quantisation yields results that are perceived to be similar to the original
-data. Further quantisation, 6 and 4 bit quantisation, yields results that are
-rated different and very different.
+data. Further quantisation to 6 and 4 bits, yields results that are rated
+significantly different from the original data.
 
 \ \\
 \ \\
@@ -35,4 +38,5 @@ H.5.2 [User Interfaces] Graphical user interfaces (GUI)
 Visualisation
 
 % }}}
+\end{abstract}
 
