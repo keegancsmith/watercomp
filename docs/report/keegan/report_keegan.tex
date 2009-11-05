@@ -81,7 +81,7 @@ tailored towards models of water.
 
 The method improves on existing point cloud compressors when applied to MD
 data. It also improves on the existing MD compressor by
-\citeauthor{omeltchenko2000sls}.
+\citet{omeltchenko2000sls}.
 
 At $8$-bit quantisation the mean and average compression rate for water
 compression is $19\%$. At $12$-bit quantisation the mean and average
@@ -111,7 +111,7 @@ compresses MD simulations. It uses a connectivity based point cloud technique,
 but with predictors which are based on models of the structure of water.
 
 The method is compared against other point cloud compressors, as well as the
-\citep{omeltchenko2000sls} MD compressor.
+\citet{omeltchenko2000sls} MD compressor.
 
 
 \paragraph{Research Question}
@@ -262,7 +262,7 @@ falls into \citep{drozdek}. This is called \emph{linear quantisation}. By
 storing the bounds and the number of buckets the range is divided up into,
 original values can be approximated.
 
-There are more complex methods reviewed by \citep{ag-racm-03}. These lie
+There are more complex methods reviewed by \citet{ag-racm-03}. These lie
 outside the scope of the report.
 
 
@@ -292,30 +292,30 @@ concentrated on point clouds of surfaces since point clouds are usually
 generated from 3D scans of object surfaces. A surface is the ``skin'' of an
 object, i.e. the boundary of a solid object.
 
-Every point cloud compressor in this report (except \citep{chen2005lcp}) first
+Every point cloud compressor in this report (except \citet{chen2005lcp}) first
 quantise the points using linear quantisation. Linear quantisation of points
 involves quantising each coordinate separately and uniformly in Cartesian
 space. This can be visualised as creating an evenly-spaced grid over the
 dimensions of the space, and snapping the points to the closest grid point. In
 all the point cloud compressors reviewed, this is the only lossy
-step. \citep{chen2005lcp} gets around quantisation by treating the 32-bit
+step. \citet{chen2005lcp} gets around quantisation by treating the 32-bit
 floating point numbers as 32-bit integers.
 
-\citep{gumholdcomp} create a tree of the points that exploit the knowledge that
+\citet{gumholdcomp} create a tree of the points that exploit the knowledge that
 the points lie on a surface. They do not, however, use predictors which
-exploit this. \citep{merrycomp} extend this by using predictors which do
+exploit this. \citet{merrycomp} extend this by using predictors which do
 exploit the rectilinear nature of surface scans.
 
-\citep{omeltchenko2000sls} compress point clouds from molecular dynamics
+\citet{omeltchenko2000sls} compress point clouds from molecular dynamics
 simulations. To exploit the density of the point clouds, a space filling curve
 is created along the quantised positions. A space filling curve is one that
 touches every point in a discrete space. The space filling curve used by
-\citep{omeltchenko2000sls} is based on indexing the cells created by an octree
+\citet{omeltchenko2000sls} is based on indexing the cells created by an octree
 division. Then by encoding the difference between successive indicies which
 contain points, they generate consistently small differences leading to good
 compression rates.
 
-\citep{devillers2000gci} compress meshes of 3D models. A mesh is a collection
+\citet{devillers2000gci} compress meshes of 3D models. A mesh is a collection
 of vertices, edges and faces defining a 3D object. The method they use only
 considers point locations, so it can be used for point cloud
 compression. Their method exploits a property of kd-trees, instead of general
@@ -324,26 +324,26 @@ geometric properties.
 
 \subsection{Predictors}
 
-A rooted spanning tree of the point is used in both \citep{gumholdcomp} and
-\citep{merrycomp}. The creation of the spanning tree depends on what
+A rooted spanning tree of the point is used in both \citet{gumholdcomp} and
+\citet{merrycomp}. The creation of the spanning tree depends on what
 predictor(s) are used and will be described in \ref{sec:serialisation}. For
 each point $v$ in the spanning tree let $v'$ be the point's parent and $v''$
 be the point's grandparent.
 
-\citep{gumholdcomp} lets the user choose between two predictors. The first is
+\citet{gumholdcomp} lets the user choose between two predictors. The first is
 a \emph{constant} predictor where $v$ is predicted to be at $v'$. The second
 is a \emph{linear} predictor where $v$ is predicted to be at $v' + (v' -
 v'')$. So either $v$ is in the same place as its parent, or it is along the
 straight line $(v', v'')$ with distance $|v'-v''|$ away from its parent.
 
-\citep{merrycomp} use the same predictors as \citep{gumholdcomp} but with two
+\citet{merrycomp} use the same predictors as \citet{gumholdcomp} but with two
 additional predictors, the \emph{left} and \emph{right} predictors. The
 surface normal\footnote{A surface normal at a point $v$ is the normal of the
   plane tangent to the surface at $v$.} $n_v$ at $v$ is heuristically
 determined from $v, v'', v'$ and $n_{v'}$ (where $n_{v'}$ is the surface
 normal at $v'$). From this they determine what left and right are by using the
 plane determined by $n_{v'}, v'$ and $v''$. Another difference to
-\citep{gumholdcomp} is that instead of letting the user choose the
+\citet{gumholdcomp} is that instead of letting the user choose the
 predictor used, the best predictor is picked for each point. This requires the
 predictor used at each point to be encoded, which is discussed next.
 
@@ -357,15 +357,15 @@ creating a spanning tree of the points, serialisation can occur by walking the
 graph. The tree also needs to be encoded so decoding can recover the tree to
 do the walk.
 
-\citep{gumholdcomp} create a rooted spanning tree of the points. The points
+\citet{gumholdcomp} create a rooted spanning tree of the points. The points
 are first sorted along the $x, y$ or $z$ axis. The tree is then greedily
 created by picking the first point as a root and then adding each successive
 point to the vertex which minimises the residual. The tree is then serialized
 by entropy encoding the out degree of each vertex in breadth-first order.
 
-\citep{merrycomp} also create a rooted spanning tree of the points, but in a
+\citet{merrycomp} also create a rooted spanning tree of the points, but in a
 way that favours ``long runs'' of the forward predictor. They need to encode
-the predictor used at each point, so encoding the tree as \citep{gumholdcomp}
+the predictor used at each point, so encoding the tree as \citet{gumholdcomp}
 did will not work. Instead the tree is serialized by entropy coding the
 predictor used in depth-first order. By favouring long runs of the forward
 predictor they get better compression ratios of the encoding of the tree. To
@@ -377,7 +377,7 @@ but instead using a metric\footnote{A metric is a way to calculate the
   distance between vertices.} that favours recently considered vertices and
 ones predicted well by the forward predictor.
 
-\citep{chen2005lcp} uses a spanning tree with differential coding on the
+\citet{chen2005lcp} uses a spanning tree with differential coding on the
 weights. So the point cloud is encoded as a tree, with edge weights being the
 difference vectors between points. They show that there exists a spanning tree
 which minimises the number of pairwise different edge weights, but also show
@@ -404,7 +404,7 @@ The use case of MD simulations require the whole file (or frame) to be
 decompressed. So progressive encoders have no advantage, and are judged purely
 on how well they compress the data.
 
-\citep{devillers2000gci} provide an example of a progressive coder. The method
+\citet{devillers2000gci} provide an example of a progressive coder. The method
 is best explained in one dimension first. If you know the total number of
 points in $[a, b]$ (say $x$ points) and the number of points in $[a, (a+b)/2]$
 (say $y$ points) then the number of points in $[(a+b)/2+1, b]$ is $x - y$ . By
@@ -416,8 +416,8 @@ different dimension.
 
 \paragraph{Single-Rate Encoding}
 A single-rate encoder is one which requires the whole stream to be available
-before the data can be decompressed. \citep{omeltchenko2000sls},
-\citep{gumholdcomp} and \citep{merrycomp} are all single-rate encoders.
+before the data can be decompressed. \citet{omeltchenko2000sls},
+\citet{gumholdcomp} and \citet{merrycomp} are all single-rate encoders.
 
 
 \section{Modelling Water}
@@ -459,11 +459,11 @@ bond \citep{watermolecule}. See Figure \ref{fig:dimer} and Figure
 
 \subsection{Using the Model in Point Cloud Compressors}
 
-\citep{omeltchenko2000sls} only exploit the fact that there may be many dense
+\citet{omeltchenko2000sls} only exploit the fact that there may be many dense
 clusters in MD simulations. It is more general than water compression, and
 modifying it to use the relative layouts of the water molecules is not clear.
 
-The predictors of \citep{merrycomp} and \citep{gumholdcomp} do not exploit the
+The predictors of \citet{merrycomp} and \citet{gumholdcomp} do not exploit the
 layout of water molecules. Using water dimer model prediction can be done
 given the positions of a water molecules atoms. The creation of the spanning
 tree would be different, since we know the expected degree of the verticies is
@@ -474,7 +474,7 @@ at most two.
 \resizebox{\textwidth}{!}{
 \begin{tabular}{||l|c|c||}
   \hline
-  \emph{Attribute/Method} & \citep{omeltchenko2000sls} & \citep{gumholdcomp} \\
+  \emph{Attribute/Method} & \citet{omeltchenko2000sls} & \citet{gumholdcomp} \\
 
   \hline
 
@@ -495,7 +495,7 @@ at most two.
   \hline
   \hline
 
-  \emph{Attribute/Method} & \citep{chen2005lcp} & \citep{devillers2000gci} \\
+  \emph{Attribute/Method} & \citet{chen2005lcp} & \citet{devillers2000gci} \\
 
   \hline
 
@@ -516,7 +516,7 @@ at most two.
   \hline
   \hline
 
-  \emph{Attribute/Method} & \citep{merrycomp} & \\
+  \emph{Attribute/Method} & \citet{merrycomp} & \\
 
   \hline
 
@@ -548,15 +548,15 @@ the different papers. There are two underlying philosophies which the
 compression algorithms exploit, the \emph{scope} and the \emph{topology}.
 
 \emph{Scope} is whether the algorithm is exploiting \emph{global} or
-\emph{local} properties of the points. \citep{merrycomp} uses a local scope
+\emph{local} properties of the points. \citet{merrycomp} uses a local scope
 since it exploits nearby points to predict the location of the current
-point. \citep{chen2005lcp} uses a global scope, since it is trying to minimise
+point. \citet{chen2005lcp} uses a global scope, since it is trying to minimise
 a global property of the spanning tree.
 
 \emph{Topology} is whether the algorithm is trying to exploit connectivity or
-geometric information. \citep{gumholdcomp} exploits both, but the geometry
+geometric information. \citet{gumholdcomp} exploits both, but the geometry
 more since it uses a predictor to predict the location based on other points
-location. \citep{chen2005lcp} just tries to choose the best possible spanning
+location. \citet{chen2005lcp} just tries to choose the best possible spanning
 tree, so they exploit connectivity of points.
 
 The other properties listed in the taxonomy are \emph{structure},
@@ -584,7 +584,7 @@ The other properties listed in the taxonomy are \emph{structure},
 
 The water dimer model gives a good predictor for exploiting the local
 structure of water molecules. So using a predictive point cloud encoder
-similiar to \citep{merrycomp} and \citep{gumholdcomp} should result in good
+similiar to \citet{merrycomp} and \citet{gumholdcomp} should result in good
 compression of water molecules.
 
 Compressing the other atoms will require a more general technique. Using the
@@ -625,11 +625,11 @@ the quantisation step, the schemes are lossless. Note that each step in the
 compression phase has auxillary information. The auxillary information is
 required for reconstruction.
 
-Reference implementations of \citep{devillers2000gci}, \citep{gumholdcomp} and
-\citep{omeltchenko2000sls} are also implemented. These use the I/O and
+Reference implementations of \citet{devillers2000gci}, \citet{gumholdcomp} and
+\citet{omeltchenko2000sls} are also implemented. These use the I/O and
 quantisation components. Julian Kenwood implemented
-\citep{omeltchenko2000sls}, while Keegan Carruthers-Smith implemented
-\citep{devillers2000gci} and \citep{gumholdcomp}. Visualisation uses the I/O
+\citet{omeltchenko2000sls}, while Keegan Carruthers-Smith implemented
+\citet{devillers2000gci} and \citet{gumholdcomp}. Visualisation uses the I/O
 and quantisation components as well and was implemented by Min-Young Wu.
 
 
@@ -681,14 +681,14 @@ model are separated.
 The range of the residuals in the predictive schemes as well as the number of
 different residuals is not known before hand. As such we use a novel approach
 for an adaptive arithmetic model. We use an approach similiar to the technique
-by \citep{cormack1984algorithms} used in Adaptive Huffman Encoding. The
+by \citet{cormack1984algorithms} used in Adaptive Huffman Encoding. The
 adaptive model initially only has one symbol meaning ``new'' symbol. When
 encoding if there is a new symbol, the ``new'' symbols is encoded followed by
 a raw representation of the new symbol. By using a trie and a modification of
 a Fenwick tree, insertion of new symbols into the model is $O(n \log n)$ where
 $n$ is the number of seen symbols.
 
-The encoder by \citep{omeltchenko2000sls} does not make use of an Arithmetic
+The encoder by \citet{omeltchenko2000sls} does not make use of an Arithmetic
 Coder, instead it uses its own entropy coder. Every other encoder uses the
 arithmetic encoder.
 
@@ -726,8 +726,8 @@ permutations are encoded is explained in Section \ref{sec:compr-perm}.
 The compressor component is different for each compressor. It implements the
 encoding and decoding of the quantised frames. The intra-frame compressors
 which are implemented are the water compressor and reference implementations
-of \citep{omeltchenko2000sls}, \citep{gumholdcomp} and
-\citep{devillers2000gci}.
+of \citet{omeltchenko2000sls}, \citet{gumholdcomp} and
+\citet{devillers2000gci}.
 
 
 \paragraph{Verifiers}
@@ -745,7 +745,7 @@ the same.
 
 Every compression algorithm explored in this report does not necessarily
 preserve the order of the points when decompressed. For example in
-\citep{devillers2000gci}
+\citet{devillers2000gci}
 \[ (1, 2), (1, 3), (0, 0), (2, 3), (2, 2), (0, 2), (1, 1) \]
 when decompressed becomes
 \[ (0, 0), (1, 1), (0, 2), (1, 2), (1, 3), (2, 2), (2, 3) \]
@@ -899,7 +899,7 @@ predictive intra-frame encoder, and as such only compresses using information
 contained in the frame.
 
 The algorithm is similiar to the predictive point cloud compressors of
-\citep{gumholdcomp} and \citep{merrycomp}. The following is a high level
+\citet{gumholdcomp} and \citet{merrycomp}. The following is a high level
 overview of the algorithm:
 
 \begin{verbatim}
@@ -1132,7 +1132,7 @@ Two additional compressors are also tested. These are straight quantisation
 (referred to as \emph{quant}) and quantisation followed by the data compressor
 gzip (referred to as \emph{gzip}).
 
-The encoder by \citep{gumholdcomp} has two possible predictors to use, the
+The encoder by \citet{gumholdcomp} has two possible predictors to use, the
 \emph{constant} predictor and the \emph{linear} predictor. The results here
 indicate only the use of the \emph{constant} predictor since it always did
 better than the \emph{linear} predictor. This is due to a non-linear
@@ -1203,8 +1203,8 @@ temperature, the worse the expected performance of the water compressor is.
 
 For each run the compression size and time where recorded. The decompression
 time where also tested, but are not listed. This is since every schemes
-excluding \citep{devillers2000gci} has linear decompression
-complexity. \citep{devillers2000gci} has $O(n \log n)$ decompression
+excluding \citet{devillers2000gci} has linear decompression
+complexity. \citet{devillers2000gci} has $O(n \log n)$ decompression
 complexity, which is the same as the compression complexity, so times are
 similiar. The results for $8$-bit and $12$-bit compression are presented
 separately.
@@ -1247,7 +1247,7 @@ separately.
 See Table \ref{tab:res8} for the $8$-bit compression ratios. The results
 indicate that in general that the water compression scheme performs best. If
 the ordering of the points is not important, the best scheme is
-\citep{gumholdcomp} (see column gumhold null). The water compression scheme
+\citet{gumholdcomp} (see column gumhold null). The water compression scheme
 without ordering information has ratios which are very close to gumhold
 null. So without ordering information water compression still performs well.
 
@@ -1308,7 +1308,7 @@ so the trade-off is valid.
 See Table \ref{tab:res12} for the $12$-bit compression ratios. The results
 indicate that the water compression scheme performs best for all the DCD
 files. If the ordering of the points is not important, the best scheme is
-\citep{gumholdcomp} (see column gumhold null).
+\citet{gumholdcomp} (see column gumhold null).
 
 Similiar to the $8$-bit results, the water compression scheme without ordering
 information has ratios which are very close to gumhold null. The cases where
@@ -1371,8 +1371,8 @@ of the encoding is related to the size of the permutation (see Equation
 
 From the results it can be seen that the water compression scheme performs
 best. If the order of the points does not need to be recovered then the
-encoder by \citep{gumholdcomp} performs best. However water compression
-performs nearly as well as \citep{gumholdcomp}.
+encoder by \citet{gumholdcomp} performs best. However water compression
+performs nearly as well as \citet{gumholdcomp}.
 
 The speed of the water compressor can be up to three times slower than the
 next slowest scheme. However the water compressor performs best, and the
@@ -1428,7 +1428,7 @@ store the permutation information.
 The water compressor implementation joins up the components by adding an edge
 to a route. This is currently done in a na\"{i}ve way. Possible ways include
 using a MST of the components or encoding the components separate to the
-errors. Adapting \citep{chen2005lcp} is another possibility.
+errors. Adapting \citet{chen2005lcp} is another possibility.
 
 \paragraph{Point Cloud Compressor which preserve ordering}
 
