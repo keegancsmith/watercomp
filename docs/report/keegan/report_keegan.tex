@@ -70,28 +70,28 @@ Molecular dynamics (MD) simulations generate vast amounts of data. A typical
 100-million atom MD simulation produces approximately 5 gigabytes of data per
 frame consisting of atom types, coordinates and velocities.
 
-This report surveys techniques used in point cloud compression. A point cloud
-is a collection of points in 3D space. It then investigates the structure of
-water. 
+The main contribution of the report is the specification of an MD compressor
+which targets simulations with large amounts of water in it. Water is targeted
+since many MD simulations contain significant amounts of water molecules. It
+uses an approach based on predictive point cloud compressors, but with
+predictors tailored towards models of water.
 
-The main contribution of the report is the specification of a MD compressor
-which targets simulations with large amounts of water in it. It uses an
-approach based on predictive point cloud compressors, but with predictors
-tailored towards models of water.
+A point cloud is a collection of points in 3D space. The method improves on
+existing point cloud compressors \citep{gumholdcomp,devillers2000gci} and MD
+compressor \citep{omeltchenko2000sls} when applied to MD data with significant
+amounts of water molecules.
 
-The method improves on existing point cloud compressors when applied to MD
-data. It also improves on the existing MD compressor by
-\citet{omeltchenko2000sls}.
-
-At $8$-bit quantisation the mean and average compression rate for water
-compression is $19\%$. At $12$-bit quantisation the mean and average
-compression rate for water compression is $31\%$.
+There are six MD simulations the compression schemes are tested and compared
+against. At $8$-bit quantisation the mean and average compression rate for
+water compression is $19\%$. Gzip performs similarly at $8$-bit
+quantisation. At $12$-bit quantisation the mean and average compression rate
+for water compression is $31\%$. The next best scheme (gzip) has a mean and
+average compression rate of $37\%$.
 
 The report also presents techniques for compressing permutations. It presents
-a technique which has a worst case performance which is approximately the
-lower bound on the performance of general permutation encoder. It also
-presents a technique which probabilistically performs better than the lower
-bound.
+a technique which has a worst case performance that is approximately the lower
+bound on the performance of a general permutation encoder. It also presents a
+technique which probabilistically performs better than the lower bound.
 
 \tableofcontents
 
@@ -103,21 +103,28 @@ per frame consisting of atom types, coordinates and velocities. This will
 generate 17 terabytes of data a day if run for $35\,000$ steps with every
 $10$\textsuperscript{th} frame being saved
 \citep{omeltchenko2000sls}. Generating this much data makes compression
-desirable.
+desirable useful for reducing storage space. A significant overhead in
+simulations is also transmitting the data from the cluster which performs the
+simulation to the researchers computer for analysis. Compression reduces the
+transmission time.
 
-Many MD simulations contain large amounts of water molecules in them. There
-are models on how water connect. Using this we have developed a method which
-compresses MD simulations. It uses a connectivity based point cloud technique,
-but with predictors which are based on models of the structure of water.
+Many MD simulations contain significant amounts of water molecules in
+them. There are models on how water connect. Using this we have developed a
+method which compresses MD simulations. It uses a connectivity-based point
+cloud technique, but with predictors which are based on models of the
+structure of water.
 
 The method is compared against other point cloud compressors, as well as the
 \citet{omeltchenko2000sls} MD compressor.
 
+\todo explain intra-frame vs inter-frame compression
+% An intra-frame compressor is one which compresses each frame of the
+% compression independently of the other frames.
 
 \paragraph{Research Question}
 
-This report investigates the implementation and results of a MD data
-compressor which targets water. This compressor will be successful if
+This report investigates the implementation and results of an intra-frame MD
+data compressor which targets water. This compressor is considered successful if:
 
 \begin{itemize}
   \item It can exploit water models.
@@ -128,14 +135,14 @@ compressor which targets water. This compressor will be successful if
   \item It can decompress in an efficient manner? ($O(n)$)
 \end{itemize}
 
-The research question is whether it is possible to implement a compressor with
-the listed properties.
+Thus, the research question is whether it is possible to implement an
+intra-frame compressor with the listed properties.
 
 
 \paragraph{Outline}
 
 In chapter two background information on MD file formats, compression, point
-cloud compression and water models are discussed. Chapter three details the
+cloud compression and water models is discussed. Chapter three details the
 design and implementation of the water compressor. Chapter four presents and
 discusses the results from the implementation. Finally chapter five concludes
 the report.
@@ -145,12 +152,12 @@ the report.
 \chapter{Background}
 
 This section starts by introducing the common file format used for storing MD
-simulation data. It then moves onto the topic of compression which is relevant
-to the rest of the report. This includes entropy encoding, quantisation and
-predictive encoding. Point cloud compression algorithms are then presented, as
-well as a taxonomy of point cloud compressors. The water dimer model is also
-presented, with information on how it could be applied to existing predictive
-point clouding techniques.
+simulation data. It then moves on to the topic of compression which is
+relevant to the rest of the report. This includes entropy encoding,
+quantisation and predictive encoding. Point cloud compression algorithms are
+then presented, as well as a taxonomy of point cloud compressors. The water
+dimer model is also presented, with information on how it could be applied to
+existing predictive point clouding techniques.
 
 \section{Molecular Dynamics Format}
 \label{sec:molec-dynam-form}
@@ -170,11 +177,12 @@ The DCD header contains at least the number of atoms and frames in the
 simulations. Every atom is assigned an index $i$ between $0$ and $\#atoms -
 1$. Each frame is then stored as an array of floating point values of size $3
 \times \#atoms$. The location of atom $i$ is then stored at indicies $3 \times
-i$ to $3 \times i + 2$ (storing the $x, y$ and $z$). Atom $i$ will always
-occur at index $3 \times i$ in every frame.
+i$ to $3 \times i + 2$ (storing the $x, y$ and $z$ coordinates). Atom $i$ will
+always occur at index $3 \times i$ in every frame.
 
-The DCD file does not contain information on what each atom actually is. An
-accompanying PDB files contains information on what each atom $i$ is.
+The DCD file only contains the positions of the atoms, with each item only
+being identified by its index in a frame. Thus the DCD file does not contain
+the atom's type. Instead this is contained in an accompanying PDB file.
 
 
 \section{Compression}
@@ -184,34 +192,34 @@ storage than the unencoded form.
 
 Compression algorithms can be either lossy or lossless. Lossless compression
 algorithms do not ``lose'' any information during the encoding and decoding
-process. An example of lossless compression is the Zip data compressor. Lossy
-compression algorithms can ``lose'' information during the encoding and
-decoding stages, but give approximations of the original information. An
-example of a lossy compression algorithm is DivX for video compression.
+process. An example of lossless compression is the gzip data compressor
+\citep{gzip}. Lossy compression algorithms can ``lose'' information during the
+encoding and decoding stages, but give approximations of the original
+information. An example of a lossy compression algorithm is DivX for video
+compression \citep{divx}.
 
 \subsection{Entropy Encoders}
 
 Entropy encoders attempt to optimally encode symbols as bits. A familiar
-example of an entropy encoder is Huffman Encoders. Given $n$ symbols
+example of an entropy encoder is the Huffman Encoder. Given $n$ symbols
 $\left\{x_1, \dots x_n \right\}$ each with corresponding probabilities
 $\left\{p_1, \dots p_n \right\}$, Huffman Encoding assigns each $x_i$ a binary
-codeword $c_i$ such that:
+codeword $c_i$ such that: \citep{huffman1952method}
 \begin{enumerate}
   \item $p_i < p_j$ implies that $|c_j| \le |c_i|$ where $|c|$ is the length
     of the codeword $c$.
   \item There is no $c_i$ such that it is a prefix of $c_j$
 \end{enumerate}
-\citep{huffman1952method}
 
-Huffman Encoding generates an optimal encoding which have the two listed
+Huffman Encoding generates an optimal encoding which has the two listed
 properties. Generation of the code takes $O(n \log n)$ time and $O(n)$ space.
 
 Huffman Encoding has three main shortcomings. The first two problems are that
 it requires the probabilities of each symbol and it needs to store the mapping
 for decoding. Both of these problems are remedied by Adaptive Huffman Encoders
-\citep{drozdek,vitter1987}. Adaptive Huffman Encoders start with every symbol
-having equal probability, and then proceed to efficiently update the
-probabilities as each symbol is encoded.
+\citep{drozdek,vitter1987}. These start with every symbol having equal
+probability, and then proceed to efficiently update the probabilities as each
+symbol is encoded.
 
 The final shortcoming is that each symbol is mapped to a prefix-free binary
 codeword. The amount of wastage caused by this could be as much as one bit per
@@ -243,11 +251,13 @@ can write the bit when the lower bound is such that the bit will not
 change. Encoding and decoding is $O(1)$.
 
 The static model is just a look-up table of the probabilities, so can be
-implemented to be $O(1)$. The adaptive model uses Fenwick trees to update and
-query frequencies in $O(\log n)$ time.
+implemented to be $O(1)$. The adaptive model uses Fenwick trees
+\citep{fenwick1994new} to update and query frequencies in $O(\log n)$ time.
 
 
 \subsection{Quantisation}
+
+\todo Diagram
 
 The data encoded by the algorithms in this report are usually stored as
 floating point values. A process called \emph{quantisation} reduces the
@@ -262,18 +272,23 @@ falls into \citep{drozdek}. This is called \emph{linear quantisation}. By
 storing the bounds and the number of buckets the range is divided up into,
 original values can be approximated.
 
+Linear quantisation of point coordinates involves quantising each coordinate
+separately and uniformly in Cartesian space. This can be visualised as
+creating an evenly-spaced grid over the dimensions of the space, and snapping
+the points to the closest grid point.
+
 There are more complex methods reviewed by \citet{ag-racm-03}. These lie
 outside the scope of the report.
 
 
 \subsection{Predictive Coding}
 
-Predictive coders exploit inter-correlation of data to do compression
-\citep{drozdek}. If the data is points then neighbouring points are
-inter-correlated. So using the encoded neighbouring points, a predictive
-encoder would predict where the point is. The encoder would then encode the
-difference between the points location and its predicted location (known as
-the residual).
+Predictive coders exploit inter-correlation of data to achieve compression
+\citep{drozdek}. If the data in the format is point positions then
+neighbouring points are inter-correlated. So using the encoded neighbouring
+points, a predictive encoder would predict where the point is. The encoder
+would then encode the difference between the points location and its predicted
+location (known as the residual).
 
 Linear quantisation preserves the inter-correlation of the points. So if the
 points are quantised first, then the residuals can be encoded using an entropy
@@ -293,13 +308,10 @@ generated from 3D scans of object surfaces. A surface is the ``skin'' of an
 object, i.e. the boundary of a solid object.
 
 Every point cloud compressor in this report (except \citet{chen2005lcp}) first
-quantise the points using linear quantisation. Linear quantisation of points
-involves quantising each coordinate separately and uniformly in Cartesian
-space. This can be visualised as creating an evenly-spaced grid over the
-dimensions of the space, and snapping the points to the closest grid point. In
-all the point cloud compressors reviewed, this is the only lossy
-step. \citet{chen2005lcp} gets around quantisation by treating the 32-bit
-floating point numbers as 32-bit integers.
+quantise the points using linear quantisation. In all the point cloud
+compressors reviewed, this is the only lossy step. \citet{chen2005lcp} gets
+around quantisation by treating the 32-bit floating point numbers as 32-bit
+integers.
 
 \citet{gumholdcomp} create a tree of the points that exploit the knowledge that
 the points lie on a surface. They do not, however, use predictors which
@@ -352,7 +364,7 @@ predictor used at each point to be encoded, which is discussed next.
 \label{sec:serialisation}
 
 Unlike meshes, point clouds have no connectivity information. So there is no
-obvious order to serialize the vertices' information (generally residuals). By
+obvious order to serialize the vertex information (generally residuals). By
 creating a spanning tree of the points, serialisation can occur by walking the
 graph. The tree also needs to be encoded so decoding can recover the tree to
 do the walk.
@@ -390,8 +402,11 @@ edge weights for each child.
 \section{Decoding}
 
 When decoding the data, we may present to the user intermediate
-representations of the final decompressed data as we process it. Depending on
-whether we can do this or not gives us another way to classify encoders.
+representations of the final decompressed data as we process it. This is a
+desirable property if the user can use the intermediate representations while
+(s)he waits for the final representation to be
+transferred/decompressed. Depending on whether we can do this or not gives us
+another way to classify encoders.
 
 \paragraph{Progressive Encoder}
 A progressive encoder is one that starts out streaming a coarse representation
@@ -417,7 +432,8 @@ different dimension.
 \paragraph{Single-Rate Encoding}
 A single-rate encoder is one which requires the whole stream to be available
 before the data can be decompressed. \citet{omeltchenko2000sls},
-\citet{gumholdcomp} and \citet{merrycomp} are all single-rate encoders.
+\citet{gumholdcomp} and \citet{merrycomp} are all single-rate encoders. In
+general single-rate encoders imply better compression.
 
 
 \section{Modelling Water}
@@ -433,6 +449,7 @@ before the data can be decompressed. \citet{omeltchenko2000sls},
 \label{fig:dimer}
 \end{figure}
 
+\todo Redraw figure \ref{fig:dimer-angle}
 \begin{figure}[h]
 \centering
 \resizebox{0.5\textwidth}{!}{
@@ -460,8 +477,8 @@ bond \citep{watermolecule}. See Figure \ref{fig:dimer} and Figure
 \subsection{Using the Model in Point Cloud Compressors}
 
 \citet{omeltchenko2000sls} only exploit the fact that there may be many dense
-clusters in MD simulations. It is more general than water compression, and
-modifying it to use the relative layouts of the water molecules is not clear.
+clusters in MD simulations. It is more general than water compression, and how
+to modify it to use the relative layouts of the water molecules is unclear.
 
 The predictors of \citet{merrycomp} and \citet{gumholdcomp} do not exploit the
 layout of water molecules. Using water dimer model prediction can be done
@@ -545,7 +562,7 @@ at most two.
 
 Refer to Figure \ref{tab:taxonomy} for an overview of the categorisations of
 the different papers. There are two underlying philosophies which the
-compression algorithms exploit, the \emph{scope} and the \emph{topology}.
+compression algorithms exploit: \emph{scope} and \emph{topology}.
 
 \emph{Scope} is whether the algorithm is exploiting \emph{global} or
 \emph{local} properties of the points. \citet{merrycomp} uses a local scope
@@ -554,8 +571,8 @@ point. \citet{chen2005lcp} uses a global scope, since it is trying to minimise
 a global property of the spanning tree.
 
 \emph{Topology} is whether the algorithm is trying to exploit connectivity or
-geometric information. \citet{gumholdcomp} exploits both, but the geometry
-more since it uses a predictor to predict the location based on other points
+geometric information. \citet{gumholdcomp} exploit both, but the geometry more
+since it uses a predictor to predict the location based on other points
 location. \citet{chen2005lcp} just tries to choose the best possible spanning
 tree, so they exploit connectivity of points.
 
@@ -583,9 +600,9 @@ The other properties listed in the taxonomy are \emph{structure},
 \section{Summary}
 
 The water dimer model gives a good predictor for exploiting the local
-structure of water molecules. So using a predictive point cloud encoder
+structure of water molecules. So, using a predictive point cloud encoder
 similiar to \citet{merrycomp} and \citet{gumholdcomp} should result in good
-compression of water molecules.
+compression of water molecules than previous methods.
 
 Compressing the other atoms will require a more general technique. Using the
 best point cloud compressor on the other atoms combined with the water
@@ -596,11 +613,11 @@ prediction scheme should result in better compression.
 
 This chapter outlines the design and implementation of our compressor and
 decompressor. The compression techniques investigated only cover intra-frame
-compression. Intra-frame compression is where compression occurs per frame
-independently of the other frames. Reference implementations of other schemes,
-inter-frame compression as well as visualisation is also implemented, as such
-the design needs to take into account these uses. Components outside of the
-scope of intra-frame compression will not be covered in detailed.
+compression, where compression occurs per frame independently of the other
+frames. Reference implementations of other schemes, inter-frame compression as
+well as visualisation, were implemented as independent subsystems, as such the
+design needs to take into account these uses. Components outside of the scope
+of intra-frame compression will not be covered in detail.
 
 The main contribution of this report is a predictive encoder targeting water
 molecules. The compressor is referred to as the Water Compressor.
@@ -621,7 +638,7 @@ The decompressor works in the reverse direction:
 \[ Decompressor \to QuantisedAtoms \to DCDFile \]
 
 The decompressed DCD files are an approximation due to quantisation. Excluding
-the quantisation step, the schemes are lossless. Note that each step in the
+this quantisation step, the schemes are lossless. Note that each step in the
 compression phase has auxillary information. The auxillary information is
 required for reconstruction.
 
@@ -636,57 +653,57 @@ and quantisation components as well and was implemented by Min-Young Wu.
 \subsection{Dependencies}
 
 All development was done on Linux, but no Linux or POSIX specific APIs where
-used. The implementations should be cross platform, but have not been tested
-on anything but Linux.
+used. The implementations should be cross platform, but this has not been
+tested.
 
 \paragraph{C++}
-C++ fits the requirements of the project since the compressors need to be fast
-and all the authors are competent in C++. Development was done with GCC 4.x.
+A language which produces fast and optimised code is necessary since run time
+is important in compression. All of the authors are competent in C++, thus all
+the components are written in C++. Development was done with GCC 4.x.
 
 \paragraph{ANN}
-ANN is a library for approximate nearest neighbor searching. It is used to
-speed up graph creation where locality of points is important. \citep{ann}
+This is a library for approximate nearest neighbor searching. It is used to
+speed up graph creation where locality of points is important, \citep{ann}.
 
 \paragraph{VMD DCD Loader Plugin}
-This plugin is used to read and write DCD files. \citep{vmd}
+This plugin is used to read and write DCD files, \citep{vmd}.
 
 
 \section{Components}
 \label{sec:components}
 
-A component-based approach was used to design the compressor and
-decompressor. This is because the algorithm can be broken up into distinct
-steps.
+A component-based approach was used to design the compressor and decompressor,
+since the algorithm can be broken up into distinct steps.
 
 \todo picture showing components and who did what
 
-The different components are the following:
+The components are as follows:
 
 \paragraph{Simulation I/O}
 
 These components handle I/O to and from the simulation data files. The VMD DCD
-loader plugin is used to load and write the DCD files. Implemented is also a
-PDB reader for determining what each atom is in the DCD file. DCD is used
-since it is the prevalent format used for storing simulation data, and it is
-well supported in VMD.
+loader plugin is used to load and write the DCD files. A PDB reader for
+determining what each atom is in the DCD file is also implemented. DCD is used
+since it is the prevalent format for storing simulation data, and it is well
+supported in VMD.
 
 
 \paragraph{Arithmetic Coder}
 
 The water compression scheme as well as the point cloud schemes use arithmetic
-encoding for encoding the residuals and tree. The usual approach of the
-implementation of the arithmetic coder is used, where the encoder and the
-model are separated.
+encoding of the residuals and tree. The range of the residuals in the
+predictive schemes as well as the number of different residuals is not known
+beforehand. As such the usual model used in arithmetic encoding does not
+fit.
 
-The range of the residuals in the predictive schemes as well as the number of
-different residuals is not known before hand. As such we use a novel approach
-for an adaptive arithmetic model. We use an approach similiar to the technique
-by \citet{cormack1984algorithms} used in Adaptive Huffman Encoding. The
-adaptive model initially only has one symbol meaning ``new'' symbol. When
-encoding if there is a new symbol, the ``new'' symbols is encoded followed by
-a raw representation of the new symbol. By using a trie and a modification of
-a Fenwick tree, insertion of new symbols into the model is $O(n \log n)$ where
-$n$ is the number of seen symbols.
+For the model we use a novel approach which is based the on adaptive
+arithmetic model. It uses similiar to the technique by
+\citet{cormack1984algorithms} used in Adaptive Huffman Encoding. The adaptive
+model initially only has one symbol meaning ``new'' symbol. When encoding if
+there is a new symbol, the ``new'' symbols is encoded followed by a raw
+representation of the new symbol. By using a prefix tree and a modification of
+Fenwick trees \citep{fenwick1994new}, insertion of new symbols into the model
+is $O(n \log n)$ where $n$ is the number of seen symbols.
 
 The encoder by \citet{omeltchenko2000sls} does not make use of an Arithmetic
 Coder, instead it uses its own entropy coder. Every other encoder uses the
@@ -702,7 +719,7 @@ divides each dimension into is $2^b$. So after quantisation each coordinate
 becomes a $b$-bit integer.
 
 Linear quantisation is chosen since the water compressor (as well as the other
-predictive compressor) require locality of the points to be
+predictive compressor) requires the locality of the points to be
 preserved. Quantisation is also necessary since small differences in
 predictive residuals should be treated as the same for better entropy
 encoding.
@@ -734,18 +751,17 @@ of \citet{omeltchenko2000sls}, \citet{gumholdcomp} and
 
 Verifiers are for testing whether a compression scheme is working. Given a DCD
 file and a decompressed DCD file, if the files match when quantised then the
-compressor is working. There is the possibility of floating point error
-causing a mismatch when the files are equivalent. This happens infrequently,
-so the frames which do not match can be inspected manually to see if they are
-the same.
+compressor is considered functional. There is the possibility of floating
+point error causing a mismatch when the files are in fact equivalent. This
+happens infrequently, so the frames which do not match can be inspected
+manually to see if they are the same.
 
 
 \section{Compressing Permutations}
 \label{sec:compr-perm}
 
-Every compression algorithm explored in this report does not necessarily
-preserve the order of the points when decompressed. For example in
-\citet{devillers2000gci}
+Compression algorithms explored in this report do not necessarily preserve the
+order of the points when decompressed. For example in \citet{devillers2000gci}
 \[ (1, 2), (1, 3), (0, 0), (2, 3), (2, 2), (0, 2), (1, 1) \]
 when decompressed becomes
 \[ (0, 0), (1, 1), (0, 2), (1, 2), (1, 3), (2, 2), (2, 3) \]
@@ -761,8 +777,8 @@ decompressor then recovers the permutation.
 \paragraph{Null}
 Null does not write anything to the file. The decompressor just outputs the
 order permutation $[0,1,\dots,N-1]$. A compressor which uses the null
-compressor does not preserve the order. Every other permutation compressor
-should do worse than this.
+compressor does not preserve the order. As such the null is only used for
+reference.
 
 \paragraph{Na\"{\i}ve}
 Na\"{\i}ve writes the permutation list straight to the file. Each index is
@@ -771,7 +787,7 @@ should do better than this.
 
 \paragraph{Delta}
 Delta transforms the permutation into a list $L$, where $L_0 = P_0$ and $L_i =
-P_i - P_{i-1}$ for $0 < i < N$. Arithmetic encoding is then done on $L$. $L$
+P_i - P_{i-1}$ for $0 < i < N$. Arithmetic encoding is then done on $L$, which
 is then written to file.
 
 Decompression gets back the list $L$. Since $P_0 = L_0$ and $P_i = L_i +
@@ -780,29 +796,38 @@ $P_i$ depends only on previous $i$'s, calculating $P_i$ in increasing order of
 $i$ will recover $P$.
 
 \paragraph{Interframe}
-Interframe transforms the permutation $P$ into a list $L$. Let $P'$ be the
-permutation from the previous frame. If it is the first frame, let $P' =
-[0,1,\dots,N-1]$. Then $L_i = P_i - P'_i$ for $0 \le i < N$. Use arithmetic
-encoding on $L$ and then write $L$ to file.
+Interframe tries to exploit the correlation of the permutation lists between
+frames. Interframe transforms the permutation $P$ into a list $L$. Let $P'$ be
+the permutation from the previous frame. If it is the first frame, let $P' =
+[0,1,\dots,N-1]$. Then $L_i = P_i - P'_i$ for $0 \le i < N$. Arithmetic
+encoding is used on $L$ and it is then written to file.
 
 Decompression recovers the list $L$. Since $P_i = L_i + P'_i$, $P$ can be
 recovered. Note that this method requires frames to be decompressed in order.
 
-\paragraph{Optimal}
-Optimal uses a static arithmetic coder with a frequency of $1$ for each
-$P_i$. Since each $P_i$ occurs only once, this gives the best possible
-compression.
+Using this scheme causes an intra-frame encoder to become interframe. The
+objective of this report is constructing an intra-frame compressor, but this
+is still experimented with since the permutation encoding ended up being a
+significant portion of the compressed file. The results indicated that this
+scheme did not perform best, as such the best encoders remain intra-frame.
 
-A static arithmetic encoder model uses a Fenwick Tree to update the symbol
-table after each encoding. This takes $O(\log(N))$ per update. In the optimal
-permutation compressor we can get this down to $O(1)$ by using the fact that
-we only ever encode each $P_i$ once. To encode a symbol $i$ the arithmetic
-encoder requires $S_{tot}$, $S_i$ and $S_{i-1}$. $S_{tot}$ is the sum of all
-the frequencies. $S_i$ is the sum of the frequencies for all the symbols less
-than or equal to $i$. Since the frequency of each index is one, $S_i = i$ and
-$S_{tot}$ is the number of permutations left. We need a way to map permutation
-indicies to symbols which is quick to update once an index has been
-encoded. The following algorithm is used:
+\paragraph{Optimal}
+Each $P_i$ occurs only once, so the frequency of each $P_i$ is known per
+encoding. Optimal uses a static arithmetic coder with a frequency of one for
+each $P_i$.
+
+A static arithmetic encoder model uses a Fenwick Tree \citep{fenwick1994new}
+to update the symbol table after each encoding. This takes $O(\log(N))$ per
+update. In the optimal permutation compressor we can get this down to $O(1)$
+by using the fact that we only ever encode each $P_i$ once.
+
+To encode a symbol $i$ the arithmetic encoder requires $S_{tot}$, $S_i$ and
+$S_{i-1}$. $S_{tot}$ is the sum of all the frequencies. $S_i$ is the sum of
+the frequencies for all the symbols less than or equal to $i$. Since the
+frequency of each index is one, $S_i = i$ and $S_{tot}$ is the number of
+permutations left. We need a way to map permutation indicies to symbols which
+is quick to update once an index has been encoded. The following algorithm is
+used:
 
 \begin{verbatim}
 init(permutation):
@@ -835,6 +860,8 @@ pop_symbol(symbol):
 To encode $P_i$, we encode $pop\_index(P_i)$. To decode, we return
 $pop\_symbol(val)$ where $val$ is a value returned from the arithmetic
 decoder.
+
+\todo an example of this in action
 
 The optimal permutation encoder is optimal in the worst case. If we have $M$
 indicies left to encode, each unseen index has probability $\frac{1}{M}$ of
@@ -921,10 +948,10 @@ DecompressFrame(arithmetic_decoder):
   return list_of_other_atoms + list_of_water_atoms
 \end{verbatim}
 
-The compression of the other atoms is simply writing out the quantised
+The compression of non-water atoms simply involves writing out the quantised
 positions of the frame. This is done for two reasons: the permutation
 information is stored for ``free'' and the number of other atoms is expected
-to be a small number.
+to be small.
 
 An explanation of each step follows, along with motivation of why each step is
 done.
@@ -938,12 +965,12 @@ which are bonded to two hydrogen atoms. This section was implemented in the
 Simulation I/O component.
 
 The implementation returns two lists: a list of water molecule indicies and a
-list of other atom indicies. Every water molecule is specified as the indicies
-in the frame of its corresponding oxygen and hydrogen atoms. Every index which
-is not in a water molecule is stored in the second list.
+list of other atom indicies. Every water molecule is specified using the
+indicies in the frame of its corresponding oxygen and hydrogen atoms. Every
+index which is not in a water molecule is stored in the second list.
 
-The splitting between water molecules and other atoms is done so that
-compression of water molecules and the other atoms can be done using different
+The split between water molecules and other atoms is done so that compression
+of water molecules and the other atoms can be done using different
 encoders. The water compression predictors target water atoms, so a more
 general compression method is used on the other atoms.
 
@@ -952,11 +979,13 @@ general compression method is used on the other atoms.
 \label{sec:water-predictors}
 
 The predictors are based on the models of water dimers explained in the
-background chapter. There are three predictors used, the constant predictor
-and the two hydrogen predictors.
+background chapter. There are three predictors used, a constant predictor and
+two hydrogen predictors.
 
-Let $O, H_1, H_2$ be the predictions for where the water molecule will be and
-let $O', H'_1, H'_2$ be the water molecules parent.
+When prediction is applied a tree is made of the water molecules. Then each
+molecule is predicted from its parent in the tree. Let $O, H_1, H_2$ be the
+predictions for where the water molecule will be and let $O', H'_1, H'_2$ be
+the water molecules parent.
 
 \paragraph{Constant Predictor}
 The constant predictor predicts $O$ to be at $O'$. This predictor is included
@@ -979,22 +1008,24 @@ $O$. This is since their is a large variability in $\beta$ in Figure
 Creating the spanning tree is $O(E \log E)$, where $E$ is the number of edges
 in the graph. When creating the spanning tree, each molecule's predictions are
 compared to all of its neighbours. If the graph created is the complete graph,
-$E$ is $O(N^2)$, where $N$ is the number of water molecules. This is too
-inefficient for large scale simulations.
+$E$ is $O(N^2)$, where $N$ is the number of water molecules. However, this is
+too inefficient for large scale simulations.
 
 So the purpose of graph creation is to efficiently minimise the degree of the
 verticies (and hence $E$), while maintaining the neighbours which predict well
 against the predictors.
 
-The neighbours which predict well against a water molecule are related to the
-spatial locality of the oxygens. So the approximation used is to add edges
-between all molecule pairs where the oxygens are within $3\AA$. The degree of
-a vertex is then a small number (typically less than 5 from
-experimentation). The number of edges created is usually $O(N)$.
+The neighbours which predict well are related to the spatial locality of the
+oxygens. So the approximation used is to add edges between all molecule pairs
+where the oxygens are within $3\AA$. The degree of a vertex is then a small
+number (typically less than five) and the number of edges created is usually
+$O(N)$.
 
 The na\"{i}ve implementation of graph creation would compare each molecule
-against every other yielding a $O(N^2)$ algorithm. This is too slow. Instead a
-kd-tree is used to create the graph. The kd-tree is populated with the oxygen
+against every other, yielding a $O(N^2)$ algorithm. Again this is too
+slow. Instead a kd-tree \citep{cormen2001introduction} is used to create the
+graph. A kd-tree is a space-partitioning data structure which allows quick
+queries based on locality of points. The kd-tree is populated with the oxygen
 positions. Then using ANN's approximate fixed radius search one can find all
 other oxygens within approximately $3\AA$. Creating the graph requires $O(N
 \log N)$ time. The fixed radius search takes approximately $O(\log N)$
@@ -1028,10 +1059,11 @@ is connected to the root with the constant predictor. Each edge $O' \to O$ is
 labelled with what predictor is used to predict $O$ from $O'$.
 
 For each component a root is arbitrarily picked. The tree is then created by
-using a modification of Dijkstra. The priority queue stores potential edges,
-and sorts by the residual from the prediction. When a potential edge $O' \to
-O$ is removed from the queue, it is added to the spanning tree if $O$ is not
-already in it. The algorithm is illustrated by the following:
+using a modification of Dijkstra's shortest path algorithm
+\citep{dijkstra1959note}. The priority queue stores potential edges, and sorts
+by the residual from the prediction. When a potential edge $O' \to O$ is
+removed from the queue, it is added to the spanning tree if $O$ is not already
+in it. The algorithm is illustrated by the following:
 
 \begin{verbatim}
 create_spanning_component(graph, tree, component_root, root):
@@ -1058,9 +1090,10 @@ create_spanning_component(graph, tree, component_root, root):
 
 This algorithm is $O(E \log E)$ since for every edge in the graph, a potential
 edge is added to the queue. In the implementation an optimisations is used
-which reduces the complexity to approximately $O(N \log E)$. The smallest seen
-residuals is kept for each molecule. Then a potential edge $v \to u$ is only
-added if the residual is less than the current smallest residual for $u$.
+which reduces the complexity to approximately $O(N \log E)$. In this
+optimisation the smallest seen residuals is kept for each molecule. Then a
+potential edge $v \to u$ is only added if the residual is less than the
+current smallest residual for $u$.
 
 
 \subsection{Tree Serialisation}
@@ -1117,7 +1150,15 @@ while q not empty:
 Since this is done for each atom once per frame, decoding takes $O(N)$ time.
 
 
+\section{Conclusion}
+
+\todo
+
+
 \chapter{Results}
+
+\todo Need to give section on how often constant vs hydrogen prediction is
+done.
 
 Testing was done on an Intel Quad Core 2.66GHz machine with 4GB of RAM. Each
 encoding scheme was tested against 6 DCD files at $8$-bit and $12$-bit
@@ -1406,8 +1447,8 @@ Probabilistically the worst case permutation will not occur when using the
 The complexity of encoding in the water compression scheme is $O(n + n \log n
 + e \log e + n) = O(e \log e)$ where $e = O(n^2)$ and $n$ is the number of
 water molecules. Empirically and due to the theoretical models of water, $e$
-is bounded by $10 \times n$, and so $e = O(n)$. So the encoding time is $O(n
-\log n)$. The decoding time is $O(n)$.
+is typically less than $5 \times n$, and so $e = O(n)$. So the encoding time
+is $O(n \log n)$. The decoding time is $O(n)$.
 
 
 \section{Future Work}
@@ -1441,4 +1482,4 @@ well at MD compression.
 
 \end{document}
 
-% LocalWords:  oxygens Deserialisation BFS MSCL
+% LocalWords:  oxygens Deserialisation BFS MSCL intra DCD
