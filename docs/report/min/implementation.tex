@@ -30,7 +30,7 @@ chosen as the preferred platform for development.
 To ensure easy interoperability between the different components of the system,
 it was decided that the same language be used for all the components. The
 compression aspect of the system requires efficient access to memory and usage
-of the CPU, therefore C++ was the logical choice of programming language. As
+of the CPU; therefore C++ was the logical choice of programming language. As
 such, C++ is the programming language used throughout the system.
 
 % }}}
@@ -83,9 +83,8 @@ link against and use these libraries.
 % {{{
 \label{sec:implementation_techniques}
 
-\subsection{Water point}
+\subsection*{Water point}
 % {{{
-\label{sub:implementation_point}
 
 The water point visualisation renders a single OpenGL point primitive for each
 water molecule. All the points drawn have a very low alpha value; so that the
@@ -118,9 +117,8 @@ the different visualisation can be compared.
 
 % }}}
 
-\subsection{Ball-and-stick}
+\subsection*{Ball-and-stick}
 % {{{
-\label{sub:implementation_ballstick}
 
 The colour and size of the spheres used to represent the oxygen and hydrogen
 atoms is configurable. Similarly, the cylinder size and colour representing the
@@ -130,8 +128,8 @@ visualisation technique can be made to mimic the CPK approach.
 Lighting can be enabled to better see the spheres.
 
 Figure \ref{fig:implementation_ballstick} shows some water molecules rendered
-using the ball-and-stick visualisation technique. The red spheres represents
-the oxygen atoms, while the blue spheres represents the hydrogen atoms. The
+using the ball-and-stick visualisation technique. The red spheres represent
+oxygen atoms, while the blue spheres represent hydrogen atoms. The
 left image uses the classical approach, where cylinders are used to connect the
 atoms together. The right image uses the CPK approach, where the atoms are
 enlarged to encompass the molecular bond.
@@ -147,9 +145,8 @@ enlarged to encompass the molecular bond.
 
 % }}}
 
-\subsection{Metaballs}
+\subsection*{Metaballs}
 % {{{
-\label{sub:implementation_metaballs}
 
 Due to the large number of water molecules, performing a na\"ive comparison
 against all the water molecules is very inefficient. Instead, a grid is used to
@@ -163,9 +160,9 @@ threshold value is the main determinant in what the output surface looks like.
 % {{{
 
 For the metaballs visualisation technique, a surface needs to be extracted; the
-marching cubes and marching tetrahedrons [TODO: REF] surface extraction
-algorithms were both implemented. The algorithms were compared to one another
-to determine which algorithm is preferred. The various aspects compared were:
+marching cubes and marching tetrahedrons surface extraction algorithms were
+both implemented. The algorithms were compared to one another to determine
+which algorithm is preferred. The various aspects compared were:
 
 \begin{itemize}
 
@@ -185,7 +182,7 @@ experiment (Chapter \ref{cha:experiment}).
 
 Table \ref{tab:appendix_surface_time} shows the time required for extracting
 the surface from the volume data. The results indicate that marching
-tetrahedrons requires more time to extract the surface, this ranges from 50 to
+tetrahedrons requires more time to extract the surface, these ranges from 50 to
 800 milliseconds more. The extra time required is not considerably large, but
 the difference is noticeable.
 
@@ -199,7 +196,7 @@ cubes over marching tetrahedrons.
 Figure \ref{fig:implementation_compare} shows the surface extracted from
 marching cubes on the left, and the surface extracted by marching tetrahedrons
 on the right. The view has been zoomed in to more clearly see the surface
-differences. The visual difference between the extracted surfaces are minor,
+differences. The visual differences between the extracted surfaces are minor,
 especially when the view is zoomed out to view the entire volume.
 
 \begin{figure}
@@ -237,13 +234,16 @@ other is coloured green. This allows differentiation of the different sides of
 the surface. The blue side of the surface is facing the non-water area of the
 volume, while the green side of the surface is facing towards the water area.
 The volume used for Figure \ref{fig:implementation_metaballs} is the same as
-that used for Figure \ref{fig:implementation_waterpoint}. Figure
-\ref{fig:implementation_metaballs} clearly shows the boundary between the water
-and non-water parts of the volume.
+that used for Figure \ref{fig:implementation_waterpoint}.
+
+The large green surface on the left part of the figure faces into the left
+region of water, behind the surface is a region of non-water. The large blue
+surface on the right is the boundary between the region of non-water in the
+middle, and the region of water to the right. There are some smaller surfaces
+in the left and right areas, which further defines the regions of water.
 
 To help see the surface detail, lighting can be enabled.
 
-% TODO: discuss
 \begin{figure}
   \begin{center}
     \includegraphics[width=50mm]{metaballs}
@@ -257,9 +257,8 @@ To help see the surface detail, lighting can be enabled.
 
 % }}}
 
-\subsection{Water cluster}
+\subsection*{Water cluster}
 % {{{
-\label{sub:implementation_cluster}
 
 The colour and size of the cylinders used to connect the water molecules
 together are all configurable in the user interface.
@@ -282,9 +281,8 @@ clusters are often quite small, mostly consisting of a few water molecules only.
 
 % }}}
 
-\subsection{Quantisation error}
+\subsection*{Quantisation error}
 % {{{
-\label{sub:implementation_quantisation}
 
 The starting and final error colours and values are all configurable from
 within the user interface.

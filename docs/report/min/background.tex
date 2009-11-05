@@ -80,7 +80,7 @@ diagrams, making it very difficult to understand and analyse the data.
 The CPK (Corey-Pauling-Koltun) \citep{corey53} representation simplifies the
 ball-and-stick model by doing away with cylinders for bonds; instead, the
 spheres used for the atoms are enlarged to encompass the bonds. The atoms now
-overlaps with one another, covering up where the bonds would be.
+overlap with one another, covering up where the bonds would be.
 
 Removing the bonds from the model simplifies the display and allows for the
 overall shape and contour to be easily seen. Although this model has simplified
@@ -119,9 +119,9 @@ Solvent accessible surfaces are created from determining where the solvent
 (modelled with spheres) can and cannot fit.
 
 Figure \ref{fig:background_sas} is a schematic diagram illustrating how the
-solvent accessible surface is determined. The molecluar surface is marked in
+solvent accessible surface is determined. The molecular surface is marked in
 purple. Even though the surface of the molecule (CPK representation) has many
-crevasses, the solvent (the circles labeled with an `S') cannot fit in them and
+crevasses, the solvent (the circles labelled with an `S') cannot fit in them and
 thus the boundary is extended to where the solvent can fit.
 
 \begin{figure}
@@ -186,7 +186,7 @@ with the ribbon model, this visualisation technique is designed for a specific
 type of molecule.
 
 Figure \ref{fig:background_chain_twister} shows the paper chain and twister
-models. The respective ball-and-stick representation of the carbohydrates are
+models. The respective ball-and-stick representations of the carbohydrates are
 overlayed semi-transparently over the models.
 
 \begin{figure}
@@ -246,13 +246,18 @@ specific uses.
 \paragraph{Surface extraction}
 % {{{
 
-% TODO: define voxel and voxelising
 The marching cubes algorithm \citep{lorensen87} is the classical approach for
-surface extraction. The algorithm works by voxelising a 3D volume and then
-examining each voxel in the data and determining whether it is inside the
-volume or not. A surface can then be determined by combining all the voxels
-which intersect with the volume boundary. Figure \ref{fig:background_mesh}
-shows the extracted surface of a skull.
+surface extraction. The algorithm works by sampling a 3D volume, voxelising the
+volume, and then examining each voxel (value at a position in 3D space) in the
+data and determining whether it is inside the volume or not. A surface can then
+be determined by combining all the voxels which intersect with the volume
+boundary. Figure \ref{fig:background_mesh} shows the extracted surface of a
+skull.
+
+Marching tetrahedrons is an alternative surface extraction algorithm to
+marching cubes. Instead of using a cube as the sampling structure, a
+tetrahedron is used. Each voxel in the data is split into 6 tetrahedrons, which
+are used to determine whether that voxel intersects with the volume boundary.
 
 Surface extraction allows for the shape of the volume to be extracted and
 visualised, and is somewhat analogous to the CPK model in that regard. It can
@@ -267,7 +272,6 @@ polygons but these can be simplified away by mesh simplification. Section
 \ref{sec:background_decimation} provides more detail on reducing the number of
 polygons used to represent a surface.
 
-% TODO: discuss
 \begin{figure}
   \begin{center}
     \includegraphics[width=50mm]{surface_mesh}
@@ -325,11 +329,10 @@ trade-off between removing too much and too little information must be made.
 Removing too much or too little data will produce a visualisation that is of
 little use.
 
-With regards to visualising point cloud data, \emph{filtering}, \emph{opacity}
-and \emph{topological distortion} are the most useful clutter reduction
-techniques.
+With regards to visualising point cloud data, \emph{filtering} \citep{stone94},
+\emph{opacity} \citep{kosara02} and \emph{topological distortion}
+\citep{lamping96} are the most useful clutter reduction techniques.
 
-% TODO: reference
 \emph{Filtering:} Only certain objects fulfilling certain criteria are
 displayed in order to reduce clutter. The criteria can consider certain
 characteristics or objects in a certain area or locus of interest; irrelevant
@@ -346,7 +349,6 @@ paths that are often traversed are the important paths. From looking at the
 image, it is clear that the intersection on the right edge of the image is the
 most heavily traversed area of the graph.
 
-% TODO: reference
 \emph{Opacity:} The translucency of items can be changed to highlight or hide
 elements. This is similar to filtering, in that irrelevant items are partially
 or entirely hidden, highlighting only the important parts. The advantage of
@@ -356,7 +358,6 @@ Opacity can also be adapted to show temporal information, where the previous
 frame is rendered along with the current frame, but at a lower opacity;
 creating an effect similar to motion blur.
 
-% TODO: reference
 \emph{Topological distortion:} The representation of the data can be changed so
 that certain areas are larger. This highlights and focuses on the relevant
 areas, while de-emphasising the other areas. The distortion can either be
@@ -388,7 +389,7 @@ function is equal to some constant threshold value. The surface is usually
 determined using surface extraction techniques.
 
 There are 15 individual metaball points in Figure
-\ref{fig:background_metaballs}, the individual metaballs are the round-ish
+\ref{fig:background_metaballs}, the individual metaballs are the roundish
 parts of the volume. The force functions used causes the metaballs to appear to
 melt and blend together, yielding the blobby appearance.
 
@@ -439,7 +440,6 @@ re-triangulation process is used to fill in any resulting holes.
 \paragraph{Vertex clustering}
 % {{{
 
-% TODO: how does its results compare to decimation
 Vertex clustering groups a number of geometrically similar and spatially close
 vertices together \citep{rossignac93}, the group of vertices is then replaced
 by a new representative vertex. Due to the simplicity of the test, vertex
@@ -476,7 +476,7 @@ dimension were to be added, all the techniques would simply treat each frame
 separately and regenerate the visualisation given the new set of data. This
 approach is not ideal if some interframe visualisation coherence is desired.
 
-There is no single solution for all visualisation needs, however, approaches and
+There is no single solution for all visualisation needs. However, approaches and
 ideas can be taken from different visualisation areas. While the problems may
 not be identical, there will be some overlapping requirements and concerns.
 

@@ -129,8 +129,8 @@ density to be easily identified, the details of the volume are not visible.
 
 The ball-and-stick visualisation is the same as the classical ball-and-stick
 representation (Chapter \ref{cha:background}). The atoms are represented by
-spheres, the spheres are rendered using different colours and sizes to
-represent the different atoms. The bonds between the atoms is represented by a
+spheres; the spheres are rendered using different colours and sizes to
+represent the different atoms. The bonds between the atoms are represented by a
 cylinder.
 
 This visualisation provides more visual information about the water molecules.
@@ -170,7 +170,7 @@ the amount of processing required to render the surface, and allowing the
 volume to be more easily explored.
 
 An alternative to decimating the surface in order to decrease the surface
-complexity, is to decrease the level of sampling. Sampling the volume less
+complexity is to decrease the level of sampling. Sampling the volume less
 densely results in fewer triangles, but the surface quality will also decrease.
 
 Decimation is preferred over reduced sampling as the surface quality can be
@@ -251,8 +251,8 @@ components of the system.
 % {{{
 \label{sec:design_summary}
 
-Five different visualisation approaches has been identified, all of which
-visualises different aspects of the molecular data.
+Five different visualisation approaches have been identified, all of which
+visualise different aspects of the molecular data.
 
 The \emph{water cluster} visualisation provides a quick idea of the volume.
 
@@ -267,8 +267,7 @@ using cylinders and spheres, the water clusters are used in the intraframe
 compression component of the system.
 
 The \emph{quantisation error} visualisation displays the error resulting from
-quantisation. Quantisation is the first step in the compression process,
-both intraframe and interframe compression.
+quantisation, which is the first step in the compression process.
 
 The \emph{water cluster} and \emph{quantisation error} visualisations are
 designed to support the compression components of the system. It is unlikely
