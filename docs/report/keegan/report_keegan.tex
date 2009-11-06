@@ -82,16 +82,20 @@ compressor \citep{omeltchenko2000sls} when applied to MD data with significant
 amounts of water molecules.
 
 There are six MD simulations the compression schemes are tested and compared
-against. At $8$-bit quantisation the mean and average compression rate for
-water compression is $19\%$. Gzip performs similarly at $8$-bit
-quantisation. At $12$-bit quantisation the mean and average compression rate
-for water compression is $31\%$. The next best scheme (gzip) has a mean and
-average compression rate of $37\%$.
+against. Our water compression scheme performs best in general.  At $8$-bit
+quantisation the mean and average compression rate for water compression is
+$17.7\%$. The next best compression rate was gzip with a mean and average
+compression rate of $19.5\%$ and $18.5\%$ respectively. At $12$-bit
+quantisation the mean and average compression rate for water compression is
+$29.8\%$. The next best scheme is gzip which has a mean and average
+compression rate of $37\%$ and $36.5\%$ respectively.
 
 The report also presents techniques for compressing permutations. It presents
 a technique which has a worst case performance that is approximately the lower
 bound on the performance of a general permutation encoder. It also presents a
-technique which probabilistically performs better than the lower bound.
+technique which probabilistically performs better than the lower bound. When
+permutation information is discarded, our water compression scheme still
+performs best.
 
 \tableofcontents
 
@@ -454,12 +458,11 @@ general single-rate encoders imply better compression.
   \label{fig:dimer}
 \end{figure}
 
-\todo Redraw figure \ref{fig:dimer-angle}
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.75\textwidth]{images/dimr}
+  \includegraphics[trim = 10mm 30mm 10mm 45mm, clip, width=0.75\textwidth]{images/dimer-angle}
   \caption{Water dimer angles. $R = 2.976\AA, \alpha = 6 \pm 20\degree, \beta =
-    57 \pm 10\degree$. \citep{watermolecule}}
+    57 \pm 10\degree$.}
   \label{fig:dimer-angle}
 \end{figure}
 
@@ -630,9 +633,16 @@ molecules. The compressor is referred to as the Water Compressor.
 Compression is done on the DCD/PDB format, which is a format for storing MD
 simulations. DCD files are explained in Section \ref{sec:molec-dynam-form}.
 
+\begin{figure}
+  \centering
+  \includegraphics[trim = 30mm 40mm 30mm 35mm, clip, width=0.75\textwidth]{images/overview}
+  \caption{A high level overview of data travels through the compressor and
+    decompressor.}
+  \label{fig:dimer-angle}
+\end{figure}
+
 A high-level overview of how data flows in the compressors is illustrated by
-the following: \todo replace with pretty picture similiar to the FBI
-fingerprint compression paper
+the following:
 
 \[ DCDFile \to Atoms \to QuantisedAtoms \to Compressor \]
 
