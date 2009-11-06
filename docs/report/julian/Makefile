@@ -1,4 +1,4 @@
-report_min.pdf: report_julian.tex report_julian.bib
+report_julian.pdf: report_julian.tex report_julian.bib
 	pdflatex report_julian.tex
 	bibtex report_julian
 	pdflatex report_julian.tex
