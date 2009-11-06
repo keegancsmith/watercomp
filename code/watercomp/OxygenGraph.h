@@ -42,15 +42,20 @@ public:
     OxygenGraph(const QuantisedFrame & qframe,
                 const std::vector<WaterMolecule> & waters);
 
-    void writeout(SerialiseEncoder & enc) const;
+    void writeout(SerialiseEncoder & enc);
 
     static void readin(SerialiseDecoder & dec,
                        const std::vector<WaterMolecule> & waters,
                        QuantisedFrame & qframe);
 
+    // Some stats
+    int nClusters;
+    int nConstant;
+    int nHydrogen;
+
 private:
     Graph * create_oxygen_graph() const;
-    Graph * create_spanning_tree(Graph * graph, int & root) const;
+    Graph * create_spanning_tree(Graph * graph, int & root);
     void serialise(Graph * tree, int root, SerialiseEncoder & enc) const;
 
     int prediction_error(int water_idx,

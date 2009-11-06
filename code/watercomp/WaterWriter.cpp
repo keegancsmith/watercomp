@@ -3,7 +3,10 @@
 #include "OxygenGraph.h"
 #include "splitter/FrameSplitter.h"
 
-using std::vector;
+#include <algorithm>
+#include <iostream>
+
+using namespace std;
 
 WaterWriter::WaterWriter(FILE * fout, const vector<AtomInformation> & pdb)
     : m_adaptive(&m_encoder), m_byte(&m_encoder)
@@ -42,6 +45,31 @@ void WaterWriter::end()
 {
     delete m_adaptive_water;
     m_encoder.end_encode();
+
+    sort(nClusters.begin(), nClusters.end());
+    sort(nConstant.begin(), nConstant.end());
+    sort(nHydrogen.begin(), nHydrogen.end());
+
+    // cout << "\nMean Clusters: " << nClusters[nClusters.size()/2] << endl
+    //      <<   "Mean Constant: " << nConstant[nConstant.size()/2] << endl
+    //      <<   "Mean Hydrogen: " << nHydrogen[nHydrogen.size()/2] << endl;
+
+    // cout << "\nMin Clusters: " << nClusters[0] << endl
+    //      <<   "Min Constant: " << nConstant[0] << endl
+    //      <<   "Min Hydrogen: " << nHydrogen[0] << endl;
+
+    // cout << "\nMax Clusters: " << nClusters[nClusters.size()-1] << endl
+    //      <<   "Max Constant: " << nConstant[nConstant.size()-1] << endl
+    //      <<   "Max Hydrogen: " << nHydrogen[nHydrogen.size()-1] << endl;
+    // int l = nClusters.size() - 1;
+    // int m = nClusters.size() / 2;
+    // int vals[9] = { nClusters[m], nClusters[0], nClusters[l],
+    //                 nConstant[m], nConstant[0], nConstant[l],
+    //                 nHydrogen[m], nHydrogen[0], nHydrogen[l] };
+    // cout << "    & ";
+    // for (int i = 0; i < 9; i++)
+    //     cout << "& $" << vals[i] << "$ ";
+    // cout << "\\\\";
 }
 
 
@@ -60,6 +88,10 @@ void WaterWriter::next_frame_water(const QuantisedFrame & qframe)
 {
     OxygenGraph oxygen_graph(qframe, m_water_molecules);
     oxygen_graph.writeout(*m_adaptive_water);
+    
+    nClusters.push_back(oxygen_graph.nClusters);
+    nConstant.push_back(oxygen_graph.nConstant);
+    nHydrogen.push_back(oxygen_graph.nHydrogen);
 }
 
 

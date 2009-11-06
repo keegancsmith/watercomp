@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import itertools
 import math
 import os
@@ -103,17 +105,19 @@ def res_table(quant):
     perms.remove('null')
     schemes = ['quant', 'gzip', 'omeltchenko', 'gumhold', 'dg', 'watercomp']
 
-    print '\\begin{tabular}{|lr|rrr|rr|rr|rr|}'
+    print '\\begin{tabular}{|lr|rrr|rr|rr|rrr|}'
     print '  \\hline'
 
     emph = lambda li : ['\\textbf{%s}' % s for s in li]
     col_head =  ['DCD', 'atoms'] + schemes[:2] + ['omel']
     col_head =  ['\\multirow{2}{*}{%s}' % s for s in emph(col_head)]
-    col_head += ['\\multicolumn{2}{|c|}{%s}' % s for s in emph(schemes[3:])]
-    col_head2 = ['']*5 + ['\\emph{null}', '\\emph{best}']*3
+    col_head += ['\\multicolumn{2}{|c|}{%s}' % s for s in emph(schemes[3:-1])]
+    col_head += ['\\multicolumn{3}{|c|}{%s}' % emph([schemes[-1]])[0]]
+    col_head2 = ['']*5 + ['\\emph{null}', '\\emph{best}']*3 + ['\\emph{gain}']
     for i in col_head, col_head2:
         print '  %s \\\\' % (' & '.join(i))
-    print '\n  \\hline\n'
+        print
+    print '  \\hline\n'
 
     dcds = 'smallwater water hotwater rabies hiv mscl'.split()
     atoms = '699 96\\,603 96\\,603 464\\,099 16\\,470 111\,016'.split()
@@ -121,7 +125,8 @@ def res_table(quant):
         dcd_path = '%s/%s.dcd' % (INPUT_DIR, dcd)
         s = os.stat(dcd_path).st_size
 
-        row = [dcd, '$%s$' % atom]
+        row  = [dcd, '$%s$' % atom]
+        vals = []
         for scheme in schemes:
             if 'perms' in TESTS[scheme]:
                 a = size_p(dcd, scheme, 'null')
@@ -130,13 +135,16 @@ def res_table(quant):
                 a = size(dcd, scheme)
                 b = None
             a = a * 100.0 / s
-            row.append('$%.2f$' % a)
+            vals.append(a)
             if b:
                 b = b * 100.0 / s
-                row.append('$%.2f$' % b)
-        row2 = row[2:5] + [row[6], row[8], row[10]]
+                vals.append(b)
+        row += ['$%.2f$' % a for a in vals]
+        valid = [2,3,4,6,8,10]
+        row_valid = [row[i] for i in valid]
+        vals_cmp  = [vals[i-2] for i in valid[:-1]]
         m1 = min(row[2:])
-        m2 = min(row2)
+        m2 = min(row_valid)
         bolded = []
         for c in row:
             if c == m2:
@@ -144,6 +152,7 @@ def res_table(quant):
             if c == m1:
                 c = '$\\emph{%s}$' % c[1:-1]
             bolded.append(c)
+        bolded.append('$%.2f$' % (min(vals_cmp) - vals[-1]))
         print '  ' + ' & '.join(bolded), '\\\\'
         print
 
@@ -154,5 +163,5 @@ def res_table(quant):
 if __name__ == '__main__':
     #perm_csv('watercomp', '12')
     #print_size(12)
-    #res_table(8)
-    time_csv(8)
+    res_table(8)
+    #time_csv(8)
