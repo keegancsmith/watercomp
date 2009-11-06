@@ -178,9 +178,9 @@ data compressor which targets water. This compressor is considered successful if
   \item It can exploit water models.
   \item It can improve on other methods. Specifically point cloud compression
     methods.
-  \item It can compress in an efficient manner? ($O(n^2)$ where $n$ is the
+  \item It can compress in an efficient manner. ($O(n^2)$ where $n$ is the
     number of atoms)
-  \item It can decompress in an efficient manner? ($O(n)$)
+  \item It can decompress in an efficient manner. ($O(n)$)
 \end{itemize}
 
 Thus, the research question is whether it is possible to implement an
@@ -190,7 +190,7 @@ intra-frame compressor with the listed properties.
 \paragraph{Outline}
 
 In chapter two background information on MD file formats, compression, point
-cloud compression and water models is discussed. Chapter three details the
+cloud compression and water models are discussed. Chapter three details the
 design and implementation of the water compressor. Chapter four presents and
 discusses the results from the implementation. Finally chapter five concludes
 the report.
@@ -921,9 +921,34 @@ pop_symbol(symbol):
 
 To encode $P_i$, we encode $pop\_index(P_i)$. To decode, we return
 $pop\_symbol(val)$ where $val$ is a value returned from the arithmetic
-decoder.
+decoder. An example of encoding is given in Table \ref{tab:opttrace}.
 
-\todo an example of this in action
+\begin{table}
+\begin{tabular}{|l|cccc|cccc|cccc|c|}
+  \hline
+
+  & \multicolumn{4}{|c|}{\emph{index\_to\_symbol}} &
+  \multicolumn{4}{|c|}{\emph{symbol\_to\_index}} &
+  \multicolumn{4}{|c|}{\emph{$P_i$ left}} & \emph{Value} \\
+
+  \hline
+
+  & 0 & 1 & 2 & 3 & 0 & 1 & 2 & 3 & 0 & 2 & 3 & 1 & \\
+
+  $pop\_index(0)$ & & 1 & 2 & 0 & 3 & 1 & 2 & & & 2 & 3 & 1 & 0 \\
+
+  $pop\_index(2)$ & & 1 & & 0 & 3 & 1 & & & & & 3 & 1 & 2 \\
+
+  $pop\_index(3)$ & & 0 & & & 1 & & & & & & & 1 & 0 \\
+
+  $pop\_index(1)$ & & & & & & & & & & & & & 0 \\
+
+  \hline
+\end{tabular}
+\caption{Trace of values for the optimal encoder when encoding the permutation
+  $[0, 2, 3, 1]$.}
+\label{tab:opttrace}
+\end{table}
 
 The optimal permutation encoder is optimal in the worst case. If we have $M$
 indicies left to encode, each unseen index has probability $\frac{1}{M}$ of
@@ -944,7 +969,7 @@ Equation (\ref{eq:optimal-lowerbound}) in bytes. Notice how as the size of the
 permutation increases, the gains made by the optimal scheme decrease.
 
 
-\begin{table}
+\begin{table}[h]
   \center
   \resizebox{\textwidth}{!}{
   \begin{tabular}{|l|rrrrrr|}
@@ -1214,7 +1239,18 @@ Since this is done for each atom once per frame, decoding takes $O(N)$ time.
 
 \section{Summary}
 
-\todo
+This section presented the design of our components and our water compression
+scheme. Our water compression scheme is similiar to those by \citet{merrycomp}
+and \citet{gumholdcomp}, but with predictors tailored towards water. The tree
+serialisation is similiar to \citet{merrycomp}, except with Breadth First
+traversal instead Depth First. The spanning tree creation is also different to
+both, using a more optimal (but slower) algorithm for minimising residuals.
+
+The complexity of encoding in our water compression scheme is $O(n + n \log n
++ e \log e + n) = O(e \log e)$ where $e = O(n^2)$ and $n$ is the number of
+water molecules. Empirically and due to the theoretical models of water, $e$
+is typically less than $5 \times n$, and so $e = O(n)$. So the encoding time
+is $O(n \log n)$. The decoding time is $O(n)$.
 
 
 \chapter{Results}
@@ -1305,7 +1341,7 @@ The two most important attributes of the simulation are the temperature and
 the number of atoms. The number of atoms affects the run time of the schemes
 per frame. The temperature affects the accuracy of the water model. The higher
 the temperature, the worse the expected performance of the water
-compressor. This is since the performance of the water compressor is directly
+compressor. This is since the performance of our water compressor is directly
 related to how accurate the water dimer model is. At high temperature the
 accuracy of the water dimer model decreases.
 
@@ -1400,13 +1436,13 @@ atoms.
 \end{figure}
 
 Refer to Figure \ref{fig:speed8} for the $8$-bit compression speeds. This
-graph indicates that the water compression algorithm performs relatively
+graph indicates that our water compression algorithm performs relatively
 poorly in terms of speed. This is due to the $O(e \log e)$ spanning tree
 creation step. All other algorithms are $O(n \log n)$ or $O(n)$ where $n$ is
 usually an order of magnitude less than $e$. However, the algorithm is still
 efficient since it is sub $O(n^2)$.
 
-The worst running time for the water compression algorithm is $693$ seconds on
+The worst running time for our water compression algorithm is $693$ seconds on
 the \emph{water} test case. This further indicates that it may be worse
 relatively, but still acceptable. The algorithm performs best in terms of
 compression ratio, so the trade-off is valid.
@@ -1479,11 +1515,11 @@ compared to the $8$-bit results.
 
 See Figure \ref{fig:speed12} for the $12$-bit compression speeds. This graph
 is nearly identical to the $8$-bit graph (\ref{fig:speed8}). The difference is
-that the water compression scheme has run times closer in speed to the other
+that our water compression scheme has run times closer in speed to the other
 schemes. This occurs because the run-time is dominated by the spanning tree
 creation, which is not affected by the granularity of the quantisation.
 
-The worst increase in run time for the water compression scheme from $8$-bit
+The worst increase in run time for our water compression scheme from $8$-bit
 to $16$-bit is on MSCL. It increased by $21$ seconds, from $479$ seconds to
 $500$ seconds. The increase in time is probably due to the increased number of
 different residuals due to the higher precision. If the number of residuals
@@ -1560,7 +1596,7 @@ decrease is logarithmic, which can be largely ignored).
 
   \end{tabular}
 }
-\caption{Statistics from the water compressor at $8$ and $12$ bit
+\caption{Statistics from our water compressor at $8$ and $12$ bit
   quantisation. \emph{Clusters} is the number of components created in the
   graph creation stage. \emph{Constant} is the number of molecules predicted
   with the constant predictor. \emph{Hydrogen} is the number of molecules
@@ -1629,14 +1665,14 @@ quantising the file.
 \centering
 \includegraphics[trim = 10mm 30mm 10mm 18mm, clip, width=\textwidth]{images/perm}
 \caption{The relative performance of the permutation encoders on different DCD
-  files. The encoder used is the water compressor at $12$-bit
+  files. The encoder used is our water compressor at $12$-bit
   quantisation. The numbers on the right indicate the smallest and biggest
   size of the encoded permutation.}
 \label{fig:perm}
 \end{figure}
 
 Figure \ref{fig:perm} shows the relative performance of each permutation
-encoder with the water compressor at $12$-bit quantisation. The best
+encoder with our water compressor at $12$-bit quantisation. The best
 permutation encoder is the \emph{delta} encoder. The pathological cases which
 cause poor performance are unlikely, which is why the \emph{delta} encoder
 performed well.
@@ -1659,7 +1695,7 @@ the constant predictor is used is a good indicator of how well our water
 compression scheme performs. If the hydrogen predictor is used significantly
 more, then our water compression scheme makes good gains on other schemes.
 
-The speed of the water compressor can be up to three times slower than the
+The speed of our water compressor can be up to three times slower than the
 next slowest scheme. The slowdown is a constant factor, but the choice on
 which encoder to use is a compression ratio vs compression time trade-off.
 
@@ -1698,7 +1734,7 @@ Probabilistically the worst case permutation will not occur when using the
 \emph{delta} encoder. The results indicate that this encoder performs best in
 practice.
 
-The complexity of encoding in the water compression scheme is $O(n + n \log n
+The complexity of encoding in our water compression scheme is $O(n + n \log n
 + e \log e + n) = O(e \log e)$ where $e = O(n^2)$ and $n$ is the number of
 water molecules. Empirically and due to the theoretical models of water, $e$
 is typically less than $5 \times n$, and so $e = O(n)$. So the encoding time
@@ -1724,7 +1760,7 @@ approach also does not need to store the permutation information.
 
 \paragraph{Better joining of components in spanning tree}
 
-The water compressor implementation joins up the components by adding an edge
+Our water compressor implementation joins up the components by adding an edge
 to a root. This is currently done in a na\"{i}ve way, causing a wider range of
 less used residuals. A better scheme would cause the component connections
 residuals to be minimised. Possible ways include using a minimum spanning tree
