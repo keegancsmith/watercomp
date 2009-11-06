@@ -1,6 +1,6 @@
                         Julian          Min             Keegan
 System analysis         5               5               5
-Theoretical analysis    0               0               4
+Theoretical analysis    5               0               4
 Experimental design     5               15              5
 System development      15              5               15
 Results                 15              15              15

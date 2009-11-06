@@ -19,8 +19,8 @@ provide for a more general analysis on the perception of quantisation.
 % {{{
 \label{sec:results_methodology}
 
-To analyse the responses from the experiment, a series of statistical tests are
-conducted on the data to determine various statistical properties.
+To analyse the responses from the experiment, a series of statistical tests
+were conducted on the data to determine various statistical properties.
 
 \paragraph{Shapiro-Wilks Test}
 The first test is for normality. Further tests conducted on the data depend on
@@ -34,7 +34,7 @@ Test are: \\ \\
 Determining if the datasets have an impact on the perceived differences for a
 specific quantisation level needs to be undertaken. However, we discovered that
 some the dataset specific data does not form a normal distribution. Hence,
-non-parametric statistical analysis will need to be conducted.
+non-parametric statistical analysis will be needed.
 
 If the data is not normal, the Friedman Test can be used to determine if the
 factors have a statistically significant impact on the data. For this
@@ -68,6 +68,13 @@ plot can be used. The effect of the box and whisker plot is similar to Tukey's
 HSD in that it is possible to see the individual factors and compare them to
 one another.
 
+A box and whisker plot splits the data into quartiles, and uses a box to
+indicate where the first and third quartiles are. A solid line is drawn for the
+second quartile, which is the median of the dataset. The whiskers of the
+diagram are used to connect the smallest non-outlier to the first quartile, and
+the largest non-outlier to the third quartile. Any outliers in the data are
+plotted and displayed separately.
+
 % }}}
 
 \section{Results}
@@ -88,7 +95,7 @@ of the results. i.e. some of the results do not form a normal distribution.
 Table \ref{tab:appendix_dataset_normality} in Appendix \ref{cha:tables} details
 the test results for all the separate datasets and quantisation levels. It is
 possible that the data does not form a normal distribution due to insufficient
-sampling. 15 data points may not be sufficient to accurately capture the
+sampling, 15 data points may not have been sufficient to capture the
 distribution.
 
 As not all the data follows a normal distribution, the Friedman Test was
@@ -105,8 +112,8 @@ of the results.
 
 Plotting the results on a box and whisker plot (Figures
 \ref{fig:results_boxwhisker_dataset_ballstick} and
-\ref{fig:results_boxwhisker_dataset_metaballs}), shows that the results are
-generally quite similar. The largest variations within quantisation levels is
+\ref{fig:results_boxwhisker_dataset_metaballs}); shows that the results are
+generally quite similar. The largest variations within quantisation levels are
 for the metaballs visualisation technique. However, while the results do
 differ, they do not contradict each other.
 
@@ -144,15 +151,15 @@ data is a normal distribution. See Tables
 actual test results.
 
 With the data being verified as a normal distribution, an ANOVA analysis can be
-performed. The result from ANOVA analysis indicates that the null hypothesis of
-the ANOVA analysis can be rejected at the 99\% significance level, i.e.
-quantisation does have a significant perceptual impact. The actual test results
-is provided in Tables \ref{tab:appendix_ballstick_anova} and
+performed. The results from the ANOVA analysis indicates that the null
+hypothesis can be rejected at the 99\% significance level, i.e.  quantisation
+does have a significant perceptual impact. The actual test results are provided
+in Tables \ref{tab:appendix_ballstick_anova} and
 \ref{tab:appendix_metaballs_anova}.
 
 Tables \ref{tab:appendix_ballstick_tukeyhsd} and
 \ref{tab:appendix_metaballs_tukeyhsd} shows the results from performing the
-Tukey's HSD analysis on the results from the ball-and-stick, and metaballs
+Tukey's HSD analysis on the results from the ball-and-stick and metaballs
 experiments, respectively. The leftmost column shows which of the quantisation
 levels are being compared. For ball-and-stick, b4 means quantisation using 4
 bits, b6 is 6 bit quantisation, b8 and b10 use 8 and 10 bits, respectively.
@@ -166,8 +173,8 @@ Inspecting the \emph{p adj} column, 8 and 10 bit quantisation are very similar
 (p-value of 0.7135299 and 0.9762546). For between 6 and 8 bit quantisation, the
 ball-and-stick visualisation is similar (p-value of 0.2163136) but the values
 are significantly different for the metaballs visualisation (p-value of
-0.0005950). Using 4 bit quantisation, the values are significantly different
-from all the other quantisation levels (p-value of 0.0000000).
+0.0005950). Using 4 bit quantisation, the values are significantly different to
+all the other quantisation levels (p-values of 0.0000000).
 
 Figure \ref{fig:results_boxwhisker_all} is a box and whisker plot showing the
 different quantisation levels. The ball-and-stick results are on the left half
@@ -208,7 +215,7 @@ the results. This means that the perceptually visible effects of quantisation
 are similar between datasets.
 
 The effects are not exactly equal due to the size differences in the datasets.
-As quantisation produces a limited number of possible values which can be used,
+As quantisation produces a limited number of distinct values which can be used,
 a dataset with larger dimensions will have larger quantisation errors, and thus
 more noticeable differences.
 
@@ -222,10 +229,9 @@ characterised as the entire volume of data moving around. The simulation would
 appear ``wobbly''. The wobbling is more noticeable with quantisation using
 fewer bits.
 
-In further analysing the data, there is no consistent increase or decrease in
+In further analyses of the data, there is no consistent increase or decrease in
 the noticeable difference with regards to datasets. This may have been as a
-result of a number of factors:
-\begin{itemize}
+result of a number of factors: \begin{itemize}
 
   \item participant uncertainty: different participants have their own
   different definitions of ``similar'' and ``different''.
@@ -234,7 +240,7 @@ result of a number of factors:
   perceiving similarities, or differences, hence biasing their results.
 
   \item the quantisation levels were shown in a random order; this may
-  influence the participants short-term memory, and thus impact on the
+  influence the participants' short-term memory, and thus impact on the
   perceived differences.
 
   \item large datasets have greater quantisation errors, but the smaller
@@ -259,7 +265,7 @@ the effects of quantisation.
 The responses from the experiment indicate that 8 and 10 bit quantisation yield
 similar results, 6 bit is still similar (but less so), with 4 bit being very
 different from the original data. This does reflect the effects of
-quantisation. As fewer bits are used, exponentially fewer values are available.
+quantisation. As fewer bits are used, exponentially fewer values are available:
 10 bits allows for 1024 possible values, but 4 bits only allows for 16 possible
 values. This applies separately to each coordinate. See Table
 \ref{tab:results_bitvalues} for an indication of the number of possible values
@@ -299,9 +305,10 @@ the spheres being placed in a different position, which is easily noticed.
 Due to how the metaballs surface is extracted, the quantisation effects are
 very noticeable when using fewer bits. As fewer bits are used, there will be
 fewer positions for the water molecules. This distorts the areas of water and
-non-water. The resulting extracted surfaces highlights the quantised positions.
-See Figure \ref{fig:experiment_metaballs4680}, the quantised water positions
-are clearly visible when using 4 bit quantisation.
+non-water. The resulting extracted surfaces highlight the quantised positions.
+See Figure \ref{fig:experiment_metaballs4680} in Chapter \ref{cha:experiment},
+the quantised water positions are clearly visible when using 4 bit
+quantisation.
 
 The quantised water positions are not as clearly visible when using more bits
 as the water molecules are placed more accurately, and the water molecules do
@@ -331,11 +338,11 @@ perceived difference.
 At quantisation levels using fewer bits, the metaballs visualisation technique
 is more visually different than that of the ball-and-stick visualisation
 technique. Conversely, the ball-and-stick ratings for quantisation levels using
-more bits is higher; i.e. the difference from the original data is greater.
+more bits are higher; i.e. the difference from the original data is greater.
 
 Since the perceived difference between 8 and 10 bit quantisation levels is not
 statistically significant, 8 bit quantisation is the recommended quantisation
-setting. If the data to be compressed is very large, more bits per quantisation
+setting. If the data to be compressed is very large, more bits for quantisation
 may be needed. However, for data used purely for viewing, 8 bit quantisation is
 sufficient.
 
