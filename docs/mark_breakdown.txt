@@ -1,9 +1,9 @@
                         Julian          Min             Keegan
-System analysis         5               5               4
-Theoretical analysis    0               0               3
-Experimental design     5               15              3
+System analysis         5               5               5
+Theoretical analysis    0               0               4
+Experimental design     5               15              5
 System development      15              5               15
 Results                 15              15              15
-Overall                 10              10              10
+Overall                 10              10              6
 
 Total                   50              50              50

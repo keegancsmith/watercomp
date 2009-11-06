@@ -37,33 +37,74 @@
 \begin{titlepage}
 \begin{center}
 
-\includegraphics[width=100mm]{images/uct}\\
+\textsc{\Large Honours Project Report \\
 \ \\
-\textsc{\Large
-Department of Computer Science\\
 \ \\
-Honours Project Report\\
-\ \\}
+\ \\
+\ \\
+\ \\
+}
 
 {\huge \bfseries
 Intra-frame Compression of Molecular Dynamics Simulations of Water
 \\}
-\ \\
-\ \\
-
-\begin{center}
-    \large Keegan Carruthers-Smith
-    \\
-    \small{ksmith@cs.uct.ac.za}
-\end{center}
 
 \vfill
 
-{\large \today}
+\large Keegan Carruthers-Smith
+\\
+\small{ksmith@cs.uct.ac.za}
+
+\ \\
+\ \\
+
+\begin{tabular}{cc}
+  \multicolumn{2}{c}{\large Supervised By:} \\
+  \\ 
+  \large Patrick Marias & \large James Gain
+  \\
+  \small patrick@cs.uct.ac.za & \small jgain@cs.uct.ac.za
+\end{tabular}
+
+\vfill
+
+\begin{tabular}{|l|l|c|}
+  \hline
+  & \textbf{Category} & \textbf{Chosen} \\
+  \hline
+  1 & Software Engineering/System Analysis & 5 \\
+  \hline
+  2 & Theoretical Analysis & 4 \\
+  \hline
+  3 & Experiment Design and Execution & 5 \\
+  \hline
+  4 & System Development and Implementation & 15 \\
+  \hline
+  5 & Results, Findings and Conclusion & 15 \\
+  \hline
+  6 & Aim Formulation and Background Work & 10 \\
+  \hline
+  7 & Quality of Report Writing and Presentation & 10 \\
+  \hline
+  8 & Adherence to Project Proposal and Quality of Deliverables & 10 \\
+  \hline
+  9 & Overall General Project Evaluation & 6 \\
+  \hline
+  \multicolumn{2}{|l|}{\textbf{Total marks}} & 80 \\
+  \hline
+\end{tabular}
+
+\vfill
+
+\textsc{\Large Department of Computer Science \\
+\ \\
+University of Cape Town \\
+\ \\}
+
+{\large 2009}
 
 \end{center}
 \end{titlepage}
-
 
 \section*{Abstract}
 Molecular dynamics (MD) simulations generate vast amounts of data. A typical
@@ -98,6 +139,7 @@ permutation information is discarded, our water compression scheme still
 performs best.
 
 \tableofcontents
+\listoffigures
 
 \chapter{Introduction}
 
@@ -636,8 +678,8 @@ simulations. DCD files are explained in Section \ref{sec:molec-dynam-form}.
 \begin{figure}
   \centering
   \includegraphics[trim = 30mm 40mm 30mm 35mm, clip, width=0.75\textwidth]{images/overview}
-  \caption{A high level overview of data travels through the compressor and
-    decompressor.}
+  \caption{A high level overview of how data travels through the compressor
+    and decompressor.}
   \label{fig:dimer-angle}
 \end{figure}
 
