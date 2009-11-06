@@ -2,6 +2,43 @@
 % {{{
 \label{cha:tables}
 
+The following tables are included in this chapter:
+\begin{itemize}
+
+  \item Table \ref{tab:appendix_surface_time} - time required to extract a
+  surface.
+
+  \item Table \ref{tab:appendix_surface_count} - number of surface primitive
+  extracted.
+
+  \item Table \ref{tab:appendix_dataset_normality} - Shapiro-Wilks normality
+  test results for all the datasets.
+
+  \item Table \ref{tab:appendix_dataset_friedman} - Friedman test results for
+  all the datasets.
+
+  \item Table \ref{tab:appendix_ballstick_normality} - Shapiro-Wilks normality
+  test results for the ball-and-stick visualisation.
+
+  \item Table \ref{tab:appendix_ballstick_anova} - ANOVA test results for the
+  ball-and-stick visualisation.
+
+  \item Table \ref{tab:appendix_ballstick_tukeyhsd} - Tukey's HSD test results
+  for the ball-and-stick visualisation.
+
+  \item Table \ref{tab:appendix_metaballs_normality} - Shapiro-Wilks normality
+  test results for the metaballs visualisation.
+
+  \item Table \ref{tab:appendix_metaballs_anova} - ANOVA test results for the
+  metaballs visualisation.
+
+  \item Table \ref{tab:appendix_metaballs_tukeyhsd} - Tukey's HSD test results
+  for the metallballs visualisation.
+
+  \item Table \ref{tab:appendix_experiment_statistics} - mean, median and mode
+  values for the different visualisations.
+
+\end{itemize}
 
 \begin{table}
   \begin{tabular}{ | l | r | r | r | r | }
@@ -64,7 +101,7 @@
   gala (10 bit)  &               0.2525 * &           0.04283  \\ \hline
   mscl (10 bit)  &               0.1550 * &          0.1750 *  \\ \hline
   \end{tabular}
-  \caption{shapiro-wilks test results for the different datasets. A *
+  \caption{Shapiro-Wilks test results for the different datasets. A *
   indicates that the null hypothesis cannot be rejected at the 95\% confidence
   interval. i.e. the data is not a normal distribution.}
   \label{tab:appendix_dataset_normality}
@@ -98,8 +135,7 @@
   8 bit             & 0.8865 & 4.405e-05  \\ \hline
   10 bit            & 0.8999 & 0.0001304  \\ \hline
   \end{tabular}
-  \caption{Shapiro-Wilks test results for the ball and stick visualisation
-  technique}
+  \caption{Shapiro-Wilks test results for the ball and stick visualisation}
   \label{tab:appendix_ballstick_normality}
 \end{table}
 
@@ -111,7 +147,7 @@
   quantisation &   3 & 283.77 &   94.59 &  44.218 & $<$ 2.2e-16  \\ \hline
   Residuals    & 236 & 504.83 &    2.14 &         &              \\ \hline
   \end{tabular}
-  \caption{ANOVA analysis of the ball and stick visualisation technique}
+  \caption{ANOVA analysis of the ball and stick visualisation}
   \label{tab:appendix_ballstick_anova}
 \end{table}
 
@@ -127,8 +163,7 @@
   b8-b4  & -2.5000000 & -3.1909170 & -1.8090830 & 0.0000000  \\ \hline
   b8-b6  & -0.5166667 & -1.2075836 &  0.1742503 & 0.2163136  \\ \hline
   \end{tabular}
-  \caption{Tukey's HSD test results for the ball-and-stick visualisation
-  technique}
+  \caption{Tukey's HSD test results for the ball-and-stick visualisation}
   \label{tab:appendix_ballstick_tukeyhsd}
 \end{table}
 
@@ -142,8 +177,7 @@
   8 bit             & 0.8788 & 2.407e-05  \\ \hline
   10 bit            & 0.8722 & 1.466e-05  \\ \hline
   \end{tabular}
-  \caption{Shapiro-Wilks test results for the metaballs visualisation
-  technique}
+  \caption{Shapiro-Wilks test results for the metaballs visualisation}
   \label{tab:appendix_metaballs_normality}
 \end{table}
 
@@ -155,7 +189,7 @@
   quantisation &   3 & 469.68 &  156.56 &  65.291 & $<$ 2.2e-16  \\ \hline
   Residuals    & 236 & 565.90 &    2.40 &         &              \\ \hline
   \end{tabular}
-  \caption{ANOVA analysis of the metaballs visualisation technique}
+  \caption{ANOVA analysis of the metaballs visualisation}
   \label{tab:appendix_metaballs_anova}
 \end{table}
 
@@ -171,7 +205,7 @@
   m8-m4  & -3.3666667 & -4.0981791 & -2.6351543 & 0.0000000  \\ \hline
   m8-m6  & -1.1166667 & -1.8481791 & -0.3851543 & 0.0005950  \\ \hline
   \end{tabular}
-  \caption{Tukey's HSD test results for the metaballs visualisation technique}
+  \caption{Tukey's HSD test results for the metaballs visualisation}
   \label{tab:appendix_metaballs_tukeyhsd}
 \end{table}
 
@@ -194,6 +228,24 @@
   \label{tab:appendix_experiment_statistics}
 \end{table}
 
+% }}}
+
+\chapter{Experiment documents}
+% {{{
+\label{cha:documents}
+
+The following experiment documents are included in this chapter:
+\begin{itemize}
+
+  \item Experiment instructions - instructions and introduction given to the
+  participants.
+
+  \item Experiment form - form given to the participants to fill out.
+
+\end{itemize}
+
+\includepdf{experiment_instructions.pdf}
+\includepdf[pages={1-3}]{experiment_form.pdf}
 
 % }}}
 

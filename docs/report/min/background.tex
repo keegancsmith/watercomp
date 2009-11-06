@@ -38,13 +38,13 @@ analysing the data to identify structures, while others exclude certain data
 from the visualisation. Either way, a simplified image is presented so as to
 make the molecular data easier and quicker to understand.
 
-Specific visualisation techniques (ribbon, paper chain and twister) are
+Some of the visualisation techniques (ribbon, paper chain and twister) are
 designed for very specific molecular data, and are thus not easily extensible
-to point cloud data. They can, however, be used to determine what kind of
-analysis can be done on data to simplify and help identify structures.
+to point cloud data. They can, however, be used as an example to determine what
+kind of analysis can be done on data to simplify and help identify structures.
 
 It is worth mentioning the Visual Molecular Dynamics (VMD) \citep{humphrey96}
-program, which is a commonly used visualisation package aimed at displaying,
+program, it is a commonly used visualisation package aimed at displaying,
 animating and analysing large biomolecular systems \citep{VMD}. However, as VMD
 is aimed at general biomolecular systems, support for specific visualisation
 and filtering is limited. VMD does support and use some of the visualisation
@@ -55,22 +55,22 @@ techniques that are mentioned in this chapter.
 \paragraph{Ball-and-stick}
 % {{{
 
-The ball-and-stick model is the classical approach to displaying molecular
+The ball-and-stick model is the classical approach to representing molecular
 structure. Colour coded spheres are used to represent the atoms, while
 cylinders are used to represent the bonds between them. There are various
-proposals for colour schemas for ball-and-stick representations
+proposals for the colour scheme used in ball-and-stick representations
 (\citep{rasmolcolour}, \citep{jmolcolour}, \citep{drumscolour}), but there is
-no definite standard. This model is used to emphasise the molecular
-connectivity of the atoms. It is the simplest of approaches to molecular
-visualisation and is most often used when all the detail is required, typically
-for looking at bond information and reaction sites.
+no definite agreed upon standard. This model is used to emphasise the molecular
+connectivity of the atoms. It is the one of the simpler approaches in molecular
+visualisation and is most often used when much detail is required: typically
+for looking at bond information, molecule orientation and reaction sites.
 
 The problem with this model is that it does not handle large numbers of atoms
-and bonds very well. Since all the atoms and bonds are visible, the image
+and bonds very well. Since all the atoms and bonds are visible, the view
 quickly becomes crowded and overall structure is obscured. Occlusion of other
-atoms often occurs and may hide important information. Ball-and-stick diagrams
-are typically not used for large structures as it often produces cluttered
-diagrams, making it very difficult to understand and analyse the data.
+atoms often occurs and may hide important information. The ball-and-stick
+representation is typically not used for large structures as it often produces
+cluttered views, making it very difficult to understand and analyse the data.
 
 % }}}
 
@@ -78,11 +78,11 @@ diagrams, making it very difficult to understand and analyse the data.
 % {{{
 
 The CPK (Corey-Pauling-Koltun) \citep{corey53} representation simplifies the
-ball-and-stick model by doing away with cylinders for bonds; instead, the
+ball-and-stick model by removing the cylinders used to represent bonds. The
 spheres used for the atoms are enlarged to encompass the bonds. The atoms now
 overlap with one another, covering up where the bonds would be.
 
-Removing the bonds from the model simplifies the display and allows for the
+Removing the bonds from the model simplifies the view and allows for the
 overall shape and contour to be easily seen. Although this model has simplified
 the ball-and-stick model, it does not highlight any structures, it has only
 removed the bond information. In contrast, the later molecular visualisation
@@ -112,11 +112,11 @@ the left, while the CPK representation is on the right.
 \paragraph{Solvent accessible surfaces}
 % {{{
 
-Solvent accessible surface for molecular modelling \citep{connolly83} produces
-a similar effect to CPK. The bonds are not visible and the atoms are enlarged.
-The difference lies in the approach taken to produce the surface of the volume.
-Solvent accessible surfaces are created from determining where the solvent
-(modelled with spheres) can and cannot fit.
+Solvent accessible surfaces \citep{connolly83} produces a similar effect to
+CPK. The bonds are not visible and the atoms are enlarged, the difference lies
+in the approach taken to produce the surface of the volume. The solvent
+accessible surface is created by determining where the solvent (modelled using
+spheres) can and cannot fit.
 
 Figure \ref{fig:background_sas} is a schematic diagram illustrating how the
 solvent accessible surface is determined. The molecular surface is marked in
@@ -171,12 +171,12 @@ first identified and are then displayed using a ring polyhedron.
 This significantly simplifies the carbohydrate molecules by only showing the
 carbohydrate rings, which would otherwise have been obscured in other
 visualisations (ball-and-stick and CPK). The ball-and-stick model can still be
-overlayed on the paper chain diagram to provide detailed information if needed.
+overlayed on the paper chain view to provide detailed information if needed.
 
 The twister visualisation technique \citep{kuttel06} builds on the paper chain
 technique by highlighting the relative orientations of the identified
 carbohydrate rings. Each carbohydrate ring is represented by a disc, which is
-then connected to another disc with a ribbon. The ribbon will follow the
+then connected to another disc with a ribbon. The ribbon follows the
 orientation from one ring to another, thus showing how the rings are connected
 to one another.
 
@@ -203,12 +203,12 @@ overlayed semi-transparently over the models.
 \paragraph{Summary}
 % {{{
 
-The different visualisation techniques discussed in this section is summarised
-in Table \ref{tab:background_molecular}. The ball-and-stick technique is used
-as the baseline for comparing the other techniques against. The table lists the
-different molecular visualisation techniques, indicates the molecule type that
-they are specific to, and whether they summarise the structure of the molecule
-or not.
+The different visualisation techniques discussed in this section are summarised
+in Table \ref{tab:background_molecular}. The ball-and-stick representation is
+used as the baseline for comparing against the other techniques. The table
+lists the different molecular visualisation techniques, indicates the molecule
+type that they are specific to, and whether they summarise the structure of the
+molecule or not.
 
 \begin{table}
   \begin{tabular}{ | l | l | l | }
@@ -238,8 +238,8 @@ or not.
 
 The more relevant techniques from general visualisation with regards to point
 cloud data are: surface extraction, volume rendering and general clutter
-control. Mesh decimation and metaballs are also relevant, but they have more
-specific uses.
+control techniques. Mesh decimation and metaballs are also relevant, but they
+have more specific uses.
 
 % }}}
 
@@ -247,12 +247,11 @@ specific uses.
 % {{{
 
 The marching cubes algorithm \citep{lorensen87} is the classical approach for
-surface extraction. The algorithm works by sampling a 3D volume, voxelising the
-volume, and then examining each voxel (value at a position in 3D space) in the
-data and determining whether it is inside the volume or not. A surface can then
-be determined by combining all the voxels which intersect with the volume
-boundary. Figure \ref{fig:background_mesh} shows the extracted surface of a
-skull.
+surface extraction. The algorithm works by sampling a 3D volume (voxelising the
+volume) and then examining each voxel in the data to determine whether it is
+inside the volume or not. A surface can then be determined by combining all the
+voxels which intersect with the volume boundary. Figure
+\ref{fig:background_mesh} shows the extracted surface of a skull.
 
 Marching tetrahedrons is an alternative surface extraction algorithm to
 marching cubes. Instead of using a cube as the sampling structure, a
@@ -286,10 +285,10 @@ polygons used to represent a surface.
 % {{{
 
 Volume rendering aims to visualise the entire volume instead of an object's
-surface. This is done by modelling the data as a translucent gel so that one is
-able to see through the volume, while still being able to see what is in the
-volume. Figure \ref{fig:background_head} is a ray cast image of a head. The
-internal bones are clearly visible through the translucent skin and flesh.
+surface. The data is modelled as a translucent gel where one is able to see
+through the volume, while still being able to see what is inside the volume.
+Figure \ref{fig:background_head} is a ray cast image of a head. The internal
+bones are clearly visible through the translucent skin and flesh.
 
 There are two main approaches to volume rendering. The first works from the
 image plane to the volume, and is called image order processing. Ray casting is
@@ -344,10 +343,10 @@ data with colour, but leave the rest of the data visibly unchanged. This has
 the advantage of maintaining context.
 
 Figure \ref{fig:background_highlight} is an example application of highlighting
-in a graph structure. The paths are coloured according to their importance, the
-paths that are often traversed are the important paths. From looking at the
-image, it is clear that the intersection on the right edge of the image is the
-most heavily traversed area of the graph.
+in a graph structure. The more oftenly traversed paths are more important,
+which is reflected in the colouring. From looking at the image, it is clear
+that the intersection on the right edge of the image is the most heavily
+traversed area of the graph as it is the brightest.
 
 \emph{Opacity:} The translucency of items can be changed to highlight or hide
 elements. This is similar to filtering, in that irrelevant items are partially
@@ -383,15 +382,16 @@ mutually exclusive, many of the techniques complement one another.
 % {{{
 
 Metaballs \citep{blinn82} is a technique for producing organic-looking objects.
-Metaballs is modelled on a number of points which exert forces around
-themselves, the surface of the metaball is the set of points where the force
-function is equal to some constant threshold value. The surface is usually
-determined using surface extraction techniques.
+The metaballs volume is modelled using a number of points that exert forces
+around themselves, the surface of the volume is determined by the set of points
+where the force function is equal to some constant threshold value. The surface
+is usually determined using surface extraction techniques.
 
-There are 15 individual metaball points in Figure
-\ref{fig:background_metaballs}, the individual metaballs are the roundish
-parts of the volume. The force functions used causes the metaballs to appear to
-melt and blend together, yielding the blobby appearance.
+There are 15 metaball points in Figure \ref{fig:background_metaballs}, the
+metaball points are the roundish parts of the volume. Areas of the volume
+appears to melt and blend together, yielding the blobbly appearance. The force
+functions used takes into account the nearby metaball points, which causes the
+merging effect.
 
 The advantage of metaballs is that volume data is grouped together, making it
 easy to see the different volumes in a region. The disadvantage of this
@@ -402,8 +402,10 @@ surface from the force calculations.
   \begin{center}
     \includegraphics[width=70mm]{metaballs}
   \end{center}
-  \caption{Metaballs, each of the 15 metaballs exerts forces around
+
+  \caption{A volume determined with 15 metaballs exerting forces around
   themselves.}
+
   \label{fig:background_metaballs}
 \end{figure}
 
@@ -462,9 +464,9 @@ Molecular modelling is a specific instance of the scientific visualisation
 problem, where the requirement is to be able to easily identify certain
 structures. Different types of molecules each have their own specific
 characteristics and structures. This knowledge can be exploited in the
-different visualisation techniques: ribbon diagrams are useful for proteins,
-paper chain and twister for carbohydrates, while ball-and-stick and CPK for
-general molecular visualisations.
+different visualisation techniques: the ribbon representation is useful for
+proteins, paper chain and twister for carbohydrates, while ball-and-stick and
+CPK for general molecular visualisations.
 
 General visualisation techniques address a slightly different problem: how to
 visualise the data effectively and not necessarily to identify and highlight
@@ -476,9 +478,14 @@ dimension were to be added, all the techniques would simply treat each frame
 separately and regenerate the visualisation given the new set of data. This
 approach is not ideal if some interframe visualisation coherence is desired.
 
-There is no single solution for all visualisation needs. However, approaches and
-ideas can be taken from different visualisation areas. While the problems may
-not be identical, there will be some overlapping requirements and concerns.
+Visualising point cloud data, where there are many points in a region, is also
+not very well handled. With water visualisation, the points are distributed
+within a three dimensional volume, which makes visualisation more difficult.
+
+There is no single solution for all visualisation needs. However, approaches
+and ideas can be taken from different visualisation approaches. While the
+problems may not be identical, there will be some overlapping requirements and
+concerns.
 
 % }}}
 

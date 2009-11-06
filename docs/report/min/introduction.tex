@@ -39,13 +39,14 @@ Our water compression project has been split into three main parts:
 
 The water molecules in a body of water do not group uniformly in all
 directions; instead the water molecules form clusters. The presence of these
-water clusters is used by the intraframe compressor to perform prediction.
+water clusters are used by the intraframe compressor to perform prediction, and
+thus compression.
 
 The interframe compression is more general, it compresses all the atom
 information, water and non-water molecules. Using previous frames of data, the
-position of atoms in the next frame is predicted, and the error is encoded.
+position of atoms in the next frame are predicted, and the errors are encoded.
 
-The visualisation aspect of the project supports the main goal of the project:
+The visualisation component of the project supports the main goal of the project:
 compressing molecular simulations. To do so, the molecular simulation data will
 need to be visualised, and a quantisation experiment carried out. Section
 \ref{sec:introduction_quantisation} introduces and explains the need for the
@@ -53,7 +54,7 @@ quantisation experiment. Section \ref{sec:introduction_visualisation}
 introduces the visualisation infrastructure developed for the quantisation
 experiment.
 
-This report will focus on the visualisation aspect of the water compression
+This report focuses on the visualisation component of the water compression
 project. The intraframe and interframe components of the system are handled in
 their respective reports.
 
@@ -82,10 +83,10 @@ right image.
 Quantisation is used to facilitate compressing the molecular data, integer
 values can be more effectively compressed than floating point values.
 Quantisation using fewer bits will increase the compression ratio as there will
-be fewer values to encode, but fewer values means that more deviation from the
-original input data, more data is discarded. Quantisation is the only lossy
-step in the compression process, the following steps in the compression process
-are lossless, no data is discarded.
+be fewer distinct values to encode, but fewer distinct values will result in
+greater deviation from the original data. Quantisation is the only lossy step
+in the compression process, the following steps in the compression process are
+all lossless, no data is discarded.
 
 With quantisation, a balance needs to be established between data fidelity and
 compression ratio. Determining this balance is the aim of the quantisation
@@ -106,10 +107,10 @@ can be used for simple molecular data visualisation.
 
 Due to the specific uses that are needed by the project, an existing
 visualisation package is insufficient. Specific visualisations such as showing
-the water clusters used by the intraframe compressor or quantisation error are
-not present. A separate visualisation component is thus developed to provide
-the infrastructure needed for the quantisation experiment, as well as provide
-the compression specific visualisations.
+the water clusters used by the intraframe compressor, or quantisation errors
+are not present in existing packages. A separate visualisation component is
+thus developed to provide the infrastructure needed for the quantisation
+experiment, as well as provide the compression specific visualisations.
 
 % }}}
 
@@ -130,9 +131,9 @@ supporting the compressors.
 Chapter \ref{cha:implementation} provides implementation details on each of the
 visualisation components.
 
-The quantisation experiment is detailed in Chapter \ref{cha:experiment}.
+Chapter \ref{cha:experiment} details the quantisation experiment.
 
-The experiment results and analysis are in Chapter \ref{cha:results}.
+Chapter \ref{cha:results} contains the experiment results and analysis.
 
 Finally, Chapter \ref{cha:conclusion} concludes and summarises this report.
 

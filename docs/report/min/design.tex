@@ -9,8 +9,8 @@
 The goal of the visualisation aspect of the system is to provide a way to
 easily interpret the molecular data. The visualisation techniques chosen either
 support the compression aspect of the water compression system, or allow for
-general interpretation of data. The main challenge to effective visualisation
-of the data is the density of atoms potentially resulting in a cluttered view.
+general interpretation of data. The main challenge in effectively visualising
+the data, is the density of atoms potentially resulting in a cluttered view.
 
 A brief overview of the entire system is provided in Section
 \ref{sec:design_overview}, while Section \ref{sec:design_visualisation}
@@ -40,7 +40,7 @@ The design of the system has been broken down into a number of components:
   intraframe prediction.
 
   \item \textbf{Verifiers} - verify and record various aspects of the
-  compression system such as compression results and quantisation error.
+  compression system, such as compression results and quantisation error.
 
   \item \textbf{Arithmetic coders} - encodes and decodes symbols to and from
   compressed bit streams.
@@ -48,8 +48,8 @@ The design of the system has been broken down into a number of components:
   \item \textbf{Visualisation} - renders and allows the user to explore the
   simulation data.
 
-  \item \textbf{Compressors} - item drivers behind the compression system,
-  calls and executes the functions needed to perform the compression and
+  \item \textbf{Compressors} - the drivers behind the compression system, calls
+  and executes the functions needed to perform the compression and
   decompression.
 
 \end{itemize}
@@ -65,7 +65,7 @@ coder components are used by the compressors only.
   \begin{center}
     \includegraphics[width=100mm]{breakdown}
   \end{center}
-  \caption{Overview of components within the system.}
+  \caption{Overview of the components within the system.}
   \label{fig:design_overview}
 \end{figure}
 
@@ -74,24 +74,24 @@ coder components are used by the compressors only.
 % {{{
 
 The visualisation component is divided into a number of sub-components, each of
-which represents a different visualisation technique:
+which represents a different visualisation approach:
 
 \begin{itemize}
 
   \item \textbf{Water point visualisation} - simple visualisation technique
-  using the alpha value effects to convey an idea of the volume.
+  using the effects of transparency to convey an idea of the volume.
 
-  \item \textbf{Ball-and-Stick visualisation} - standard approach to
+  \item \textbf{Ball-and-stick visualisation} - standard approach to
   visualising molecular data.
 
   \item \textbf{Metaballs visualisation} - determines and renders the surface
-  between the water and non-water regions.
+  between the water and non-water regions in the volume.
 
   \item \textbf{Water cluster visualisation} - renders the extracted water
   clusters from the frame.
 
-  \item \textbf{Quantisation error visualisation} - shows the error resulting
-  from quantising and dequantising the molecular data.
+  \item \textbf{Quantisation error visualisation} - shows the errors introduced
+  from quantising the molecular data.
 
 \end{itemize}
 
@@ -116,11 +116,12 @@ non-water molecules being filtered out.
 
 Filtering out the non-water molecules is the first step in reducing visible
 clutter. Using a low alpha value per point further reduces clutter by causing
-regions where the molecules are not very dense to appear more faintly, the more
-densely populated regions are thus emphasised.
+regions where the molecules are not very dense to appear more faintly, while
+the more densely populated regions are more prominent.
 
 While this visualisation technique does allow for the regions of high water
-density to be easily identified, the details of the volume are not visible.
+density to be easily identified, the details of the volume are not easily
+visible.
 
 % }}}
 
@@ -128,13 +129,12 @@ density to be easily identified, the details of the volume are not visible.
 % {{{
 
 The ball-and-stick visualisation is the same as the classical ball-and-stick
-representation (Chapter \ref{cha:background}). The atoms are represented by
-spheres; the spheres are rendered using different colours and sizes to
-represent the different atoms. The bonds between the atoms are represented by a
-cylinder.
+representation. The atoms are represented using spheres; the spheres are
+rendered using different colours and sizes to represent the different atoms.
+Cylinders are used to represent the bonds between the atoms.
 
-This visualisation provides more visual information about the water molecules.
-Rendering the individual atoms allows for the orientation of the individual
+This visualisation approach provides more visual information about the water
+molecules.  Rendering the individual atoms allows for the orientation of the
 water molecules to be seen.
 
 Showing the individual atoms and orientation exposes the quantisation error
@@ -143,7 +143,7 @@ more clearly, thus this visualisation is used in the quantisation experiment
 
 Rendering all the water molecules will cause significant clutter, therefore the
 number of molecules to render can be limited from the user interface. This is
-simply adjusting the number of molecules rendered.
+simply adjusting the number of molecules to render.
 
 % }}}
 
@@ -152,26 +152,26 @@ simply adjusting the number of molecules rendered.
 
 The metaballs visualisation is an alternative way to visualise the water volume
 in the molecular simulation. The aim of the metaballs visualisation is to
-separate the regions of water from the regions of non-water. A surface between
-the water and non-water regions is extracted and rendered.
+separate the regions of water from the regions of non-water. Surfaces between
+water and non-water regions are extracted and rendered.
 
-The metaballs surface is determined by voxelising the volume, each of the water
-molecules then contributes to the voxels around it, indicating that it is
+The metaballs surfaces are determined by voxelising the volume, each of the
+water molecules then contributes to the voxels around it, indicating that it is
 within a region of water. The voxels which are determined to be between a water
-and non-water region are then combined to create the final metaballs surface.
+and non-water region are then combined to create the surfaces.
 
 The surfaces extracted from volume data are often densely populated with many
-triangles. This increases the rendering costs of the surface, thus decreasing
-frame rates and interactivity.
+triangles. This increases rendering costs, thus decreasing frame rate and
+interactivity of the visualisation.
 
-The extracted surfaces can be decimated to decrease rendering costs. Decimating
-the surface will decrease the number of surface primitives, hence decreasing
-the amount of processing required to render the surface, and allowing the
-volume to be more easily explored.
+To decrease rendering costs, the extracted surfaces can be decimated. Surface
+decimation decreases the number of surface primitives, hence decreasing the
+amount of processing required to render the surface.
 
 An alternative to decimating the surface in order to decrease the surface
 complexity is to decrease the level of sampling. Sampling the volume less
-densely results in fewer triangles, but the surface quality will also decrease.
+densely results in fewer triangles, but the surface quality will also decrease
+as larger regions are skipped.
 
 Decimation is preferred over reduced sampling as the surface quality can be
 maintained. Reduced sampling would skip over details on the surface, but
@@ -196,10 +196,10 @@ Similar to the ball-and-stick visualisation, rendering all the water clusters
 will cause significant clutter, therefore the number of clusters to render can
 be limited by simply changing a value in the user interface.
 
-This visualisation technique is primarily useful in supporting the compression
-components of the system. There has been little research into water clusters in
-chemistry, thus it is unlikely that this visualisation technique will be of
-interest to chemists.
+This visualisation is primarily useful in supporting the compression components
+of the system. There has been little research into water clusters in chemistry,
+thus it is unlikely that this visualisation technique will be of interest to
+chemists.
 
 % }}}
 
@@ -229,7 +229,7 @@ Figure \ref{fig:design_quantgraph} shows a graph illustrating how the colour is
 determined. The colour scale is determined using two error thresholds. If the
 error value is less than the lower threshold, then the error is ignored and
 nothing is rendered. If the error value is between the two threshold values,
-then the colour is determined linearly up till the upper threshold value, where
+then the colour is linearly determined up till the upper threshold value, where
 the colour is set to the final error colour.
 
 \begin{figure}
@@ -247,6 +247,9 @@ components of the system.
 
 % }}}
 
+% \newpage for formatting
+\newpage
+
 \section{Summary}
 % {{{
 \label{sec:design_summary}
@@ -256,15 +259,15 @@ visualise different aspects of the molecular data.
 
 The \emph{water cluster} visualisation provides a quick idea of the volume.
 
-The \emph{ball-and-stick} visualisation provides the most detail by including
+The \emph{ball-and-stick} visualisation provides the most detail by rendering
 all the atoms.
 
 The \emph{metaballs} visualisation simplifies the volume data by identifying
 the boundary between water and non-water molecules, and rendering that.
 
 The \emph{water cluster} visualisation renders clusters of water molecules
-using cylinders and spheres, the water clusters are used in the intraframe
-compression component of the system.
+using cylinders and spheres. The intraframe compression component of the system
+uses these water clusters.
 
 The \emph{quantisation error} visualisation displays the error resulting from
 quantisation, which is the first step in the compression process.
@@ -275,7 +278,7 @@ that they will be useful outside of the water compression project.
 
 The other three visualisations, \emph{water point}, \emph{ball-and-stick} and
 \emph{metaballs} are more generally applicable and thus may be used for viewing
-the molecular data.
+the molecular data in a more general fashion.
 
 % }}}
 
