@@ -1282,9 +1282,9 @@ separately.
 
   smallwater & $699$ & $25.35$ & $\textbf{12.30}$ & $30.00$ & $19.34$ & $27.66$ & $21.74$ & $26.45$ & $18.65$ & $21.75$ & $-9.45$ \\
 
-  water & $96\,603$ & $25.00$ & $21.47$ & $27.72$ & $\emph{11.20}$ & $26.00$ & $12.86$ & $24.10$ & $9.24$ & $\textbf{14.63}$ & $6.84$ \\
+  water & $96\,603$ & $25.00$ & $21.47$ & $27.72$ & $11.20$ & $26.00$ & $12.86$ & $24.10$ & $\emph{9.24}$ & $\textbf{14.63}$ & $6.84$ \\
 
-  hotwater & $96\,603$ & $25.00$ & $19.08$ & $26.43$ & $\emph{10.48}$ & $25.56$ & $11.31$ & $22.67$ & $9.99$ & $\textbf{15.33}$ & $3.76$ \\
+  hotwater & $96\,603$ & $25.00$ & $19.08$ & $26.43$ & $10.48$ & $25.56$ & $11.31$ & $22.67$ & $\emph{9.99}$ & $\textbf{15.33}$ & $3.76$ \\
 
   rabies & $464\,099$ & $25.00$ & $\textbf{13.86}$ & $27.78$ & $\emph{9.28}$ & $25.69$ & $10.17$ & $22.05$ & $14.18$ & $19.44$ & $-5.59$ \\
 
@@ -1299,16 +1299,44 @@ separately.
   bolded. The \emph{null} permutation values are also included, but are not
   considered since they do not restore the correct order of
   points. \emph{Best} is the permutation encoder which did the best out of
-  \emph{delta}, \emph{interframe}, \emph{na\"{i}ve} and \emph{optimal}.}
+  \emph{delta}, \emph{interframe}, \emph{na\"{i}ve} and
+  \emph{optimal}. \emph{Gain} is the amount of compression ratio gained
+  against the next best scheme.}
 \label{tab:res8}
 \end{table}
 
 Refer to Table \ref{tab:res8} for the $8$-bit compression ratios. The results
-indicate that in general that the water compression scheme performs best. If
-the ordering of the points is not important, the best scheme is
-\citet{gumholdcomp} (see column gumhold null). The water compression scheme
-without ordering information has ratios which are very close to gumhold
-null. So without ordering information water compression still performs well.
+indicate that in general our water compression scheme performs
+best. \emph{Water}, \emph{hotwater} and \emph{hiv} all contain large amounts
+of water. This accounts for the significant gain over the other schemes that
+water compression achieves.
+
+Our water compression scheme performs poorly on \emph{smallwater} even though
+it contains only water molecules. Table \ref{tab:predstats} indicates that
+this occurs since the constant predictors are used nearly as often as the
+hydrogen predictors, hence the hydrogen predictors are not predicting well.
+Additionally the file itself is very small causing the overhead of the
+arithmetic encoder's symbol tables to be significant.
+
+Surprisingly \emph{gzip} performed best in two cases, \emph{smallwater} and
+\emph{rabies}. At $8$-bit quantisation the points are written to file and are
+byte-aligned, causing gzip to more likely pick up correlation among the
+points. In the two cases where gzip performed well, the quantised data would
+of had lots of repetition and correlation.
+
+If the ordering of the points is not important, then our water compression
+scheme performs best (see the null columns). \emph{Gumhold} performs better in
+\emph{rabies} and \emph{mscl}, both of which contain significantly less water
+molecules than the other test cases. Since there are less water molecules,
+\emph{watercomp}'s hydrogen predictors would of not been as effective leading
+to the worse compression.
+
+The reason \emph{gumhold} does not perform best in \emph{rabies} and
+\emph{mscl} with ordering is that our water compression scheme stores a
+smaller permutation. \emph{Watercomp}'s permutation size is the number of
+water molecules while \emph{gumhold}'s permutation size is the number of
+atoms.
+
 
 \begin{figure}[h]
 \centering
@@ -1326,7 +1354,7 @@ creation step. All other algorithms are $O(n \log n)$ or $O(n)$ where $n$ is
 usually an order of magnitude less than $e$. However, the algorithm is still
 efficient since it is sub $O(n^2)$.
 
-The worst running time the water compression algorithm was $693$ seconds on
+The worst running time for the water compression algorithm is $693$ seconds on
 the \emph{water} test case. This further indicates that it may be worse
 relatively, but still acceptable. The algorithm performs best in terms of
 compression ratio, so the trade-off is valid.
@@ -1364,21 +1392,29 @@ compression ratio, so the trade-off is valid.
   bolded. The \emph{null} permutation values are also included, but are not
   considered since they do not restore the correct order of
   points. \emph{Best} is the permutation encoder which did the best out of
-  \emph{delta}, \emph{interframe}, \emph{na\"{i}ve} and \emph{optimal}.}
+  \emph{delta}, \emph{interframe}, \emph{na\"{i}ve} and
+  \emph{optimal}. \emph{Gain} is the amount of compression ratio gained
+  against the next best scheme.}
 \label{tab:res12}
 \end{table}
 
 See Table \ref{tab:res12} for the $12$-bit compression ratios. The results
-indicate that the water compression scheme performs best for all the DCD
-files. If the ordering of the points is not important, the best scheme is
-\citet{gumholdcomp} (see column gumhold null).
+indicate that our water compression scheme performs best for all the DCD
+files. The gain over the next best scheme increased in all cases when compared
+to the $8$-bit quantisation results. This is due to more accurate quantisation
+causing the hydrogen predictors to be more accurate.
 
-Similiar to the $8$-bit results, the water compression scheme without ordering
-information has ratios which are very close to gumhold null. The cases where
-it does not are the rabies and mscl. Both of these contain less water than the
-other test cases, so the non-water atom compression make up the
-difference. Without ordering information water compression still performs
-well.
+Our water compression scheme also performs best when ordering is not important
+(see the null column). Similarly \emph{gumhold} performs better in
+\emph{rabies} and \emph{mscl}. The reason for this can also be attributed to
+both files containing less water molecules. If the ordering of the points is
+not important, the best scheme is \citet{gumholdcomp} (see column gumhold
+null).
+
+$12$-bit quantisation is not byte-aligned which causes the quantised data to
+appear completely different to its $8$-bit version. This is most likely the
+cause for \emph{gzip} performing poorly on \emph{smallwater} and \emph{rabies}
+compared to the $8$-bit results.
 
 \begin{figure}[h]
 \centering
@@ -1562,9 +1598,14 @@ of the encoding is related to the size of the permutation (see Equation
 \label{sec:summary}
 
 From the results it can be seen that our water compression scheme performs
-best. However, if the order of the points does not need to be recovered then
-the encoder by \citet{gumholdcomp} outperforms it. In any case water
-compression performs nearly as well as \citet{gumholdcomp}.
+best. This is also the case for when the original order of points is not
+needed. Generally the larger the amount of water in the file, the better the
+gain is on other schemes. In some cases a gain of up to $11\%$ was made.
+
+The number of times the hydrogen predictor is used versus the number of times
+the constant predictor is used is a good indicator of how well our water
+compression scheme performs. If the hydrogen predictor is used significantly
+more, then our water compression scheme makes good gains on other schemes.
 
 The speed of the water compressor can be up to three times slower than the
 next slowest scheme. The slowdown is a constant factor, but the choice on
@@ -1582,12 +1623,18 @@ than simply quantising the file. The best permutation encoder was the
 Our water compression scheme compresses better than existing point cloud
 compressors (Section \ref{sec:summary}), since it effectively exploits the
 water-dimer model (Section \ref{sec:modelling-water} and
-\ref{sec:water-predictors}). At $8$-bit quantisation the mean and average
-compression rate for water compression is $19\%$. Our compression rate is the
-best, but gzip performs similarly at $8$-bit quantisation. At $12$-bit
-quantisation the mean and average compression rate for water compression is
-$31\%$. This is the best result, with the next best scheme (gzip) having a
-mean and average compression rate of $37\%$.
+\ref{sec:water-predictors}). Our water compression scheme performed best at
+both $8$-bit and $12$-bit quantisation. At $8$-bit quantisation the mean and
+average compression rate for water compression is $17.7\%$. The next best
+compression rate was gzip with a mean and average compression rate of $19.5\%$
+and $18.5\%$ respectively. At $12$-bit quantisation the mean and average
+compression rate for water compression is $29.8\%$. The next best scheme is
+gzip which has a mean and average compression rate of $37\%$ and $36.5\%$
+respectively.
+
+Our water compression technique performed best on simulations with large
+amounts of water. In some cases the gain made on the next best scheme was
+$11\%$.
 
 The permutation information consumes a significant portion of the compressed
 file. A permutation encoder called \emph{optimal} was shown to take
@@ -1646,3 +1693,4 @@ information associated with each point.
 \end{document}
 
 % LocalWords:  oxygens Deserialisation BFS MSCL intra DCD parallelisation
+% LocalWords:  gumhold watercomp

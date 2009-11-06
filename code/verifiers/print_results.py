@@ -163,5 +163,5 @@ def res_table(quant):
 if __name__ == '__main__':
     #perm_csv('watercomp', '12')
     #print_size(12)
-    res_table(12)
+    res_table(8)
     #time_csv(8)
