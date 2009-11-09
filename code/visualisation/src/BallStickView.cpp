@@ -218,9 +218,9 @@ void BallStickView::render()
     glLightfv(GL_LIGHT1, GL_POSITION, l1_pos);
 
     int n = 0;
-    int oslice = oSliceCount * 10;
-    int hslice = hSliceCount * 10;
-    int stickslice = stickSliceCount * 10;
+    int oslice = oSliceCount * 20;
+    int hslice = hSliceCount * 20;
+    int stickslice = stickSliceCount * 20;
     float pos[3];
     float dis_ratio = 1;
 
