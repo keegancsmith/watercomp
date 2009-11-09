@@ -295,6 +295,27 @@
        inkscape:vp_y="0 : 1000 : 0"
        inkscape:vp_x="0 : 526.18109 : 1"
        sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3197"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3318"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3385"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       sodipodi:type="inkscape:persp3d" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -1181,12 +1202,41 @@
        xml:space="preserve"
        id="flowRoot3058"
        style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
-       transform="translate(1239.5215,-20.694918)"><flowRegion
+       transform="translate(1239.5215,-22.694918)"><flowRegion
          id="flowRegion3060"><rect
            id="rect3062"
            width="462.15256"
            height="524.73572"
            x="216.634"
            y="1636.7903" /></flowRegion><flowPara
-         id="flowPara3064">Five Interframe Compression Schemes were tested on several data sets.</flowPara></flowRoot>  </g>
+         id="flowPara3064">Five Interframe Compression Schemes were tested on several data sets.</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3074"
+       style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       transform="translate(1235.3555,397.18204)"><flowRegion
+         id="flowRegion3076"><rect
+           id="rect3078"
+           width="462.15256"
+           height="524.73572"
+           x="216.634"
+           y="1636.7903" /></flowRegion><flowPara
+         id="flowPara3080">Datasets chosen based on coherency of motion and size.</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3082"
+       style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:Bitstream Vera Sans;font-style:normal;font-weight:normal;font-size:40px"><flowRegion
+         id="flowRegion3084"><rect
+           id="rect3086"
+           width="2"
+           height="64"
+           x="1738"
+           y="2001.9211" /></flowRegion><flowPara
+         id="flowPara3088"></flowPara></flowRoot>    <image
+       y="1794.4983"
+       x="1419.5439"
+       id="image3387"
+       height="238"
+       width="512"
+       sodipodi:absref="/home/nomad/work/watercomp/docs/poster/FirstOrderEncoding.png"
+       xlink:href="FirstOrderEncoding.png" />
+  </g>
 </svg>
