@@ -357,10 +357,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.5"
-     inkscape:cx="934.625"
+     inkscape:cx="579.625"
      inkscape:cy="1409.4229"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="g7811"
      showgrid="false"
      showguides="true"
      inkscape:guide-bbox="true"
@@ -482,7 +482,7 @@
          id="flowPara2451" /></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot2453"
-       style="font-size:144px;font-style:normal;font-weight:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+       style="font-size:144px;font-style:normal;font-weight:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
        transform="translate(15.735018,0)"><flowRegion
          id="flowRegion2455"><rect
            id="rect2457"
@@ -492,7 +492,7 @@
            y="88.864563"
            style="font-size:144px;text-align:center;text-anchor:middle" /></flowRegion><flowPara
          id="flowPara2459"
-         style="font-size:100px">Water compression</flowPara></flowRoot>    <flowRoot
+         style="font-size:100px">Water Compression</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot2531"
        style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:Bitstream Vera Sans;font-style:normal;font-weight:normal;font-size:40px"><flowRegion
@@ -641,7 +641,7 @@
         <flowRoot
            xml:space="preserve"
            id="flowRoot5610"
-           style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Bitstream Vera Sans"
            transform="translate(-20.671617,-106.6732)"><flowRegion
              id="flowRegion5612"><rect
                id="rect5614"
@@ -650,7 +650,7 @@
                x="320.13693"
                y="813.58105" /></flowRegion><flowPara
              id="flowPara5616"
-             style="font-size:64px;text-align:center;text-anchor:middle">Molecular data</flowPara></flowRoot>        <flowRoot
+             style="font-size:64px;text-align:center;text-anchor:middle">Molecular Data</flowPara></flowRoot>        <flowRoot
            xml:space="preserve"
            id="flowRoot5642"
            style="font-size:40px;font-style:normal;font-weight:normal;text-align:start;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
@@ -890,11 +890,11 @@
         <image
            sodipodi:absref="/home/keegan/watercomp/docs/poster/frame1.png"
            xlink:href="frame1.png"
-           width="382"
-           height="329"
-           id="image2656"
+           y="243.78723"
            x="168.66061"
-           y="243.78723" />
+           id="image2656"
+           height="329"
+           width="382" />
         <flowRoot
            xml:space="preserve"
            id="flowRoot6072"
@@ -913,11 +913,11 @@
         <image
            sodipodi:absref="/home/keegan/watercomp/docs/poster/frame2.png"
            xlink:href="frame2.png"
-           width="382"
-           height="329"
-           id="image2723"
+           y="243.78723"
            x="851.84412"
-           y="243.78723" />
+           id="image2723"
+           height="329"
+           width="382" />
         <flowRoot
            xml:space="preserve"
            id="flowRoot6080"
@@ -936,11 +936,11 @@
         <image
            sodipodi:absref="/home/keegan/watercomp/docs/poster/frame3.png"
            xlink:href="frame3.png"
-           width="382"
-           height="329"
-           id="image2602"
+           y="243.78723"
            x="1535.0276"
-           y="243.78723" />
+           id="image2602"
+           height="329"
+           width="382" />
         <flowRoot
            xml:space="preserve"
            id="flowRoot6088"
@@ -968,11 +968,11 @@
       <image
          sodipodi:absref="/home/keegan/watercomp/docs/poster/cslogo.png"
          xlink:href="cslogo.png"
-         y="2648.8628"
-         x="146.93828"
-         id="image7948"
+         width="198.994"
          height="197.56754"
-         width="198.994" />
+         id="image7948"
+         x="146.93828"
+         y="2648.8628" />
       <g
          transform="translate(15.173401,-10.812527)"
          id="g8185">
@@ -1039,11 +1039,11 @@
       <image
          sodipodi:absref="/home/keegan/watercomp/docs/poster/uct.png"
          xlink:href="uct.png"
-         y="2608.3889"
-         x="1712.1541"
-         id="image8274"
+         width="276.10934"
          height="278.5155"
-         width="276.10934" />
+         id="image8274"
+         x="1712.1541"
+         y="2608.3889" />
     </g>
     <text
        xml:space="preserve"
@@ -1104,11 +1104,11 @@
       <image
          sodipodi:absref="/home/keegan/watercomp/docs/poster/quantised.png"
          xlink:href="quantised.png"
-         y="1312.172"
-         x="-769.92169"
-         id="image8563"
+         width="500"
          height="500"
-         width="500" />
+         id="image8563"
+         x="-769.92169"
+         y="1312.172" />
     </g>
     <text
        xml:space="preserve"
@@ -1135,11 +1135,11 @@
       <image
          sodipodi:absref="/home/keegan/watercomp/docs/poster/unquantised.png"
          xlink:href="unquantised.png"
-         y="1233.6899"
-         x="-1731.3718"
-         id="image8496"
+         width="500"
          height="500"
-         width="500" />
+         id="image8496"
+         x="-1731.3718"
+         y="1233.6899" />
     </g>
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:3.38245201px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
@@ -1266,11 +1266,11 @@
          id="flowPara3088" /></flowRoot>    <image
        sodipodi:absref="/home/keegan/watercomp/docs/poster/FirstOrderEncoding.png"
        xlink:href="FirstOrderEncoding.png"
-       width="512"
-       height="238"
-       id="image3387"
+       y="1794.4983"
        x="1419.5439"
-       y="1794.4983" />
+       id="image3387"
+       height="238"
+       width="512" />
     <flowRoot
        xml:space="preserve"
        id="flowRoot3058-8"
@@ -1285,11 +1285,11 @@
          id="flowPara3064-8">Created a predictive point cloud compressor with predictors based on water.</flowPara></flowRoot>    <image
        sodipodi:absref="/home/keegan/watercomp/docs/poster/h402.png"
        xlink:href="h402.png"
-       height="220"
-       width="360"
-       y="1812.9211"
+       id="image3387-9"
        x="884.66083"
-       id="image3387-9" />
+       y="1812.9211"
+       width="360"
+       height="220" />
     <flowRoot
        xml:space="preserve"
        id="flowRoot3058-8-0"
