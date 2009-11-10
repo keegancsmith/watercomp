@@ -201,19 +201,19 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.35355339"
-     inkscape:cx="1035.6113"
-     inkscape:cy="692.6252"
+     inkscape:zoom="0.70710678"
+     inkscape:cx="1443.6809"
+     inkscape:cy="1053.2673"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="g5395"
      showgrid="false"
      showguides="true"
      inkscape:guide-bbox="true"
      inkscape:snap-global="false"
      inkscape:window-width="1364"
-     inkscape:window-height="747"
+     inkscape:window-height="787"
      inkscape:window-x="0"
-     inkscape:window-y="19"
+     inkscape:window-y="0"
      inkscape:window-maximized="0">
     <inkscape:grid
        type="xygrid"
@@ -670,11 +670,10 @@
              width="1783.851"
              id="rect8315"
              style="font-size:36px" /></flowRegion><flowPara
-           id="flowPara8325"
-           style="font-size:36px">Through user experiments, 8 bit quantisation is recommended for visual fidelity.</flowPara><flowPara
            id="flowPara8329"
-           style="font-size:36px">Successfully exploited water structure for intraframe: Up to 11% gain over next best scheme.</flowPara><flowPara
-           id="flowPara3056">Delta Coding Interframe Compression performs best: ≈10% of original file size.</flowPara></flowRoot>    </g>
+           style="font-size:36px">Through user experiments, 8-bit quantisation is recommended for visual fidelity. </flowPara><flowPara
+           id="flowPara3056">Exploiting the structure of water is a viable technique for compression.</flowPara><flowPara
+           id="flowPara2909">Exploiting the correlation of atom positions between frames is a viable compression technique.</flowPara></flowRoot>    </g>
     <flowRoot
        xml:space="preserve"
        id="flowRoot3046"
@@ -734,7 +733,8 @@
                height="450.73572"
                x="216.634"
                y="1636.7903" /></flowRegion><flowPara
-             id="flowPara3064-8">Created a predictive point cloud compressor which exploits the &quot;rigidness&quot; of water.</flowPara></flowRoot>        <image
+             id="flowPara3064-8"
+             style="font-size:36">Created a predictive point cloud compressor which exploits the &quot;rigidness&quot; of water.</flowPara></flowRoot>        <image
            sodipodi:absref="/home/keegan/watercomp/docs/poster/h402.png"
            xlink:href="h402.png"
            id="image3387-9"
@@ -749,11 +749,20 @@
            transform="translate(616.77604,399.18204)"><flowRegion
              id="flowRegion3060-9-9"><rect
                id="rect3062-2-9"
-               width="470.15256"
-               height="450.73572"
+               width="475.80942"
+               height="449.3215"
                x="216.634"
                y="1636.7903" /></flowRegion><flowPara
-             id="flowPara3064-8-1">Compared against four existing intraframe schemes.</flowPara></flowRoot>      </g>
+             style="font-size:30px"
+             id="flowPara2919">11% gain on next best scheme.</flowPara><flowPara
+             style="font-size:36px"
+             id="flowPara2955">Sample Results</flowPara><flowPara
+             style="font-size:30px"
+             id="flowPara2969">Water only: 244mb to 36mb</flowPara><flowPara
+             style="font-size:30px"
+             id="flowPara2961">93% Water: 38mb to 6mb</flowPara><flowPara
+             style="font-size:30px"
+             id="flowPara2963" /></flowRoot>      </g>
       <g
          id="g5294"
          transform="translate(52.000021,-1.2499999)">
@@ -789,7 +798,8 @@
                height="220.73572"
                x="216.634"
                y="1636.7903" /></flowRegion><flowPara
-             id="flowPara3064">Five Interframe Compression Schemes tested on several datasets.</flowPara></flowRoot>        <flowRoot
+             id="flowPara3064"
+             style="font-size:36">Five Interframe Compression Schemes tested on several datasets.</flowPara></flowRoot>        <flowRoot
            xml:space="preserve"
            id="flowRoot3074"
            style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
@@ -800,7 +810,18 @@
                height="166.73572"
                x="216.634"
                y="1636.7903" /></flowRegion><flowPara
-             id="flowPara3080">Datasets chosen based on coherency of motion and overall size.</flowPara></flowRoot>        <g
+             id="flowPara3080"
+             style="font-size:30px">20% gain on next best scheme.</flowPara><flowPara
+             style="font-size:36px"
+             id="flowPara2975">Sample Results</flowPara><flowPara
+             style="font-size:30px"
+             id="flowPara2977">Water only: 244mb to 33mb</flowPara><flowPara
+             style="font-size:30px"
+             id="flowPara2989">93% Water: 38mb to 5.2mb</flowPara><flowPara
+             style="font-size:30px"
+             id="flowPara2979" /><flowPara
+             style="font-size:30px"
+             id="flowPara2981" /></flowRoot>        <g
            id="g5224"
            transform="translate(-6.0980339,0)">
           <path
@@ -969,7 +990,8 @@
                height="524.73572"
                x="216.634"
                y="1636.7903" /></flowRegion><flowPara
-             id="flowPara8573">Convert floating point data to integer data.</flowPara></flowRoot>        <g
+             id="flowPara8573"
+             style="font-size:36">Convert floating point data to integer data.</flowPara></flowRoot>        <g
            id="g3663"
            transform="translate(-2.8986697,4.3423921)">
           <g
@@ -1192,10 +1214,17 @@
              id="flowRegion5331"><rect
                id="rect5333"
                width="500.97055"
-               height="155.57359"
+               height="183.57359"
                x="226"
                y="2011.9211" /></flowRegion><flowPara
-             id="flowPara5335">Visualiser constructed to conduct an experiment on quantisation effects.</flowPara></flowRoot>      </g>
+             id="flowPara5335"
+             style="font-size:36px">Visualiser constructed to conduct an experiment on</flowPara><flowPara
+             style="font-size:36px"
+             id="flowPara2897">the effects of quantisation.</flowPara><flowPara
+             style="font-size:36px"
+             id="flowPara2899" /><flowPara
+             style="font-size:36px"
+             id="flowPara2901" /></flowRoot>      </g>
     </g>
     <g
        id="g7174"
