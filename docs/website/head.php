@@ -30,6 +30,7 @@ $links = array(
 </head>
 <body>
     <div id="main">
+        <a href="index.php"><img alt="banner" src="images/banner.png" /></a>
         <div id="sidebar">
 
 
