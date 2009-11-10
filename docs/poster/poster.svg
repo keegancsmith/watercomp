@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -13,7 +14,7 @@
    height="2979.9211"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.46"
+   inkscape:version="0.47pre4 r22446"
    version="1.0"
    sodipodi:docname="poster.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
@@ -22,6 +23,13 @@
    inkscape:export-ydpi="90">
   <defs
      id="defs4">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 1489.9606 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="2104.7244 : 1489.9606 : 1"
+       inkscape:persp3d-origin="1052.3622 : 993.30705 : 1"
+       id="perspective3153" />
     <linearGradient
        inkscape:collect="always"
        id="linearGradient7058">
@@ -142,18 +150,18 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.7071068"
-     inkscape:cx="1054.9267"
-     inkscape:cy="353.07755"
+     inkscape:cx="803.9038"
+     inkscape:cy="2502.6821"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="g6118"
      showgrid="false"
      showguides="true"
      inkscape:guide-bbox="true"
      inkscape:snap-global="false"
-     inkscape:window-width="1364"
-     inkscape:window-height="747"
+     inkscape:window-width="1920"
+     inkscape:window-height="1183"
      inkscape:window-x="0"
-     inkscape:window-y="19"
+     inkscape:window-y="17"
      inkscape:window-maximized="0">
     <inkscape:grid
        type="xygrid"
@@ -547,7 +555,7 @@
              height="152.02657"
              width="657.53174"
              id="rect6108"
-             style="opacity:1;fill:#e7f3fa;fill-opacity:0;stroke:#5757fe;stroke-width:11.15476131;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+             style="opacity:1;fill:#e7f3fa;fill-opacity:0;stroke:#8ec8ea;stroke-width:11.15476130999999960;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
           <flowRoot
              transform="translate(10.393332,27.15305)"
              style="font-size:40px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
@@ -584,11 +592,11 @@
         <image
            sodipodi:absref="/home/keegan/watercomp/docs/poster/frame1.png"
            xlink:href="frame1.png"
-           y="243.78723"
-           x="168.66061"
-           id="image2656"
+           width="382"
            height="329"
-           width="382" />
+           id="image2656"
+           x="168.66061"
+           y="243.78723" />
         <flowRoot
            xml:space="preserve"
            id="flowRoot6072"
@@ -607,11 +615,11 @@
         <image
            sodipodi:absref="/home/keegan/watercomp/docs/poster/frame2.png"
            xlink:href="frame2.png"
-           y="243.78723"
-           x="851.84412"
-           id="image2723"
+           width="382"
            height="329"
-           width="382" />
+           id="image2723"
+           x="851.84412"
+           y="243.78723" />
         <flowRoot
            xml:space="preserve"
            id="flowRoot6080"
@@ -630,11 +638,11 @@
         <image
            sodipodi:absref="/home/keegan/watercomp/docs/poster/frame3.png"
            xlink:href="frame3.png"
-           y="243.78723"
-           x="1535.0276"
-           id="image2602"
+           width="382"
            height="329"
-           width="382" />
+           id="image2602"
+           x="1535.0276"
+           y="243.78723" />
         <flowRoot
            xml:space="preserve"
            id="flowRoot6088"
@@ -662,11 +670,11 @@
       <image
          sodipodi:absref="/home/keegan/watercomp/docs/poster/cslogo.png"
          xlink:href="cslogo.png"
-         width="198.994"
-         height="197.56754"
-         id="image7948"
+         y="2648.8628"
          x="146.93828"
-         y="2648.8628" />
+         id="image7948"
+         height="197.56754"
+         width="198.994" />
       <g
          transform="translate(15.173401,-10.812527)"
          id="g8185">
@@ -733,11 +741,11 @@
       <image
          sodipodi:absref="/home/keegan/watercomp/docs/poster/uct.png"
          xlink:href="uct.png"
-         width="276.10934"
-         height="278.5155"
-         id="image8274"
+         y="2608.3889"
          x="1712.1541"
-         y="2608.3889" />
+         id="image8274"
+         height="278.5155"
+         width="276.10934" />
     </g>
     <text
        xml:space="preserve"
@@ -824,11 +832,11 @@
              id="flowPara3064-8">Created a predictive point cloud compressor with predictors based on water.</flowPara></flowRoot>        <image
            sodipodi:absref="/home/keegan/watercomp/docs/poster/h402.png"
            xlink:href="h402.png"
-           id="image3387-9"
-           x="884.66083"
-           y="1812.9211"
+           height="220"
            width="360"
-           height="220" />
+           y="1812.9211"
+           x="884.66083"
+           id="image3387-9" />
         <flowRoot
            xml:space="preserve"
            id="flowRoot3058-8-0"
@@ -891,7 +899,7 @@
            transform="translate(-6.0980339,0)">
           <path
              transform="matrix(1.1570325,0,0,1.1570325,-1122.257,-143.66675)"
-             d="M 2303,1806.4211 A 37.5,37.5 0 1 1 2228,1806.4211 A 37.5,37.5 0 1 1 2303,1806.4211 z"
+             d="m 2303,1806.4211 c 0,20.7107 -16.7893,37.5 -37.5,37.5 -20.7107,0 -37.5,-16.7893 -37.5,-37.5 0,-20.7106 16.7893,-37.5 37.5,-37.5 20.7107,0 37.5,16.7894 37.5,37.5 z"
              sodipodi:ry="37.5"
              sodipodi:rx="37.5"
              sodipodi:cy="1806.4211"
@@ -901,7 +909,7 @@
              sodipodi:type="arc" />
           <path
              transform="matrix(1.1570325,0,0,1.1570325,-986.50713,-154.66683)"
-             d="M 2303,1806.4211 A 37.5,37.5 0 1 1 2228,1806.4211 A 37.5,37.5 0 1 1 2303,1806.4211 z"
+             d="m 2303,1806.4211 c 0,20.7107 -16.7893,37.5 -37.5,37.5 -20.7107,0 -37.5,-16.7893 -37.5,-37.5 0,-20.7106 16.7893,-37.5 37.5,-37.5 20.7107,0 37.5,16.7894 37.5,37.5 z"
              sodipodi:ry="37.5"
              sodipodi:rx="37.5"
              sodipodi:cy="1806.4211"
@@ -911,7 +919,7 @@
              sodipodi:type="arc" />
           <path
              transform="matrix(1.1570325,0,0,1.1570325,-750.2571,-262.16683)"
-             d="M 2303,1806.4211 A 37.5,37.5 0 1 1 2228,1806.4211 A 37.5,37.5 0 1 1 2303,1806.4211 z"
+             d="m 2303,1806.4211 c 0,20.7107 -16.7893,37.5 -37.5,37.5 -20.7107,0 -37.5,-16.7893 -37.5,-37.5 0,-20.7106 16.7893,-37.5 37.5,-37.5 20.7107,0 37.5,16.7894 37.5,37.5 z"
              sodipodi:ry="37.5"
              sodipodi:rx="37.5"
              sodipodi:cy="1806.4211"
@@ -921,7 +929,7 @@
              sodipodi:type="arc" />
           <path
              transform="matrix(1.1570325,0,0,1.1570325,-845.2571,-173.16683)"
-             d="M 2303,1806.4211 A 37.5,37.5 0 1 1 2228,1806.4211 A 37.5,37.5 0 1 1 2303,1806.4211 z"
+             d="m 2303,1806.4211 c 0,20.7107 -16.7893,37.5 -37.5,37.5 -20.7107,0 -37.5,-16.7893 -37.5,-37.5 0,-20.7106 16.7893,-37.5 37.5,-37.5 20.7107,0 37.5,16.7894 37.5,37.5 z"
              sodipodi:ry="37.5"
              sodipodi:rx="37.5"
              sodipodi:cy="1806.4211"
@@ -1132,7 +1140,7 @@
               </g>
               <path
                  transform="matrix(0.9157992,0,0,0.9157992,-18.477358,205.63085)"
-                 d="M 350.72497,1829.1049 A 15.909903,15.909903 0 1 1 318.90516,1829.1049 A 15.909903,15.909903 0 1 1 350.72497,1829.1049 z"
+                 d="m 350.72497,1829.1049 c 0,8.7868 -7.12311,15.9099 -15.90991,15.9099 -8.78679,0 -15.9099,-7.1231 -15.9099,-15.9099 0,-8.7868 7.12311,-15.9099 15.9099,-15.9099 8.7868,0 15.90991,7.1231 15.90991,15.9099 z"
                  sodipodi:ry="15.909903"
                  sodipodi:rx="15.909903"
                  sodipodi:cy="1829.1049"
@@ -1142,7 +1150,7 @@
                  sodipodi:type="arc" />
               <path
                  transform="matrix(0.9157992,0,0,0.9157992,51.879771,146.58747)"
-                 d="M 350.72497,1829.1049 A 15.909903,15.909903 0 1 1 318.90516,1829.1049 A 15.909903,15.909903 0 1 1 350.72497,1829.1049 z"
+                 d="m 350.72497,1829.1049 c 0,8.7868 -7.12311,15.9099 -15.90991,15.9099 -8.78679,0 -15.9099,-7.1231 -15.9099,-15.9099 0,-8.7868 7.12311,-15.9099 15.9099,-15.9099 8.7868,0 15.90991,7.1231 15.90991,15.9099 z"
                  sodipodi:ry="15.909903"
                  sodipodi:rx="15.909903"
                  sodipodi:cy="1829.1049"
@@ -1152,7 +1160,7 @@
                  sodipodi:type="arc" />
               <path
                  transform="matrix(0.9157992,0,0,0.9157992,75.921401,242.75399)"
-                 d="M 350.72497,1829.1049 A 15.909903,15.909903 0 1 1 318.90516,1829.1049 A 15.909903,15.909903 0 1 1 350.72497,1829.1049 z"
+                 d="m 350.72497,1829.1049 c 0,8.7868 -7.12311,15.9099 -15.90991,15.9099 -8.78679,0 -15.9099,-7.1231 -15.9099,-15.9099 0,-8.7868 7.12311,-15.9099 15.9099,-15.9099 8.7868,0 15.90991,7.1231 15.90991,15.9099 z"
                  sodipodi:ry="15.909903"
                  sodipodi:rx="15.909903"
                  sodipodi:cy="1829.1049"
@@ -1238,7 +1246,7 @@
               </g>
               <path
                  transform="matrix(0.9157992,0,0,0.9157992,273.9113,140.57706)"
-                 d="M 350.72497,1829.1049 A 15.909903,15.909903 0 1 1 318.90516,1829.1049 A 15.909903,15.909903 0 1 1 350.72497,1829.1049 z"
+                 d="m 350.72497,1829.1049 c 0,8.7868 -7.12311,15.9099 -15.90991,15.9099 -8.78679,0 -15.9099,-7.1231 -15.9099,-15.9099 0,-8.7868 7.12311,-15.9099 15.9099,-15.9099 8.7868,0 15.90991,7.1231 15.90991,15.9099 z"
                  sodipodi:ry="15.909903"
                  sodipodi:rx="15.909903"
                  sodipodi:cy="1829.1049"
@@ -1248,7 +1256,7 @@
                  sodipodi:type="arc" />
               <path
                  transform="matrix(0.9157992,0,0,0.9157992,203.20062,210.93418)"
-                 d="M 350.72497,1829.1049 A 15.909903,15.909903 0 1 1 318.90516,1829.1049 A 15.909903,15.909903 0 1 1 350.72497,1829.1049 z"
+                 d="m 350.72497,1829.1049 c 0,8.7868 -7.12311,15.9099 -15.90991,15.9099 -8.78679,0 -15.9099,-7.1231 -15.9099,-15.9099 0,-8.7868 7.12311,-15.9099 15.9099,-15.9099 8.7868,0 15.90991,7.1231 15.90991,15.9099 z"
                  sodipodi:ry="15.909903"
                  sodipodi:rx="15.909903"
                  sodipodi:cy="1829.1049"
@@ -1258,7 +1266,7 @@
                  sodipodi:type="arc" />
               <path
                  transform="matrix(0.9157992,0,0,0.9157992,309.6202,246.28952)"
-                 d="M 350.72497,1829.1049 A 15.909903,15.909903 0 1 1 318.90516,1829.1049 A 15.909903,15.909903 0 1 1 350.72497,1829.1049 z"
+                 d="m 350.72497,1829.1049 c 0,8.7868 -7.12311,15.9099 -15.90991,15.9099 -8.78679,0 -15.9099,-7.1231 -15.9099,-15.9099 0,-8.7868 7.12311,-15.9099 15.9099,-15.9099 8.7868,0 15.90991,7.1231 15.90991,15.9099 z"
                  sodipodi:ry="15.909903"
                  sodipodi:rx="15.909903"
                  sodipodi:cy="1829.1049"
