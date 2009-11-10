@@ -16,7 +16,10 @@
    inkscape:version="0.46"
    version="1.0"
    sodipodi:docname="poster.svg"
-   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   inkscape:export-filename="/home/min/work/hons/project/watercomp/docs/poster/poster.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <defs
      id="defs4">
     <linearGradient
@@ -138,9 +141,9 @@
      objecttolerance="10"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.1767767"
-     inkscape:cx="1074.0431"
-     inkscape:cy="1639.4501"
+     inkscape:zoom="0.7071068"
+     inkscape:cx="1054.9267"
+     inkscape:cy="353.07755"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -439,7 +442,7 @@
              id="flowPara5656">100 000 frames</flowPara><flowPara
              id="flowPara5664">≈ 1 terabyte of data</flowPara><flowPara
              id="flowPara5731" /><flowPara
-             id="flowPara5735">Compression is necessary</flowPara><flowPara
+             id="flowPara5735">Compression is necessary.</flowPara><flowPara
              id="flowPara5727" /><flowPara
              id="flowPara5729">ComCom</flowPara></flowRoot>      </g>
       <g
@@ -758,9 +761,9 @@
            height="163.67903"
            x="207.00583"
            y="2395.0093" /></flowRegion><flowPara
-         id="flowPara8325">Through user experiments, 8 bit quantisation is recommended for visual fidelity</flowPara><flowPara
-         id="flowPara8329">Our Water Compression performs best: upto 11% gain over next best scheme.</flowPara><flowPara
-         id="flowPara3056">Delta Coding Interframe Compression performs best: ≈10% at 8-bit quantisation</flowPara></flowRoot>    <flowRoot
+         id="flowPara8325">Through user experiments, 8 bit quantisation is recommended for visual fidelity.</flowPara><flowPara
+         id="flowPara8329">Our Water Compression performs best: up to 11% gain over next best scheme.</flowPara><flowPara
+         id="flowPara3056">Delta Coding Interframe Compression performs best: ≈10% at 8-bit quantisation.</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot3046"
        style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:Bitstream Vera Sans;font-style:normal;font-weight:normal;font-size:40px"><flowRegion
@@ -1051,7 +1054,7 @@
                height="524.73572"
                x="216.634"
                y="1636.7903" /></flowRegion><flowPara
-             id="flowPara8573">Convert floating point data to integer data</flowPara></flowRoot>        <g
+             id="flowPara8573">Convert floating point data to integer data.</flowPara></flowRoot>        <g
            id="g3663"
            transform="translate(-2.8986697,4.3423921)">
           <g
@@ -1277,7 +1280,7 @@
                height="198"
                x="226"
                y="2011.9211" /></flowRegion><flowPara
-             id="flowPara5335">Visualiser constructed to conduct quantisation experiment</flowPara></flowRoot>      </g>
+             id="flowPara5335">Visualiser constructed to conduct quantisation experiment.</flowPara></flowRoot>      </g>
     </g>
     <g
        id="g7174"
