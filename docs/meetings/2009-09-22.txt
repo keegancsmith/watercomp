@@ -12,23 +12,27 @@ Julian
 ------
 
 * Design Chapter 
+
   + Returned with comments: More design choices than the design itself.
-  
+
 
 Keegan
 ------
 * Testing
+
   + Testing would go in the results section; for instance proof that system does what it is meant to.
 
 Min
 ----
 
 * Coarse subdivision or decimation for marching tetrahedra?
+
   + Decimation is preferred.
   + Could find a library to do it(VTK?) or use simple techniques.
   + Try something that is progressive.
 
 * Background Chapter
+
   + Add stuff on decimation techniques
 
 Work for next meeting

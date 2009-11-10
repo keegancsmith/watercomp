@@ -21,14 +21,16 @@ Min-Young
 
 * Get 3 main visualisations for the experimentation
 * Produce an experimental design
-  - 1 page
-  - Hypothesis (perceptual testing)
-  - Test cases
-  - Variables (quantisation levels)
-  - Test cases
-  - Subjects (chemists or general)
-  - Statistics
-  - Side by side analysis or show series
+
+  + 1 page
+  + Hypothesis (perceptual testing)
+  + Test cases
+  + Variables (quantisation levels)
+  + Test cases
+  + Subjects (chemists or general)
+  + Statistics
+  + Side by side analysis or show series
+
 * To reduce clutter, only show a few water molecules
 
 
@@ -37,7 +39,9 @@ Keegan
 
 * Permutation compression: fewer values are left as the permutation is
   compressed
-  - The frequency values decreases as the symbols are used
+
+  + The frequency values decreases as the symbols are used
+
 * Use scanline ordering so that the permutation compresses better?
 * Interframe index changer?
 
@@ -46,5 +50,6 @@ General
 =======
 
 * Compression may be poor due to file format, worth mentioning
-  - Propose new file format or mention limitations
+
+  + Propose new file format or mention limitations
 

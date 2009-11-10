@@ -24,6 +24,7 @@ Visualisation
 * Decimation should use a simple implementation, get something working.
   ('94 Siggraph paper)
 * User experients...
+
   + Experiments should be around quantisation levels detectable by user.
   + Have several visualisations, quantisation levels, see what is noticeable.
 

@@ -1,51 +1,34 @@
 <?php
 $selected = 'Downloads';
-$css = array('downloads.css');
+include 'files.php';
 include 'head.php';
 
-function get_filesize($filename)
+function echo_downloads($keys)
 {
-    $size = filesize($filename);
-    $sizelen = strlen($size);
-
-    if ($sizelen <= 9 && $sizelen >= 7)
-        $size = sprintf("%.2f MB", $size / (1024 * 1024));
-    elseif ($sizelen >= 10)
-        $size = sprintf("%.2f GB", $size / (1024 * 1024 * 1024));
-    else
-        $size = sprintf("%.2f KB", $size / 1024);
-    return $size;
-}//get_filesize
-
-$downloads = array(
-    'Project Proposal' => array('document', 'proposal.pdf', 'PDF'),
-    'Proposal Presentation' => array('presentation', 'presentation.pdf', 'PDF'),
-    'Keegan\'s Report' => array('document gap', 'report_keegan.pdf', 'PDF'),
-    'Julian\'s Report' => array('document', 'report_julian.pdf', 'PDF'),
-    'Min-Young\'s Report' => array('document', 'report_min.pdf', 'PDF'),
-    'Project Poster (PDF)' => array('presentation gap', 'poster.pdf', 'PDF'),
-    'Project Poster (PNG)' => array('presentation', 'poster.png', 'PNG'),
-    'Keegan\'s Implementation' => array('archive gap', 'keegan.tar.gz', 'TGZ'),
-    'Julian\'s Implementation' => array('archive', 'julian.tar.gz', 'TGZ'),
-    'Min-Young\'s Implementation' => array('archive', 'min.tar.gz', 'TGZ'),
-);
+?>
+<ul class="downloads">
+<?php foreach ($keys as $key) echo_download_item($key); ?>
+</ul>
+<?php
+}//echo_downloads
 ?>
 
 <h1>Downloads</h1>
 
-<ul id="downloads">
+<h2>Project Proposal</h2>
+<?php echo_downloads(array('proposal', 'presentation')); ?>
 
-<?php foreach ($downloads as $name => $details): ?>
+<h2>Project Reports</h2>
+<?php echo_downloads(array('keegan-report', 'julian-report', 'min-report')); ?>
 
-<?php $filename = "downloads/{$details[1]}"; ?>
-<li class="<?php echo $details[0]; ?>">
-<a href="<?php echo $filename; ?>"><?php echo $name; ?></a>
-<br />
-<span class="fileinfo"><?php echo $details[2]; ?> - <?php echo get_filesize($filename); ?></span>
-</li>
-<?php endforeach ?>
+<h2>Project Poster</h2>
+<?php echo_downloads(array('poster-pdf', 'poster-png')); ?>
 
-</ul>
+<h2>Project Implementations</h2>
+<?php echo_downloads(array('keegan-implementation', 'julian-implementation', 'min-implementation')); ?>
+
+<h2>Quantisation Experiment</h2>
+<?php echo_downloads(array('experiment-instructions', 'experiment-form')); ?>
 
 <?php
 include 'tail.php';

@@ -20,8 +20,10 @@ Keegan
 
 * Wrote Gumhold compressor. Works better than Devillers and Gandoin.
 * Wrote water compressor.
-  - Predicts hydrogen to be at oxygen position.
-  - Needs to improve compression of non water atoms.
+
+  + Predicts hydrogen to be at oxygen position.
+  + Needs to improve compression of non water atoms.
+
 * Going to change compressor to write every different part of the compressor
   to separate files to get statistics.
 * Need to implement statistics on how well the predictions are working

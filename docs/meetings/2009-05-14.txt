@@ -9,20 +9,13 @@ General
 =======
 
 * Pitching level - Average honours student. (So explain terms etc)
-
 * Keep related work a lot smaller, so only most important things.
-
 * We can use personal communication with John Stone for why our paper is
- important. Intro will also mention why it is important.
-
+  important. Intro will also mention why it is important.
 * We need to say we dont have any IP or User worries.
-
 * Make a gantt chart. Talk about risks and how to deal with it
-
 * Have early milestones with defined interfaces. (Deals with risk)
-
 * For examples of good proposals, look at panopticon & robot wii proposals.
-
 * Be high level in the presentation and show break up of work.
 
 
@@ -31,35 +24,33 @@ Research questions
 
 We need metrics/factors to measure the success of our research questions.
 
-* Grand Question: Can we increase the ratio of compression on other methods in
- an efficient way?
+* Grand Question: Can we increase the ratio of compression on other methods in an efficient way?
 
 * Min-Young
 
- + What quantisation can we accept from a visual perspective
- + How to do level of detail (show important bits)
- + Do real time display
+  + What quantisation can we accept from a visual perspective
+  + How to do level of detail (show important bits)
+  + Do real time display
 
 * Julian
 
- + Space, Time effeciency with good compression ratios
- + Are we doing better than other methods?
- + Does putting oct stuff in work?
+  + Space, Time effeciency with good compression ratios
+  + Are we doing better than other methods?
+  + Does putting oct stuff in work?
 
 * Keegan
 
- + Assuming what we know about water, can we exploit it to get good
-   compression ratios.
- + Can we do better than Devilliers
- + Can we improve in naive graph using hueristics (kind of related to first
-   point)
+  + Assuming what we know about water, can we exploit it to get good
+    compression ratios.
+  + Can we do better than Devilliers
+  + Can we improve in naive graph using hueristics (kind of related to first
+    point)
 
 
 Outcomes
 ========
 
 * Exploit structure of water to improve compression
-
 * Use good quantisation
-
 * Possible integration with UMD
+

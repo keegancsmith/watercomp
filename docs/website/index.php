@@ -7,6 +7,10 @@ include 'head.php';
 <h1>Overview</h1>
 
 <p>
+TODO: fix
+</p>
+
+<p>
 Molecular simulations runs for days on end, generating lots and lots of data
 (gigabytes of data). Transferring and storing so much data is a problem, so the
 solution is to compress the data. As water is often a large part of the
@@ -25,6 +29,8 @@ water to better compression their positions, while the visualisation will aim
 to provide a means of exploring and seeing how the water is behaving in the
 molecular simulation.
 </p>
+
+<h2>Results</h2>
 
 <?php
 include 'tail.php';

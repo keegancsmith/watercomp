@@ -12,8 +12,10 @@ Min-Young
 ---------
 
 * Check out metaballs.
+
   + Used in solvent accessible surfaces.
   + Could have speed issues with overhead of marching cubes.
+
 * Should the visualisation be for chemists or for helping Julian and Keegan
   tune there algorithm.
 

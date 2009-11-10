@@ -6,6 +6,7 @@ $links = array(
     'Interframe' => 'interframe.php',
     'Visualisation' => 'visualisation.php',
     'Downloads' => 'downloads.php',
+    'About' => 'about.php',
 );
 ?>
 
