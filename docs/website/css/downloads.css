@@ -1,0 +1,37 @@
+ul#downloads
+{
+}
+
+ul#downloads li
+{
+    margin-top: 0.5em;
+    padding-left: 48px;
+    background-repeat: no-repeat;
+    background-position: left center;
+}
+
+ul#downloads li.document
+{
+    background-image: url(../images/document.png);
+}
+
+ul#downloads li.presentation
+{
+    background-image: url(../images/presentation.png);
+}
+
+ul#downloads li.archive
+{
+    background-image: url(../images/package.png);
+}
+
+ul#downloads li.gap
+{
+    margin-top: 2em;
+}
+
+ul#downloads li span.fileinfo
+{
+    font-size: 0.8em;
+    color: #777;
+}

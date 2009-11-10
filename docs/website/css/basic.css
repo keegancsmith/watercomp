@@ -1,0 +1,53 @@
+body
+{
+    font-family: Verdana, Arial, "Sans serif", serif
+    font-size: 16px;
+}
+
+body div
+{
+    color: #222;
+    line-height: 1.2em;
+}
+
+.center
+{
+    margin: 0 auto;
+}
+
+.clearfix
+{
+    clear: both;
+}
+
+h1
+{
+    padding: 0.5em 0.5em;
+    margin: 0.5em 0;
+    font-weight: bolder;
+    font-size: 1.2em;
+    color: #fff;
+    background-color: #79b;
+}
+
+h2
+{
+    padding: 0.5em 1em;
+    margin: 0.5em 0;
+    background-color: #444;
+}
+
+h3
+{
+    padding: 0.2em 1em;
+    margin: 0.2em 0;
+}
+
+p
+{
+    margin-bottom: 1em;
+    /*
+    text-align: justify;
+    */
+}
+

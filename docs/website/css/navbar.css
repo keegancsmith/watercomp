@@ -1,0 +1,53 @@
+ul#navbar
+{
+    margin-bottom: 0.6em;
+}
+
+ul#navbar li
+{
+    margin: 0.3em 0;
+    width: 100%;
+    height: 2em;
+}
+
+ul#navbar li a
+{
+    padding-left: 1.5em;
+    padding-top: 0.4em;
+    display: block;
+    font-size: 0.8em;
+    height: 100%;
+}
+
+ul#navbar li
+{
+    background-color: #58b;
+}
+
+ul#navbar li a
+{
+    color: white;
+    font-size: 0.9em;
+    text-decoration: none;
+}
+
+ul#navbar li:hover
+{
+    background-color: #ace;
+}
+
+ul#navbar li:hover a
+{
+    color: black;
+}
+
+ul#navbar li#selected
+{
+    background-color: #248;
+}
+
+ul#navbar li#selected a
+{
+    color: white;
+}
+

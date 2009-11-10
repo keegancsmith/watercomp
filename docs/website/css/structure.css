@@ -1,0 +1,43 @@
+div#main, div#footer
+{
+    margin: 0 auto;
+    width: 960px;
+}
+
+/*
+div#main
+{
+    background-color: black;
+}
+*/
+
+div#sidebar
+{
+    /*
+    background-color: #253046;
+    */
+
+    display: block;
+    float: left;
+    width: 160px;
+    height: 100%;
+    padding-top: 1em;
+}
+
+div#content
+{
+    float: left;
+    /*
+     * 960 - 160 = 800
+     * 800 - 16px * 2 = 768;
+     */
+    width: 768px;
+    height: 100%;
+    padding: 0 0 0 2em;
+}
+
+div#footer
+{
+    font-size: 0.7em;
+}
+
