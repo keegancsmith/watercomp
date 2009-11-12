@@ -1,12 +1,17 @@
 <?php
+$ext = '.php';
+$args = getopt("", array("static::"));
+if (isset($args['static']))
+    $ext = $args['static'] === false ? '.html' : ".{$args['static']}";
+
 $links = array(
-    'Overview' => 'index.php',
-    'Meetings' => 'meetings.php',
-    'Intraframe' => 'intraframe.php',
-    'Interframe' => 'interframe.php',
-    'Visualisation' => 'visualisation.php',
-    'Downloads' => 'downloads.php',
-    'About' => 'about.php',
+    'Overview' => 'index'.$ext,
+    'Meetings' => 'meetings'.$ext,
+    'Intraframe' => 'intraframe'.$ext,
+    'Interframe' => 'interframe'.$ext,
+    'Visualisation' => 'visualisation'.$ext,
+    'Downloads' => 'downloads'.$ext,
+    'About' => 'about'.$ext,
 );
 ?>
 
@@ -31,7 +36,7 @@ $links = array(
 </head>
 <body>
     <div id="main">
-        <a href="index.php"><img alt="banner" src="images/banner.png" /></a>
+        <a href="<?php echo $links['Overview']; ?>"><img alt="banner" src="images/banner.png" /></a>
         <div id="sidebar">
 
 

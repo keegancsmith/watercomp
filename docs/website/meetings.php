@@ -21,6 +21,13 @@ $meetings = array(
 
 <h1>Meeting minutes</h1>
 
+<select onchange="document.getElementById('meeting_frame').src = this.value;">
+<?php foreach ($meetings as $meeting): ?>
+<option value="meetings/<?php echo strftime('%Y-%m-%d', $meeting); ?>.html"><?php echo strftime('%d %B %Y', $meeting); ?></option>
+<?php endforeach ?>
+</select>
+
+<!--
 <ul id="minutes">
 <?php foreach ($meetings as $meeting): ?>
 <li>
@@ -28,16 +35,20 @@ $meetings = array(
 </li>
 <?php endforeach ?>
 </ul>
+-->
 
 <br />
-The iframe is currently borked.
-<iframe frameborder="0" id="meeting_frame" name="meeting" width="100%">
-</iframe>
-
 <script type="text/javascript">
-var iframe = document.getElementById('meeting_frame');
-iframe.height = document.body.scrollHeight + 500;
+function resizeIFrame()
+{
+    var iframe = document.getElementById('meeting_frame');
+    var innerDoc = iframe.contentDocument ? iframe.contentDocument : iframe.contentWindow.document;
+    iframe.height = innerDoc.body.scrollHeight + 50;
+}//resizeIFrame
 </script>
+
+<iframe frameborder="0" id="meeting_frame" name="meeting" width="100%" onload="resizeIFrame();">
+</iframe>
 
 <?php
 include 'tail.php';
