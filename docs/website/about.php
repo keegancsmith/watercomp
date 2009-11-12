@@ -49,7 +49,14 @@ University of Cape Town.
 </p>
 
 <p>
-TODO: Add something about chemistry department.
+This project was in part proposed by John Stone of the Theoretical and 
+Computational Biophysics Group at the University of Illinois. It was 
+supervised by Dr. Patrick Marais and co-supervised by Dr. James Gain.
+</p>
+
+<p>
+Parts of the projects may be used in a molecular simulation visualisation
+program called VMD. 
 </p>
 
 <div class="clearfix"> </div>
