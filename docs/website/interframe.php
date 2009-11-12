@@ -6,7 +6,7 @@ include 'head.php';
 
 <h1>Interframe Compression</h1>
 <p>
-The Interframe Compression section of the component of the Water Compression system performs half of the task of compression. Interframe Compression is the technique of using information about previous frames in a simulation for compression.
+The Interframe section of the Water Compression system performs half of compression task. Interframe Compression is the technique of using information about previous frames in a simulation for compression.
 </p>
 
 <h2>Interframe Compression Schemes</h2>
@@ -16,7 +16,7 @@ Five compression schemes were implemented that exploit the temporal nature of th
 
 <h3>Polynomial Extrapolation</h3>
 <p>
-This is a simple scheme which predicts that atom's positions follow a simple Polynomial curve. Using the previous atoms position, a polynomial is constructed using Lagrange Polynomial Interpolation. The error from the prediction is encoded to reconstruct the positions on decoding.
+This is a simple scheme which predicts that atom's positions follow a simple Polynomial curve. Using the previous atoms position, a polynomial is constructed using Lagrange Polynomial Interpolation. The error from the prediction is encoded to reconstruct the positions when decoding.
 </p>
 
 <h3>Spline Extrapolation</h3>
@@ -26,17 +26,17 @@ This scheme is an adaptation of the Polynomial Extrapolation where the curve use
 
 <h3>Smallest Error Encoding</h3>
 <p>
-This scheme encodes a difference to the closest atom from its current position. The benefit of this scheme is that smaller errors are encoded, however, there is an additional cost of encoding extra information to recover the original data.
+This scheme encodes a difference to the closest atom from its current position. The benefit of this scheme is that smaller errors are encoded, however, there is an additional cost of encoding extra information in order to recover the original data.
 </p>
 
 <h3>Common Error Encoding</h3>
 <p>
-This is an adaptation of the Smallest Error Encoding. Instead of relying on small errors to increase compression rate, it attempts to compress based on which errors are very common. Errors that occur frequently are likely to be compressed very well. 
+This is an adaptation of the Smallest Error Encoding scheme. Instead of relying on small errors to increase compression rate, it attempts to compress based on which errors are very common. Errors that occur frequently are likely to be compressed very well. 
 </p>
 
 <h3>k-Nearest Neighbour Encoding</h3>
 <p>
-k-Nearest Neighbour Encoding is a scheme based on the machine learning technique called k-Nearest Neighbour. In our implementation of the scheme, it attempts to learn from a limited selection of previous atom positions in attempt to predict the next position.
+k-Nearest Neighbour Encoding is a scheme based on the machine learning technique called k-Nearest Neighbour. In our implementation of the scheme, it attempts to learn from a limited selection of previous atom positions in an order to predict the next position.
 </p>
 
 
@@ -61,11 +61,11 @@ there is an additional parameter to control learning settings.
 
 <h2>Results</h2>
 <p>
-Our results found that the best Interframe Compression Scheme corresponds to Delta Encoding. Essentially this scheme corresponds to Polynomial Extrapolation with a window size of 1. Instead of better predictions being made with larger window sizes, the opposite effect is seen. This is mainly due to the poor coherency in most molecular simulations, frames can often jump and bear little only a small resemblance to previous frames. 
+Our results found that the best Interframe Compression Scheme corresponds to Delta Encoding. Essentially this scheme corresponds to Polynomial Extrapolation with a window size of 1. Instead of better predictions being made with larger window sizes the opposite effect is seen. This is mainly due to the poor coherency in most molecular simulations, frames can often jump and bear little only a small resemblance to previous frames. 
 </p>
 
 <p>
-At 8-bit quantisation we compress the file down to 10% on average using Delta Encoding. This is much better than the other schemes tested for molecular simulations.
+At 8-bit quantisation we compress the file down to 10% on average using Delta Encoding. This is much better, by approximately 20%, than the other schemes tested for molecular simulations. 
 </p>
 
 <br /><br />
