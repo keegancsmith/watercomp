@@ -60,3 +60,13 @@ p
     */
 }
 
+span.bold
+{
+    font-weight: bold;
+}
+
+div.right-float
+{
+    margin-left: 1em;
+    float: right;
+}

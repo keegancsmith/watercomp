@@ -1,9 +1,8 @@
 
-            <br />
         </div> <!-- div#content -->
-        <div class="clearfix"> </div>
     </div> <!-- div#main -->
 
+    <div class="clearfix"> </div>
     <div id="footer">
         <hr />
         <center>

@@ -17,22 +17,15 @@ ul.people li
 
 div#cs-department
 {
-    float: right;
     width: 160px;
-    margin-left: 1em;
     font-size: 0.8em;
-}
-
-span.bold
-{
-    font-weight: bold;
 }
 
 </style>
 
 <h1>About</h1>
 
-<div id="cs-department">
+<div class="right-float" id="cs-department">
 <a href="http://www.cs.uct.ac.za/"><img src="images/cslogo.png" />
 Department of Computer Science</a><br />
 <a href="http://www.uct.ac.za/">University of Cape Town</a><br />

@@ -20,33 +20,79 @@ general interpretation of data.
 </p>
 
 <h3>Water point visualisation</h3>
+<div class="right-float">
+<img alt="water-point image" src="images/water-point.png" />
+</div>
 <p>
-A simple visualisation using the effects of transparency to convey an idea of 
+A simple visualisation using the effects of transparency to convey an idea of
 the volume.
 </p>
 
+<p>
+The figure on the right shows two distinct regions of water: the blue areas in
+the image. There is a region of non-water in the middle, which can be clearly
+seen.
+</p>
+
+<div class="clearfix"> </div>
 <h3>Ball-and-stick visualisation</h3>
+<div class="right-float">
+<img alt="ball-and-stick image" src="images/ball-and-stick.png" />
+</div>
 <p>
 The standard approach to visualising molecular data.
 </p>
 
-<h3>Metaballs visualisation</h3>
 <p>
-Determines and renders the surface between the water and non-water regions of 
+The red spheres are oxygen atoms, blue spheres are hydrogen atoms, and the
+white cylinders are the bonds connecting the atoms together.
+</p>
+
+<div class="clearfix"> </div>
+<h3>Metaballs visualisation</h3>
+<div class="right-float">
+<img alt="metaballs image" src="images/metaballs.png" />
+</div>
+<p>
+Determines and renders the surface between the water and non-water regions of
 the volume.
 </p>
 
+<p>
+Again, there are two distinct regions of water on the left and right, with a
+region of non-water in the middle.
+</p>
+
+<div class="clearfix"> </div>
 <h3>Water cluster visualisation</h3>
+<div class="right-float">
+<img alt="water-cluster image" src="images/water-cluster.png" />
+</div>
 <p>
 Renders the extracted water clusters from the frames.
 </p>
 
+<p>
+The water molecules within a water cluster are connected using cylinders, with
+spheres placed at the position of the water molecules.
+</p>
+
+<div class="clearfix"> </div>
 <h3>Quantisation error visualisation</h3>
+<div class="right-float">
+<img alt="quantise-error image" src="images/quantise-error.png" />
+</div>
 <p>
 Shows the errors introduced from quantising the molecular data.
 </p>
 
+<p>
+The error is colour coded on a stepped colour scale. Green indicates low
+quantisation error, while red indicates high quantisation error.
+</p>
 
+
+<div class="clearfix"> </div>
 <h2>Quantisation Experiment</h2>
 <p>
 The position data to be compressed in our water compression system is
@@ -72,16 +118,21 @@ The quantisation levels tested were: 4, 6, 8 and 10 bit quantisations.
 
 <h2>Results</h2>
 <p>
-With more quantisation, i.e. quantisation using fewer bits, the perceived
-differences are greater. The median rating for 4 bit quantisation is a 6
-("Very different"), 6 bit quantisation is a 4 ("Moderately different"), 8 and
-10 bit quantisations are rated "Somewhat different" (median rating of 3).
+User experimentation showed that people are able to notice the effects of
+quantisation. The greater the quantisation (fewer distinct values), the more
+noticeable the difference between the original and quantised data.
 </p>
 
 <p>
-Since the perceived differences between 8 and 10 bit quantisation levels are
-not significant, 8 bit quantisation is the recommended quantisation level for
-visual data.
+The effects of quantisation were most noticeable at 4 bit quantisation, less so
+at 6 bit quantisation. The results from quantising the data using 8 and 10 bit
+quantisation were rated only slightly different from the original data.
+</p>
+
+<p>
+Since the perceived differences between 8 and 10 bit quantisation with the
+original data are not significant, 8 bit quantisation is the recommended
+quantisation level for visual data.
 </p>
 
 <br /><br />
