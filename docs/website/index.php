@@ -7,10 +7,10 @@ include 'head.php';
 <h1>Overview</h1>
 
 <p>
-Molecular simulations runs for days on end, generating lots and lots of data.
-The current state of the art simulations (in the year 2009) generates data
-consisting of 2 million atoms, with 100 thousand frames. This is approximately 1
-terabyte of data, 50~80% of which is water. Transferring and storing so much
+Molecular simulations run for days on end, generating lots and lots of data.
+The current state of the art simulations (in the year 2009) generate data
+consisting of 2 million atoms, with 100 thousand frames. This is approximately
+1 terabyte of data, 50~80% of which is water. Transferring and storing so much
 data is a problem, a solution to this is to compress the data.
 </p>
 
@@ -39,14 +39,16 @@ of quantisation).
 
 <h3>Intraframe compression</h3>
 <p>
-Intraframe compression performs compression within a specific frame of the
-molecular simulation. The approach taken is based on predictive point cloud
-compressors, but with predictors tailored towards models of water. The
-predictors used for the water and non-water atoms are necessarily different.
+Intraframe compression is where each frame of the simulation is compressed
+independantly of everything other frame. We created a compression scheme which
+uses a model of the structure of water to predict where each water molecule
+is. The water and non-water atoms are compressed seperately.
 </p>
 
 <p>
-Some more info
+This section of the project explores intraframe techniques for compressing
+molecular dynamics simulations. Our scheme is compared to other schemes, using
+data which was generated with different percentage amounts of water.
 </p>
 
 <h3>Interframe compression</h3>
