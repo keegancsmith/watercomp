@@ -25,9 +25,9 @@ ul.downloads li.archive
     background-image: url(../images/package.png);
 }
 
-ul.downloads li.gap
+ul.downloads li.link
 {
-    margin-top: 2em;
+    background-image: url(../images/link.png);
 }
 
 ul.downloads li span.fileinfo

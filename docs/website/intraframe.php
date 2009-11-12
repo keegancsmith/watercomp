@@ -11,7 +11,7 @@ For further details:
 <ul class="downloads">
 <?php
 echo_download_item('keegan-report', 'Intraframe Report');
-echo_download_item('keegan-implementation', 'Intraframe Implementation');
+echo_download_item('project-implementation');
 ?>
 </ul>
 

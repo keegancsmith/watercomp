@@ -140,7 +140,7 @@ For further details:
 <ul class="downloads">
 <?php
 echo_download_item('min-report', 'Visualisation Report');
-echo_download_item('min-implementation', 'Visualisation Implementation');
+echo_download_item('project-implementation');
 ?>
 </ul>
 

@@ -33,7 +33,13 @@ $downloads = array(
         'link' => 'report_min.pdf',
         'filetype' => 'PDF'),
 
-    'poster-pdf' => array(
+    'poster-pdf2' => array(
+        'name' => 'Project Poster (PDF)',
+        'css' => 'presentation',
+        'link' => 'poster.pdf',
+        'filetype' => 'PDF'),
+
+    'poster-pdf17' => array(
         'name' => 'Project Poster (PDF)',
         'css' => 'presentation',
         'link' => 'poster.pdf',
@@ -45,22 +51,10 @@ $downloads = array(
         'link' => 'poster.png',
         'filetype' => 'PNG'),
 
-    'keegan-implementation' => array(
-        'name' => 'Keegan\'s Implementation',
+    'project-implementation' => array(
+        'name' => 'Project Implementation',
         'css' => 'archive',
-        'link' => 'keegan.tar.gz',
-        'filetype' => 'TGZ'),
-
-    'julian-implementation' => array(
-        'name' => 'Julian\'s Implementation',
-        'css' => 'archive',
-        'link' => 'julian.tar.gz',
-        'filetype' => 'TGZ'),
-
-    'min-implementation' => array(
-        'name' => 'Min-Young\'s Implementation',
-        'css' => 'archive',
-        'link' => 'min.tar.gz',
+        'link' => 'watercomp.tar.gz',
         'filetype' => 'TGZ'),
 
     'experiment-instructions' => array(

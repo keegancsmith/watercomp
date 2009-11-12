@@ -57,9 +57,9 @@ compress the data. The water and non-water atoms are treated the same.
 </p>
 
 <p>
-TODO: What did you do? i.e. 5 interframe compression schemes were developed and
-tested.
-Five interframe compression schemes were implemented and tested.
+Five interframe compression schemes were implemented and tested on various datasets.
+The datasets were chosen based on properties such as size and the coherence of
+the motion in the simulation.
 </p>
 
 <h3>Visualisation</h3>

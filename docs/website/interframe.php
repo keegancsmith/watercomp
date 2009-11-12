@@ -73,7 +73,7 @@ For further details:
 <ul class="downloads">
 <?php
 echo_download_item('julian-report', 'Interframe Report');
-echo_download_item('julian-implementation', 'Interframe Implementation');
+echo_download_item('project-implementation');
 ?>
 </ul>
 
