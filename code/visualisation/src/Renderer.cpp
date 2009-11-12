@@ -88,8 +88,8 @@ void Renderer::initializeGL()
     // glEnable(GL_LINE_SMOOTH);
     // glEnable(GL_POINT_SMOOTH);
 
-    // glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClearColor(1.0, 1.0, 1.0, 0.0);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    // glClearColor(1.0, 1.0, 1.0, 0.0);
 }//initializeGL
 
 void Renderer::resizeGL(int w, int h)
