@@ -11,25 +11,25 @@ ALL: ${FILES}
 
 
 index.html: index.php head.php
-	php index.php --static > index.html
+	php index.php -s > index.html
 
 meetings.html: meetings.php head.php
-	php meetings.php --static > meetings.html
+	php meetings.php -s > meetings.html
 
 intraframe.html: intraframe.php head.php
-	php intraframe.php --static > intraframe.html
+	php intraframe.php -s > intraframe.html
 
 interframe.html: interframe.php head.php
-	php interframe.php --static > interframe.html
+	php interframe.php -s > interframe.html
 
 visualisation.html: visualisation.php head.php
-	php visualisation.php --static > visualisation.html
+	php visualisation.php -s > visualisation.html
 
 downloads.html: downloads.php head.php
-	php downloads.php --static > downloads.html
+	php downloads.php -s > downloads.html
 
 about.html: about.php head.php
-	php about.php --static > about.html
+	php about.php -s > about.html
 
 clean:
 	rm ${FILES}

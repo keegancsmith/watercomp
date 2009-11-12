@@ -1,8 +1,8 @@
 <?php
 $ext = '.php';
-$args = getopt("", array("static::"));
-if (isset($args['static']))
-    $ext = $args['static'] === false ? '.html' : ".{$args['static']}";
+$args = getopt("s");
+if (isset($args['s']))
+    $ext = $args['s'] === false ? '.html' : ".{$args['s']}";
 
 $links = array(
     'Overview' => 'index'.$ext,
