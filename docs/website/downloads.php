@@ -29,19 +29,29 @@ function echo_downloads($keys)
 <?php echo_download_item('project-implementation'); ?>
 
 <li class="link">
-<a href="http://www.cs.umd.edu/~mount/ANN/">ANN - Approximate Nearest Neighbour</a>
+<a href="http://bitbucket.org/keegan_csmith/watercomp/" target="_blank">Project source code
+<img alt="new window" src="images/arrow.png" /></a>
+<br />
+<span class="fileinfo">Project source code</span>
+</li>
+
+<li class="link">
+<a href="http://www.cs.umd.edu/~mount/ANN/" target="_blank">ANN - Approximate Nearest Neighbour
+<img alt="new window" src="images/arrow.png" /></a>
 <br />
 <span class="fileinfo">Library required for compression</span>
 </li>
 
 <li class="link">
-<a href="http://qt.nokia.com/">Qt - A cross-platform application and UI framework</a>
+<a href="http://qt.nokia.com/" target="_blank">Qt - A cross-platform application and UI framework
+<img alt="new window" src="images/arrow.png" /></a>
 <br />
 <span class="fileinfo">Visualisation GUI toolkit</span>
 </li>
 
 <li class="link">
-<a href="http://gts.sourceforge.net/">GTS - The GNU Triangulated Surfaced Library</a>
+<a href="http://gts.sourceforge.net/" target="_blank">GTS - The GNU Triangulated Surfaced Library
+<img alt="new window" src="images/arrow.png" /></a>
 <br />
 <span class="fileinfo">Library required for visualisation</span>
 </li>

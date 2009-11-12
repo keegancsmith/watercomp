@@ -36,13 +36,13 @@ $downloads = array(
     'poster-pdf2' => array(
         'name' => 'Project Poster (PDF)',
         'css' => 'presentation',
-        'link' => 'poster.pdf',
+        'link' => 'poster2.pdf',
         'filetype' => 'PDF'),
 
     'poster-pdf17' => array(
         'name' => 'Project Poster (PDF)',
         'css' => 'presentation',
-        'link' => 'poster.pdf',
+        'link' => 'poster17.pdf',
         'filetype' => 'PDF'),
 
     'poster-png' => array(
