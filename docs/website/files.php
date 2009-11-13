@@ -36,25 +36,25 @@ $downloads = array(
     'poster-pdf2' => array(
         'name' => 'Project Poster (PDF)',
         'css' => 'presentation',
-        'link' => 'poster2.pdf',
+        'link' => 'watercomp_poster_small.pdf',
         'filetype' => 'PDF'),
 
     'poster-pdf17' => array(
         'name' => 'Project Poster (PDF)',
         'css' => 'presentation',
-        'link' => 'poster17.pdf',
+        'link' => 'watercomp_poster_large.pdf',
         'filetype' => 'PDF'),
 
     'poster-png' => array(
         'name' => 'Project Poster (PNG)',
         'css' => 'presentation',
-        'link' => 'poster.png',
+        'link' => 'watercomp_poster.png',
         'filetype' => 'PNG'),
 
     'project-implementation' => array(
         'name' => 'Project Implementation',
         'css' => 'archive',
-        'link' => 'watercomp.tar.gz',
+        'link' => 'watercomp_code.tar.gz',
         'filetype' => 'TGZ'),
 
     'experiment-instructions' => array(
