@@ -1,0 +1,385 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+
+\mode<presentation>
+{
+  \usetheme{Frankfurt}
+  \setbeamercovered{transparent}
+}
+
+\setcounter{tocdepth}{1}
+
+\title[Water Compression]{Improved Data Compression of Molecular Dynamics of
+  Water}
+
+%\subtitle{}
+
+\author{Keegan Smith
+  \and Julian Kenwood
+  \and Min-Young Wu}
+
+\titlegraphic{\includegraphics[height=16mm]{cslogo}}
+
+\date{24 November 2009}
+
+\institute[UCT]{Department of Computer Science \\ University of Cape Town}
+
+\AtBeginSection[]
+{
+  \begin{frame}
+    \frametitle{Outline}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+
+\begin{frame}{Overview}
+  \tableofcontents
+\end{frame}
+
+
+% {{{
+\section{Introduction}
+\begin{frame}{Introduction}
+  \begin{itemize}
+  \item Molecular Dynamics Simulations are simulations representing the
+    interactions of atoms over a period of time.
+
+  \item Many such simulations contain a large amount of water molecules, often
+    between 50\% to 90\% of the atoms are part of a water molecule.
+
+  \item These simulations can represent a very large time period, so they can
+    be very large: From $100$MB to $1$TB.
+
+  \item The aim of our project was to develop compression schemes that are
+    able to take advantage of this large amount of water.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Introduction}
+  \begin{figure}
+    \includegraphics[width=0.5\textwidth]{julian-images/rabies.png}
+    \caption{A Rabies Virus in water. There is a total of $450\,000$ atoms,
+      68\% of which is water.}
+  \end{figure}
+\end{frame}
+% }}}
+
+\section{Visualisations and Quantisation}
+
+\begin{frame}{Visualisations}
+% {{{
+\begin{enumerate}
+  \item Water Point
+  \item Ball-and-stick
+  \item Metaballs
+  \item Water Cluster
+  \item Quantisation Error
+\end{enumerate}
+\end{frame}
+% }}}
+
+\begin{frame}{Visualisation (Water Point)}
+% {{{
+\begin{figure}
+  \centering
+  \includegraphics[width=55mm]{min-images/water-point.png}
+  \caption{Each water molecule is represented by a single point.}
+\end{figure}
+\end{frame}
+% }}}
+
+\begin{frame}{Visualisation (Ball-and-stick)}
+% {{{
+\begin{figure}
+  \centering
+  \includegraphics[width=55mm]{min-images/ball-and-stick.png}
+  \caption{Molecules are represented by colour coded spheres, with the cylinders representing the bonds between atoms.}
+\end{figure}
+\end{frame}
+% }}}
+
+\begin{frame}{Visualisation (Metaballs)}
+% {{{
+\begin{figure}
+  \centering
+  \includegraphics[width=55mm]{min-images/metaballs.png}
+  \caption{The boundary between the water and non-water regions of the volume are extracted and rendered.}
+\end{figure}
+\end{frame}
+% }}}
+
+\begin{frame}{Visualisation (Water Cluster)}
+% {{{
+\begin{figure}
+  \centering
+  \includegraphics[width=55mm]{min-images/water-cluster.png}
+  \caption{Water molecules within a cluster are joined together using cylinders.}
+\end{figure}
+\end{frame}
+% }}}
+
+\begin{frame}{Visualisation (Quantisation Error)}
+% {{{
+\begin{figure}
+  \centering
+  \includegraphics[width=55mm]{min-images/quantisation-error-line.png}
+  \caption{The error introduced from quantisation is colour coded on a gradient.}
+\end{figure}
+\end{frame}
+% }}}
+
+\begin{frame}{Quantisation}
+% {{{
+To aid compression, the floating point data is first converted to integer values.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=75mm]{min-images/quantisation.png}
+  \caption{Quantising point data can be seen as snapping points to a grid.}
+\end{figure}
+\end{frame}
+% }}}
+
+\begin{frame}{Quantisation Experiment}
+% {{{
+
+\begin{itemize}
+
+  \item Quantisation causes a loss in data.
+
+  \item A quantisation experiment was conducted to measure the perceptually visible effects of quantisation.
+
+  \item The experiment helps determine an appropriate level of quantisation, tradeoff between compression ratio and discarded data.
+
+  \item What is the level of quantisation where the perceived differences between the original and quantised data are not significantly different.
+
+\end{itemize}
+
+\end{frame}
+% }}}
+
+\begin{frame}{Quantisation Effects}
+% {{{
+\begin{figure}
+  \centering
+  \includegraphics[width=70mm]{min-images/ball-and-stick-4680.png}
+  \caption{Quantisation effects for the ball-and-stick visualisation.}
+\end{figure}
+\end{frame}
+% }}}
+
+\begin{frame}{Quantisation Effects}
+% {{{
+\begin{figure}
+  \centering
+  \includegraphics[width=70mm]{min-images/metaballs-4680.png}
+  \caption{Quantisation effects for the metaballs visualisation.}
+\end{figure}
+\end{frame}
+% }}}
+
+\begin{frame}{Quantisation Results}
+% {{{
+\begin{figure}
+  \centering
+  \includegraphics[width=100mm]{min-images/bm-means.png}
+  \caption{Graph showing the mean values for each of the quantisation levels and visualisation techniques.}
+\end{figure}
+\end{frame}
+% }}}
+
+\begin{frame}{Quantisation Results}
+% {{{
+\begin{itemize}
+
+  \item 4 bit quantisation was rated significantly different.
+
+  \item 6 bit quantisation was rated moderately different.
+
+  \item 8 and 10 bit quantisation were rated not significantly different.
+
+\end{itemize}
+\end{frame}
+% }}}
+
+
+% {{{
+\section{Intraframe}
+\begin{frame}{What We Implemented}
+  \begin{itemize}
+    \item Reference Point Cloud Compressors
+      \begin{itemize}
+        \item Devillers and Gandoin
+        \item Gumhold et.~al.
+      \end{itemize}
+    \item Reference General MD Compressor by Omeltchenko et.~al.~(Implemented
+      by Julian)
+    \item Reference compressor using quantisation and gzip
+    \item Our own scheme is a predictive point cloud compressor which targets
+      water.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Water Compression Scheme}{Predictors}
+  \begin{figure}[h]
+    \centering \includegraphics[width=0.6\textwidth]{keegan-images/h402}
+  \end{figure}
+  \begin{figure}[h]
+    \centering \includegraphics[trim = 10mm 30mm 10mm 45mm, clip,
+      width=0.6\textwidth]{keegan-images/dimer-angle}
+  \end{figure}
+\end{frame}
+
+\begin{frame}{Water Compression Scheme}{High-level Overview}
+  \begin{enumerate}
+  \item Separate the water and non-water atoms and compress separately.
+  \item Create graph of water molecules.
+  \item Create a spanning tree from the graph.
+  \item Encode the tree, predictor used and residuals. This is done in BFS
+    order.
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Permutation Encoding}{Problem}
+  \begin{itemize}
+  \item Many of the schemes (including our scheme) do not preserve the order
+    of the points in the file.
+  \item For example in Devillers and Gandoin
+    \[ [ (1, 2), (1, 3), (0, 0), (2, 3), (2, 2), (0, 2), (1, 1) ] \]
+    when decompressed becomes
+    \[ [ (0, 0), (1, 1), (0, 2), (1, 2), (1, 3), (2, 2), (2, 3) ] \]
+  \item The file format requires the original order of the points to be
+    recovered.
+  \item Encoding the order of the points became a significant portion of the
+    compressed file.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Permutation Encoding}{Solution}
+  \begin{itemize}
+  \item We explored five different techniques.
+  \item We derived the lower bound for the worst case performance of a general
+    permutation encoder.
+    \begin{equation*}
+      \displaystyle\sum^{N}_{i=1} \log_2(i)
+    \end{equation*}
+  \item We showed that our scheme, \textbf{optimal}, encodes at roughly the
+    lower bound.
+  \item Empirically our scheme, \textbf{delta}, performed best since its worse
+    case is unlikely to occur.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Results}
+  \begin{figure}[h]
+    \centering \includegraphics[trim = 10mm 30mm 10mm 35mm, clip,
+      width=0.9\textwidth]{keegan-images/results-average}
+  \end{figure}
+  \begin{itemize}
+  \item In some test cases (with 100\% water), our scheme had a 11\% gain on
+    the next best intraframe scheme.
+  \end{itemize}
+\end{frame}
+
+
+\section{Interframe}
+
+\begin{frame}{Overview}
+\begin{itemize}
+ \item Interframe Compression is a technique where atoms are compressed using
+   knowledge about their previous positions.
+
+ \item Five Interframe Compression schemes were implemented and tested:
+ \begin{itemize}
+   \item Polynomial Extrapolation
+   \item Spline Extrapolation
+   \item Smallest Error Encoding
+   \item Common Error Encoding
+   \item k-Nearest Neighbour Encoding
+ \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Polynomial Extrapolation}
+\begin{itemize}
+ \item Uses the Lagrange Interpolation formula to construct a polynomial that
+   passes through all of the previous atom positions.
+
+ \item Using this polynomial, a prediction is made as to where the atom is
+   likely to be.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Spline Extrapolation}
+\begin{itemize}
+ \item A similar scheme to Polynomial Extrapolation.
+
+ \item Uses a Bezi\'er curve to construct a polynomial.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Smallest Error Encoding}
+\begin{itemize}
+ \item Treats the memory as a databank of past atom positions.
+
+ \item The atom is predicted at its closest previous position.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Common Error Encoding}
+\begin{itemize}
+ \item An enhancement of Smallest Error Encoding.
+
+ \item Heuristic functions are used for better compression.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{k-Nearest Neighbour Encoding}
+\begin{itemize}
+ \item Uses a learning scheme to attempt to find patterns in the atoms' positions.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Testing}
+\begin{itemize}
+ \item Several different molecular simulations were used. Specifically tested:
+ \begin{itemize}
+   \item Size of simulation: Number of atoms and frames.
+   \item Coherency of motion: Temperature and simulation timestep.
+   \item Simulation makeup: Water percentage.
+ \end{itemize}
+ \end{itemize}
+\end{frame}
+
+\begin{frame}{Results}
+\begin{figure}[h]
+\centering \includegraphics[trim = 10mm 60mm 10mm 5mm, clip,
+  width=0.9\textwidth]{julian-images/interframe_results.pdf}
+\end{figure}
+\begin{itemize}
+\item Our best scheme beats the current best scheme by approximately 20\%.
+\end{itemize}
+\end{frame}
+
+
+\section{Conclusions}
+\begin{frame}{Conclusion}
+Our project was about compression of molecular dynamics simulations containing water.
+\end{frame}
+
+\begin{frame}{Future Work}
+Our project was about compression of molecular dynamics simulations containing water.
+\end{frame}
+% }}}
+
+\end{document}
+
+% LocalWords:  intraframe
