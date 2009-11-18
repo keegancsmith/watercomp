@@ -72,6 +72,13 @@
 \end{frame}
 % }}}
 
+\begin{frame}{Work Breakdown}
+  \begin{figure}
+    \includegraphics[width=1.0\textwidth]{legends.png}
+  \end{figure}
+\end{frame}
+
+
 \section{Visualisations and Quantisation}
 
 \begin{frame}{Visualisations}
@@ -86,7 +93,7 @@
 \end{frame}
 % }}}
 
-\begin{frame}{Visualisation (Water Point)}
+\begin{frame}{Visualisation}{Water Point}
 % {{{
 \begin{figure}
   \centering
@@ -96,7 +103,7 @@
 \end{frame}
 % }}}
 
-\begin{frame}{Visualisation (Ball-and-stick)}
+\begin{frame}{Visualisation}{Ball-and-stick}
 % {{{
 \begin{figure}
   \centering
@@ -106,7 +113,7 @@
 \end{frame}
 % }}}
 
-\begin{frame}{Visualisation (Metaballs)}
+\begin{frame}{Visualisation}{Metaballs}
 % {{{
 \begin{figure}
   \centering
@@ -116,7 +123,7 @@
 \end{frame}
 % }}}
 
-\begin{frame}{Visualisation (Water Cluster)}
+\begin{frame}{Visualisation}{Water Cluster}
 % {{{
 \begin{figure}
   \centering
@@ -126,7 +133,7 @@
 \end{frame}
 % }}}
 
-\begin{frame}{Visualisation (Quantisation Error)}
+\begin{frame}{Visualisation}{Quantisation Error}
 % {{{
 \begin{figure}
   \centering
@@ -370,9 +377,54 @@ To aid compression, the floating point data is first converted to integer values
 \end{frame}
 
 
-\section{Conclusions}
+\section{Conclusion}
+\begin{frame}{Conclusion}{Research Questions}
+Visualisation and quantisation
+\begin{itemize}
+ \item Acceptable level of quantisation?
+ \begin{itemize}
+  \item 8 bit quantisation recommended for visual data
+ \end{itemize}
+ \item Effectively visualise and cope with large levels of detail?
+ \begin{itemize}
+  \item Yes
+ \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusion}{Research Questions}
+Intraframe
+\begin{itemize}
+ \item Exploit what we know about water?
+ \begin{itemize}
+  \item Yes
+ \end{itemize}
+ \item Can we improve on other methods?
+ \begin{itemize}
+  \item Yes
+ \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusion}{Research Questions}
+Interframe
+\begin{itemize}
+ \item Can interframe prediction be used for compression?
+ \begin{itemize}
+  \item Yes.
+ \end{itemize}
+ \item Achieve better compression rates than other methods?
+ \begin{itemize}
+  \item Yes, specifically in the case of water-dominant simulations.
+ \end{itemize}
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Conclusion}
-Our project was about compression of molecular dynamics simulations containing water.
+\begin{itemize}
+ \item 8 bit quantisation recommended for visual data
+ \item Good compression ratios
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Future Work}
