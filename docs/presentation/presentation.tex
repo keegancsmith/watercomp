@@ -393,17 +393,21 @@ Visualisation and quantisation
 \end{frame}
 
 \begin{frame}{Conclusion}{Research Questions}
-Intraframe
-\begin{itemize}
- \item Exploit what we know about water?
- \begin{itemize}
-  \item Yes
- \end{itemize}
- \item Can we improve on other methods?
- \begin{itemize}
-  \item Yes
- \end{itemize}
-\end{itemize}
+  Intraframe
+  \begin{itemize}
+  \item Can we effectively exploit what we know about water?
+    \begin{itemize}
+    \item Yes. The more water we have, the better our compression.
+    \end{itemize}
+  \item Can we improve on other methods?
+    \begin{itemize}
+    \item Yes. We improve on all the methods tested.
+    \end{itemize}
+  \item Can we Compress and Decompress in an efficient manner?
+    \begin{itemize}
+    \item Yes. $O(n \log n)$ and $O(n)$ per frame respectively.
+    \end{itemize}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Conclusion}{Research Questions}
@@ -428,7 +432,17 @@ Interframe
 \end{frame}
 
 \begin{frame}{Future Work}
-Our project was about compression of molecular dynamics simulations containing water.
+  Enhancing
+  \begin{itemize}
+  \item Better joining of components in spanning tree for intraframe water
+    compressor.
+  \end{itemize}
+  Extending
+  \begin{itemize}
+  \item Parallel intraframe compressor.
+  \item General molecular dynamics compressor.
+  \item Point cloud compressor which preserves point order.
+  \end{itemize}
 \end{frame}
 % }}}
 
