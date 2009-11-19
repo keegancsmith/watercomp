@@ -84,11 +84,32 @@
 \begin{frame}{Visualisations}
 % {{{
 \begin{enumerate}
+
   \item Water Point
+  \begin{itemize}
+    \item Water molecules represented by points.
+  \end{itemize}
+
   \item Ball-and-stick
+  \begin{itemize}
+    \item Atoms represented by spheres.
+  \end{itemize}
+
   \item Metaballs
+  \begin{itemize}
+    \item Boundary between water and non-water regions extracted.
+  \end{itemize}
+
   \item Water Cluster
+  \begin{itemize}
+    \item Water molecules are clustered together.
+  \end{itemize}
+
   \item Quantisation Error
+  \begin{itemize}
+    \item Shows introduced quantisation error.
+  \end{itemize}
+
 \end{enumerate}
 \end{frame}
 % }}}
@@ -198,7 +219,7 @@ To aid compression, the floating point data is first converted to integer values
 \begin{figure}
   \centering
   \includegraphics[width=100mm]{min-images/bm-means.png}
-  \caption{Graph showing the mean values for each of the quantisation levels and visualisation techniques.}
+  \caption{Graph showing the mean ratings for each of the quantisation levels and visualisation techniques.}
 \end{figure}
 \end{frame}
 % }}}
@@ -379,55 +400,65 @@ To aid compression, the floating point data is first converted to integer values
 
 \section{Conclusion}
 \begin{frame}{Conclusion}{Research Questions}
-Visualisation and quantisation
+
+\textbf{Visualisation and quantisation}
+
+\ \newline
+Acceptable level of quantisation?
 \begin{itemize}
- \item Acceptable level of quantisation?
- \begin{itemize}
-  \item 8 bit quantisation recommended for visual data
- \end{itemize}
- \item Effectively visualise and cope with large levels of detail?
- \begin{itemize}
-  \item Yes
- \end{itemize}
+  \item 8 bit quantisation recommended for visual data.
+\end{itemize}
+
+\ \newline
+Effectively visualise and cope with large levels of detail?
+\begin{itemize}
+  \item Yes. Filtering applied to reduce clutter.
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Conclusion}{Research Questions}
-  Intraframe
-  \begin{itemize}
-  \item Can we effectively exploit what we know about water?
-    \begin{itemize}
-    \item Yes. The more water we have, the better our compression.
-    \end{itemize}
-  \item Can we improve on other methods?
-    \begin{itemize}
-    \item Yes. We improve on all the methods tested.
-    \end{itemize}
-  \item Can we Compress and Decompress in an efficient manner?
-    \begin{itemize}
-    \item Yes. $O(n \log n)$ and $O(n)$ per frame respectively.
-    \end{itemize}
-  \end{itemize}
+\textbf{Intraframe}
+
+\ \newline
+Can we effectively exploit what we know about water?
+\begin{itemize}
+  \item Yes. The more water we have, the better our compression.
+\end{itemize}
+
+\ \newline
+Can we improve on other methods?
+\begin{itemize}
+  \item Yes. We improve on all the methods tested.
+\end{itemize}
+
+\ \newline
+Can we Compress and Decompress in an efficient manner?
+\begin{itemize}
+  \item Yes. $O(n \log n)$ and $O(n)$ per frame respectively.
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Conclusion}{Research Questions}
-Interframe
+\textbf{Interframe}
+
+\ \newline
+Can interframe prediction be used for compression?
 \begin{itemize}
- \item Can interframe prediction be used for compression?
- \begin{itemize}
   \item Yes.
- \end{itemize}
- \item Achieve better compression rates than other methods?
- \begin{itemize}
+\end{itemize}
+
+\ \newline
+Achieve better compression rates than other methods?
+\begin{itemize}
   \item Yes, specifically in the case of water-dominant simulations.
- \end{itemize}
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Conclusion}
 \begin{itemize}
- \item 8 bit quantisation recommended for visual data
- \item Good compression ratios
+ \item 8 bit quantisation recommended for visual fidelity.
+ \item Exploiting the structure of water is a viable technique for compression.
+ \item Exploiting the correlation between atom positions between frames is a viable technique for compression.
 \end{itemize}
 \end{frame}
 
@@ -443,6 +474,12 @@ Interframe
   \item General molecular dynamics compressor.
   \item Point cloud compressor which preserves point order.
   \end{itemize}
+\end{frame}
+
+\begin{frame}{Thank you}
+  \begin{center}
+    Any Questions?
+  \end{center}
 \end{frame}
 % }}}
 
