@@ -254,8 +254,17 @@ To aid compression, the floating point data is first converted to integer values
     \item Our own scheme is a predictive point cloud compressor which targets
       water.
   \end{itemize}
+  \begin{figure}[h]
+    \centering 
+    \begin{tabular}{ccccc}
+        \includegraphics[width=0.25\textwidth]{keegan-images/dg1}
+      & $\to$
+      & \includegraphics[width=0.25\textwidth]{keegan-images/dg2}
+      & $\to$
+      & \includegraphics[width=0.25\textwidth]{keegan-images/dg3}
+    \end{tabular}
+  \end{figure}
 \end{frame}
-
 \begin{frame}{Water Compression Scheme}{Predictors}
   \begin{figure}[h]
     \centering \includegraphics[width=0.6\textwidth]{keegan-images/h402}
@@ -293,7 +302,7 @@ To aid compression, the floating point data is first converted to integer values
 
 \begin{frame}{Permutation Encoding}{Solution}
   \begin{itemize}
-  \item We explored five different techniques.
+  \item We thought up and explored five different techniques.
   \item We derived the lower bound for the worst case performance of a general
     permutation encoder.
     \begin{equation*}
