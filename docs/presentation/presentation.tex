@@ -316,6 +316,9 @@ To aid compression, the floating point data is first converted to integer values
 \end{frame}
 
 \begin{frame}{Polynomial Extrapolation}
+  \begin{figure}[h]
+    \centering \includegraphics[width=0.6\textwidth]{julian-images/p1.png}
+  \end{figure}
 \begin{itemize}
  \item Uses the Lagrange Interpolation formula to construct a polynomial that
    passes through all of the previous atom positions.
@@ -326,6 +329,9 @@ To aid compression, the floating point data is first converted to integer values
 \end{frame}
 
 \begin{frame}{Spline Extrapolation}
+  \begin{figure}[h]
+    \centering \includegraphics[width=0.6\textwidth]{julian-images/p2.png}
+  \end{figure}
 \begin{itemize}
  \item A similar scheme to Polynomial Extrapolation.
 
@@ -334,24 +340,30 @@ To aid compression, the floating point data is first converted to integer values
 \end{frame}
 
 \begin{frame}{Smallest Error Encoding}
+\begin{figure}[h]
+    \centering \includegraphics[width=0.6\textwidth]{julian-images/p3.png}
+  \end{figure}
 \begin{itemize}
+
  \item Treats the memory as a databank of past atom positions.
 
  \item The atom is predicted at its closest previous position.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Common Error Encoding}
+\begin{frame}{Common Error and kNN Encoding}
+
+\begin{itemize}
+ \item Common Error Encoding
 \begin{itemize}
  \item An enhancement of Smallest Error Encoding.
-
  \item Heuristic functions are used for better compression.
 \end{itemize}
-\end{frame}
 
-\begin{frame}{k-Nearest Neighbour Encoding}
+\item k-Nearest Neighbour Encoding
 \begin{itemize}
  \item Uses a learning scheme to attempt to find patterns in the atoms' positions.
+\end{itemize}
 \end{itemize}
 \end{frame}
 
@@ -436,12 +448,14 @@ Interframe
   \begin{itemize}
   \item Better joining of components in spanning tree for intraframe water
     compressor.
+  \item More efficient implementations of interframe compressors.
   \end{itemize}
   Extending
   \begin{itemize}
   \item Parallel intraframe compressor.
   \item General molecular dynamics compressor.
   \item Point cloud compressor which preserves point order.
+  \item Test more interframe compression schemes.
   \end{itemize}
 \end{frame}
 % }}}
