@@ -354,21 +354,21 @@ To aid compression, the floating point data is first converted to integer values
     \centering \includegraphics[width=0.6\textwidth]{julian-images/p2.png}
   \end{figure}
 \begin{itemize}
- \item A similar scheme to Polynomial Extrapolation.
-
- \item Uses a Bezi\'er curve to construct a polynomial.
+ \item An identical scheme to Polynomial Extrapolation, but uses a spline curve for the polynomial.
+ \item A Bezi\'er curve polynomial is used. These curves have better behaviour at high orders than Polynomial Extrapolation.
+ \item This potentially leads to a better compression rate.
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Smallest Error Encoding}
 \begin{figure}[h]
-    \centering \includegraphics[width=0.6\textwidth]{julian-images/p3.png}
+    \centering \includegraphics[trim = 0mm 0mm 0mm 25mm, clip, width=0.6\textwidth]{julian-images/p3.png}
   \end{figure}
 \begin{itemize}
-
  \item Treats the memory as a databank of past atom positions.
-
- \item The atom is predicted at its closest previous position.
+ \item The atom is predicted to be at its closest previous position.
+ \item The error is encoded as well as the time at which it was closest.
+ \item Errors are kept as small as possible, but requires additional encoding overhead.
 \end{itemize}
 \end{frame}
 
@@ -377,13 +377,18 @@ To aid compression, the floating point data is first converted to integer values
 \begin{itemize}
  \item Common Error Encoding
 \begin{itemize}
- \item An enhancement of Smallest Error Encoding.
+ \item A scheme we invented to improve on the Smallest Error Encoding scheme.
  \item Heuristic functions are used for better compression.
+ \item These heuristics use knowledge about which errors have been encoded most often.
+ \item Still suffers from the additional encoding overhead as Smallest Error Encoding
 \end{itemize}
 
 \item k-Nearest Neighbour Encoding
 \begin{itemize}
- \item Uses a learning scheme to attempt to find patterns in the atoms' positions.
+ \item Based on the machine learning algorithm called kNN.
+ \item The scheme attempts to find patterns in the atom's positions.
+ \item Errors are encoded from where it thinks that the atom should be.
+ \item If a suitable pattern is found, it compresses well.
 \end{itemize}
 \end{itemize}
 \end{frame}
@@ -431,64 +436,62 @@ Effectively visualise and cope with large levels of detail?
 \begin{frame}{Conclusion}{Research Questions}
 \textbf{Intraframe}
 
-\ \newline
 Can we effectively exploit what we know about water?
 \begin{itemize}
   \item Yes. The more water we have, the better our compression.
 \end{itemize}
 
-\ \newline
 Can we improve on other methods?
 \begin{itemize}
   \item Yes. We improve on all the methods tested.
 \end{itemize}
 
-\ \newline
 Can we Compress and Decompress in an efficient manner?
 \begin{itemize}
   \item Yes. $O(n \log n)$ and $O(n)$ per frame respectively.
 \end{itemize}
-\end{frame}
 
-\begin{frame}{Conclusion}{Research Questions}
 \textbf{Interframe}
 
-\ \newline
 Can interframe prediction be used for compression?
 \begin{itemize}
   \item Yes.
 \end{itemize}
 
-\ \newline
 Achieve better compression rates than other methods?
 \begin{itemize}
   \item Yes, specifically in the case of water-dominant simulations.
 \end{itemize}
+
 \end{frame}
 
 \begin{frame}{Conclusion}
 \begin{itemize}
+ \item Conclusion
+ \begin{itemize}
  \item 8 bit quantisation recommended for visual fidelity.
  \item Exploiting the structure of water is a viable technique for compression.
  \item Exploiting the correlation between atom positions between frames is a viable technique for compression.
 \end{itemize}
-\end{frame}
-
-\begin{frame}{Future Work}
-  Enhancing
+ \item Future Work \\ \textbf{Enhancing framework}
   \begin{itemize}
+  
   \item Better joining of components in spanning tree for intraframe water
     compressor.
   \item More efficient implementations of interframe compressors.
   \end{itemize}
-  Extending
+  \textbf{Extending framework}
   \begin{itemize}
   \item Parallel intraframe compressor.
   \item General molecular dynamics compressor.
   \item Point cloud compressor which preserves point order.
   \item Test more interframe compression schemes.
   \end{itemize}
+\end{itemize}
+
+
 \end{frame}
+
 
 \begin{frame}{Thank you}
   \begin{center}
