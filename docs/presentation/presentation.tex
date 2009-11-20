@@ -72,7 +72,7 @@
 \end{frame}
 % }}}
 
-\begin{frame}{Work Breakdown}
+\begin{frame}{Compression Process}
   \begin{figure}
     \includegraphics[width=1.0\textwidth]{legends.png}
   \end{figure}
@@ -80,6 +80,18 @@
 
 
 \section{Visualisations and Quantisation}
+
+\begin{frame}{Quantisation}
+% {{{
+To aid compression, the floating point data is first converted to integer values.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=75mm]{min-images/quantisation.png}
+  \caption{Quantising point data can be seen as snapping points to a grid.}
+\end{figure}
+\end{frame}
+% }}}
 
 \begin{frame}{Visualisations}
 % {{{
@@ -160,18 +172,6 @@
   \centering
   \includegraphics[width=55mm]{min-images/quantisation-error-line.png}
   \caption{The error introduced from quantisation is colour coded on a gradient.}
-\end{figure}
-\end{frame}
-% }}}
-
-\begin{frame}{Quantisation}
-% {{{
-To aid compression, the floating point data is first converted to integer values.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=75mm]{min-images/quantisation.png}
-  \caption{Quantising point data can be seen as snapping points to a grid.}
 \end{figure}
 \end{frame}
 % }}}
@@ -474,30 +474,14 @@ Achieve better compression rates than other methods?
 
 \end{frame}
 
+
 \begin{frame}{Conclusion}
+
 \begin{itemize}
- \item Conclusion
- \begin{itemize}
  \item 8 bit quantisation recommended for visual fidelity.
  \item Exploiting the structure of water is a viable technique for compression.
  \item Exploiting the correlation between atom positions between frames is a viable technique for compression.
 \end{itemize}
- \item Future Work \\ \textbf{Enhancing framework}
-  \begin{itemize}
-  
-  \item Better joining of components in spanning tree for intraframe water
-    compressor.
-  \item More efficient implementations of interframe compressors.
-  \end{itemize}
-  \textbf{Extending framework}
-  \begin{itemize}
-  \item Parallel intraframe compressor.
-  \item General molecular dynamics compressor.
-  \item Point cloud compressor which preserves point order.
-  \item Test more interframe compression schemes.
-  \end{itemize}
-\end{itemize}
-
 
 \end{frame}
 
