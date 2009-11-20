@@ -39,11 +39,6 @@
 \end{frame}
 
 
-\begin{frame}{Overview}
-  \tableofcontents
-\end{frame}
-
-
 % {{{
 \section{Introduction}
 \begin{frame}{Introduction}
@@ -73,6 +68,8 @@
 % }}}
 
 \begin{frame}{Compression Process}
+  % Julian: Explain that this is data flowing and make the distinction between
+  % intraframe and interframe more clear.
   \begin{figure}
     \includegraphics[width=1.0\textwidth]{legends.png}
   \end{figure}
@@ -255,7 +252,7 @@ To aid compression, the floating point data is first converted to integer values
       water.
   \end{itemize}
   \begin{figure}[h]
-    \centering 
+    \centering
     \begin{tabular}{ccccc}
         \includegraphics[width=0.25\textwidth]{keegan-images/dg1}
       & $\to$
@@ -425,55 +422,35 @@ To aid compression, the floating point data is first converted to integer values
 
 
 \section{Conclusion}
-\begin{frame}{Conclusion}{Research Questions}
+\begin{frame}{Conclusion}{Research Answers}
 
-\textbf{Visualisation and quantisation}
+  \begin{itemize}
 
-\ \newline
-Acceptable level of quantisation?
-\begin{itemize}
-  \item 8 bit quantisation recommended for visual data.
-\end{itemize}
+  \item Visualisation and quantisation
+    \begin{itemize}
+    \item 8 bit quantisation is recommended for an acceptable level of
+      quantisation.
+    \item Applying filtering to reduce clutter effectively visualises large
+      levels of detail.
+    \end{itemize}
 
-\ \newline
-Effectively visualise and cope with large levels of detail?
-\begin{itemize}
-  \item Yes. Filtering applied to reduce clutter.
-\end{itemize}
+  \item Intraframe
+    \begin{itemize}
+    \item The more water in a simulation the better our scheme performs. This
+      indicates that we are effectively exploiting the structure of water.
+    \item Our scheme performs better than every other scheme tested.
+    \item We compress and decompress in an efficient manner.
+    \end{itemize}
+
+  \item Interframe
+    \begin{itemize}
+      \item Interframe prediction can be used for compression.
+      \item Our scheme performs better than existing compression scheme,
+        especially in water-dominate simulations.
+    \end{itemize}
+
+  \end{itemize}
 \end{frame}
-
-\begin{frame}{Conclusion}{Research Questions}
-\textbf{Intraframe}
-
-Can we effectively exploit what we know about water?
-\begin{itemize}
-  \item Yes. The more water we have, the better our compression.
-\end{itemize}
-
-Can we improve on other methods?
-\begin{itemize}
-  \item Yes. We improve on all the methods tested.
-\end{itemize}
-
-Can we Compress and Decompress in an efficient manner?
-\begin{itemize}
-  \item Yes. $O(n \log n)$ and $O(n)$ per frame respectively.
-\end{itemize}
-
-\textbf{Interframe}
-
-Can interframe prediction be used for compression?
-\begin{itemize}
-  \item Yes.
-\end{itemize}
-
-Achieve better compression rates than other methods?
-\begin{itemize}
-  \item Yes, specifically in the case of water-dominant simulations.
-\end{itemize}
-
-\end{frame}
-
 
 \begin{frame}{Conclusion}
 
@@ -486,9 +463,9 @@ Achieve better compression rates than other methods?
 \end{frame}
 
 
-\begin{frame}{Thank you}
+\begin{frame}{Questions}
   \begin{center}
-    Any Questions?
+    \resizebox{0.1\textwidth}{!}{?}
   \end{center}
 \end{frame}
 % }}}
