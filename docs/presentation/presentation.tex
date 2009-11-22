@@ -82,20 +82,9 @@
 
 \section{Visualisations and Quantisation}
 
-\begin{frame}{Quantisation}
-% {{{
-To aid compression, the floating point data is first converted to integer values.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=75mm]{min-images/quantisation.png}
-  \caption{Quantising point data can be seen as snapping points to a grid.}
-\end{figure}
-\end{frame}
-% }}}
-
 \begin{frame}{Visualisations}
 % {{{
+To examine the simulations, a number of visualisations were developed:
 \begin{enumerate}
 
   \item Water Point
@@ -177,6 +166,18 @@ To aid compression, the floating point data is first converted to integer values
 \end{frame}
 % }}}
 
+\begin{frame}{Quantisation}
+% {{{
+To aid compression, the floating point data is first converted to integer values.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=75mm]{min-images/quantisation.png}
+  \caption{Quantising point data can be seen as snapping points to a grid.}
+\end{figure}
+\end{frame}
+% }}}
+
 \begin{frame}{Quantisation Experiment}
 % {{{
 
@@ -184,9 +185,11 @@ To aid compression, the floating point data is first converted to integer values
 
   \item Quantisation causes a loss in data.
 
+  \item Researchers will be visually examining the simulations, how much error is noticeable?
+
   \item A quantisation experiment was conducted to measure the perceptually visible effects of quantisation.
 
-  \item The experiment helps determine an appropriate level of quantisation, tradeoff between compression ratio and discarded data.
+  \item Determine an appropriate level of quantisation, tradeoff between compression ratio and discarded data. \\ \
 
   \item What is the level of quantisation where the perceived differences between the original and quantised data are not significantly different.
 
@@ -215,6 +218,39 @@ To aid compression, the floating point data is first converted to integer values
 \end{frame}
 % }}}
 
+\begin{frame}{Analysis of Quantisation Results}
+% {{{
+\begin{itemize}
+
+  \item The datasets do \textbf{not} have a statistically significant effect \\
+  {\footnotesize Which is \textbf{good}, all datasets were similary affected by quantisation.
+  Friedman Test \textbf{p-value: $>$0.1}}
+
+  % \item The data is normal \\
+  % {\footnotesize Shapiro-Wilks Test \textbf{p-value: $<$0.01}}
+
+  \item Quantisation has a statistically significant effect \\
+  {\footnotesize ANOVA \textbf{p-value: $<$2.2e-16}}
+
+  \item 8 and 10 bit quantisation are not statistically significantly different
+  from each other \\
+  {\footnotesize Ball-and-stick: \textbf{p-value of 0.7135299}} \\
+  {\footnotesize Metaballs: \textbf{p-value of 0.9762546}}
+
+\end{itemize}
+\end{frame}
+% }}}
+
+\begin{frame}{Quantisation Results}
+% {{{
+\begin{figure}
+  \centering
+  \includegraphics[width=100mm]{min-images/bm-boxplot.png}
+  \caption{Box-and-whisker plot showing the ratings for each of the quantisation levels and visualisations.}
+\end{figure}
+\end{frame}
+% }}}
+
 \begin{frame}{Quantisation Results}
 % {{{
 \begin{figure}
@@ -222,20 +258,6 @@ To aid compression, the floating point data is first converted to integer values
   \includegraphics[width=100mm]{min-images/bm-means.png}
   \caption{Graph showing the mean ratings for each of the quantisation levels and visualisation techniques.}
 \end{figure}
-\end{frame}
-% }}}
-
-\begin{frame}{Quantisation Results}
-% {{{
-\begin{itemize}
-
-  \item 4 bit quantisation was rated significantly different.
-
-  \item 6 bit quantisation was rated moderately different.
-
-  \item 8 and 10 bit quantisation were rated not significantly different.
-
-\end{itemize}
 \end{frame}
 % }}}
 
