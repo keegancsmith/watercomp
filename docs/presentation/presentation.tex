@@ -70,8 +70,12 @@
 \begin{frame}{Compression Process}
   % Julian: Explain that this is data flowing and make the distinction between
   % intraframe and interframe more clear.
+  \begin{itemize}
+   \item Dataflow for the compression process.
+  \end{itemize}
+
   \begin{figure}
-    \includegraphics[width=1.0\textwidth]{legends.png}
+    \includegraphics[width=0.9\textwidth]{legends.png}
   \end{figure}
 \end{frame}
 
@@ -408,12 +412,16 @@ To aid compression, the floating point data is first converted to integer values
    \item Simulation makeup: Water percentage.
  \end{itemize}
  \end{itemize}
+\begin{figure}[h]
+    \centering \includegraphics[width=0.5\textwidth]{julian-images/coherency.png}
+  \caption{Simulations with low coherency of motion can have frames that appear unrelated to their previous frame.}
+  \end{figure}
 \end{frame}
 
 \begin{frame}{Results}
 \begin{figure}[h]
 \centering \includegraphics[trim = 10mm 60mm 10mm 5mm, clip,
-  width=0.9\textwidth]{julian-images/interframe_results.pdf}
+  width=0.9\textwidth]{julian-images/interframe_results.png}
 \end{figure}
 \begin{itemize}
 \item Our best scheme beats the current best scheme by approximately 20\%.
