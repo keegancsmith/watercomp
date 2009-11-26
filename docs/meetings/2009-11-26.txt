@@ -1,0 +1,27 @@
+.. -*- mode: rst -*-
+.. vim: filetype=rst
+
+==========================================
+ Minutes of Meeting Tuesday 26 April 2009
+==========================================
+
+Julian
+======
+
+1. Experiments with frame skip
+2. Temperature keyed
+3. GA learning for predictor
+4. Frequency of error encoding across frame
+5. Delauney based
+6. Linear time simulation as predictor (need more info)
+
+Min
+===
+
+1. Expert area settings of quantisation
+
+Keegan
+======
+
+1. PDB permutation reduction
+2. Interframe permutation by closest point
