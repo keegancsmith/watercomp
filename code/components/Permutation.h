@@ -97,7 +97,7 @@ private:
 };
 
 
-// BestPermutation encodes values using an arithmetic coder where as each
+// OptimalPermutation encodes values using an arithmetic coder where as each
 // value is encoded, it's symbol is removed from the arithmetic coder
 // frequency table
 class IndexToSymbol
@@ -114,10 +114,10 @@ private:
     std::vector<int> m_symbols;
 };
 
-class BestPermutationWriter : public PermutationWriter
+class OptimalPermutationWriter : public PermutationWriter
 {
 public:
-    BestPermutationWriter(ArithmeticEncoder * enc, int size);
+    OptimalPermutationWriter(ArithmeticEncoder * enc, int size);
     void next_index(int index);
     void reset() { m_indicies.reset(); }
 private:
@@ -125,10 +125,10 @@ private:
     IndexToSymbol m_indicies;
 };
 
-class BestPermutationReader : public PermutationReader
+class OptimalPermutationReader : public PermutationReader
 {
 public:
-    BestPermutationReader(ArithmeticDecoder * dec, int size);
+    OptimalPermutationReader(ArithmeticDecoder * dec, int size);
     int next_index();
     void reset() { m_indicies.reset(); }
 private:

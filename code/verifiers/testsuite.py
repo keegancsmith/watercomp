@@ -11,7 +11,7 @@ import time
 
 RESULTS      = os.path.expanduser('~/dcd_results')
 QUANTISATION = ['8', '12']#, '16']
-PERMUTATIONS = 'null best naive interframe delta'.split()
+PERMUTATIONS = 'null optimal naive interframe delta'.split()
 CMD_PATH     = os.path.abspath(sys.argv[0])
 WORKING_DIR  = os.path.dirname(os.path.dirname(CMD_PATH))
 INPUT_DIR    = os.path.expanduser('~/dcd_input')

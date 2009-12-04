@@ -9,12 +9,12 @@ std::string get_permutation_env()
 {
     char * perm = getenv("PERMUTATION");
     if (!perm)
-        return "best";
+        return "optimal";
     else return perm;
 }
 
 const char * perm_error_msg = "ERROR: PERMUTATION environment variable must "
-    "be 'null', 'naive', 'delta', 'interframe' or 'best' (default)\n";
+    "be 'null', 'naive', 'delta', 'interframe' or 'optimal' (default)\n";
 
 PermutationWriter * PermutationWriter::get_writer(ArithmeticEncoder * enc,
                                                   int size)
@@ -28,8 +28,8 @@ PermutationWriter * PermutationWriter::get_writer(ArithmeticEncoder * enc,
         return new DeltaPermutationWriter(enc);
     if (perm == "interframe")
         return new InterframePermutationWriter(enc, size);
-    if (perm == "best")
-        return new BestPermutationWriter(enc, size);
+    if (perm == "optimal")
+        return new OptimalPermutationWriter(enc, size);
     fprintf(stderr, "%s", perm_error_msg);
     exit(1);
 }
@@ -47,8 +47,8 @@ PermutationReader * PermutationReader::get_reader(ArithmeticDecoder * dec,
         return new DeltaPermutationReader(dec);
     if (perm == "interframe")
         return new InterframePermutationReader(dec, size);
-    if (perm == "best")
-        return new BestPermutationReader(dec, size);
+    if (perm == "optimal")
+        return new OptimalPermutationReader(dec, size);
     fprintf(stderr, "%s", perm_error_msg);
     exit(1);
 }
@@ -117,7 +117,7 @@ int DeltaPermutationReader::next_index()
 
 
 //
-// BestPermutation
+// OptimalPermutation
 //
 
 IndexToSymbol::IndexToSymbol(int size)
@@ -166,14 +166,14 @@ void IndexToSymbol::reset()
 }
 
 
-BestPermutationWriter::BestPermutationWriter(ArithmeticEncoder * enc,
+OptimalPermutationWriter::OptimalPermutationWriter(ArithmeticEncoder * enc,
                                              int size)
     : m_enc(enc), m_indicies(size)
 {
 }
 
 
-void BestPermutationWriter::next_index(int index)
+void OptimalPermutationWriter::next_index(int index)
 {
     int size = m_indicies.size();
     int val  = m_indicies.pop_index(index);
@@ -181,14 +181,14 @@ void BestPermutationWriter::next_index(int index)
 }
 
 
-BestPermutationReader::BestPermutationReader(ArithmeticDecoder * dec,
+OptimalPermutationReader::OptimalPermutationReader(ArithmeticDecoder * dec,
                                              int size)
     : m_dec(dec), m_indicies(size)
 {
 }
 
 
-int BestPermutationReader::next_index()
+int OptimalPermutationReader::next_index()
 {
     int val = m_dec->decode(m_indicies.size());
     m_dec->decoder_update(val, val+1);
