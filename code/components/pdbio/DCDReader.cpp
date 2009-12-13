@@ -49,7 +49,7 @@ void DCDReader::set_frame(int frame)
 
 size_t DCDReader::nframes() const
 {
-    return _nframes > 50 ? 50 : _nframes;
+    return _nframes;
 }//nframes
 
 int DCDReader::natoms() const
