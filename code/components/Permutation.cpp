@@ -9,7 +9,7 @@ std::string get_permutation_env()
 {
     char * perm = getenv("PERMUTATION");
     if (!perm)
-        return "optimal";
+        return "delta";
     else return perm;
 }
 
