@@ -5,7 +5,9 @@
 #include <cstdlib>
 #include <string>
 
-std::string get_permutation_env()
+using std::string;
+
+string get_permutation_env()
 {
     char * perm = getenv("PERMUTATION");
     if (!perm)
@@ -19,7 +21,7 @@ const char * perm_error_msg = "ERROR: PERMUTATION environment variable must "
 PermutationWriter * PermutationWriter::get_writer(ArithmeticEncoder * enc,
                                                   int size)
 {
-    std::string perm = get_permutation_env();
+    string perm = get_permutation_env();
     if (perm == "null")
         return new NullPermutationWriter();
     if (perm == "naive")
@@ -38,7 +40,7 @@ PermutationWriter * PermutationWriter::get_writer(ArithmeticEncoder * enc,
 PermutationReader * PermutationReader::get_reader(ArithmeticDecoder * dec,
                                                   int size)
 {
-    std::string perm = get_permutation_env();
+    string perm = get_permutation_env();
     if (perm == "null")
         return new NullPermutationReader();
     if (perm == "naive")
@@ -233,4 +235,67 @@ int InterframePermutationReader::next_index()
     m_last[m_pos] = index;
     m_pos++;
     return index;
+}
+
+
+
+PDBPermutationWriter::PDBPermutationWriter(ArithmeticEncoder * enc,
+                                           const std::vector<AtomInformation> & atom_info)
+    : m_atom_name(enc), m_residue_name(enc), m_residue_sequence(enc),
+      m_seg_id(enc), m_atom_info(atom_info)
+{
+}
+
+
+void PDBPermutationWriter::next_index(int index)
+{
+    const AtomInformation & info = m_atom_info[index];
+    m_atom_name.encode(info.atom_name);
+    m_residue_name.encode(info.residue_name);
+    m_residue_sequence.encode_int(info.residue_sequence);
+    m_seg_id.encode(info.seg_id);
+}
+
+
+bool PDBPermutationReader::pdb_key::operator < (const pdb_key & a) const
+{
+    if (atom_name != a.atom_name)
+        return atom_name < a.atom_name;
+    if (residue_name != a.residue_name)
+        return residue_name < a.residue_name;
+    if (residue_sequence != a.residue_sequence)
+        return residue_sequence < a.residue_sequence;
+    return seg_id < a.seg_id;
+}
+
+
+PDBPermutationReader::PDBPermutationReader(ArithmeticDecoder * dec,
+                                           const std::vector<AtomInformation> & atom_info)
+  : m_atom_name(dec), m_residue_name(dec),
+    m_residue_sequence(dec), m_seg_id(dec)
+{
+    for (size_t i = 0; i < atom_info.size(); i++) {
+        const AtomInformation & info = atom_info[i];
+        pdb_key k = { info.atom_name,
+                      info.residue_name,
+                      info.residue_sequence,
+                      info.seg_id };
+        m_pdb_to_index[k] = i;
+    }
+}
+
+
+int PDBPermutationReader::next_index()
+{
+    string atom_name = m_atom_name.decode();
+    string residue_name = m_residue_name.decode();
+    unsigned int residue_sequence = m_residue_sequence.decode_int();
+    string seg_id = m_seg_id.decode();
+
+    pdb_key k = { atom_name,
+                  residue_name,
+                  residue_sequence,
+                  seg_id };
+
+    return m_pdb_to_index[k];
 }

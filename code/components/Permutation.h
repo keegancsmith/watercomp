@@ -6,9 +6,11 @@
 #include "arithmetic/ByteDecoder.h"
 #include "arithmetic/AdaptiveModelEncoder.h"
 #include "arithmetic/AdaptiveModelDecoder.h"
+#include "pdbio/AtomInformation.h"
 
 #include <vector>
-
+#include <string>
+#include <map>
 
 // Experiments with permutation compressors
 
@@ -161,4 +163,44 @@ private:
     std::vector<int> m_last;
     AdaptiveModelDecoder m_dec;
     int m_pos;
+};
+
+
+// PDBPermutation encodes each index using the information from the PDB file
+class PDBPermutationWriter : public PermutationWriter
+{
+public:
+    PDBPermutationWriter(ArithmeticEncoder * enc,
+                         const std::vector<AtomInformation> & atom_info);
+    void next_index(int index);
+private:
+    AdaptiveModelEncoder m_atom_name;
+    AdaptiveModelEncoder m_residue_name;
+    AdaptiveModelEncoder m_residue_sequence;
+    AdaptiveModelEncoder m_seg_id;
+    const std::vector<AtomInformation> & m_atom_info;
+};
+
+class PDBPermutationReader : public PermutationReader
+{
+public:
+    PDBPermutationReader(ArithmeticDecoder * dec,
+                         const std::vector<AtomInformation> & atom_info);
+    int next_index();
+private:
+    struct pdb_key {
+        std::string atom_name;
+        std::string residue_name;
+        unsigned int residue_sequence;
+        std::string seg_id;
+
+        bool operator < (const pdb_key & a) const;
+    };
+
+    std::map<pdb_key, int> m_pdb_to_index;
+
+    AdaptiveModelDecoder m_atom_name;
+    AdaptiveModelDecoder m_residue_name;
+    AdaptiveModelDecoder m_residue_sequence;
+    AdaptiveModelDecoder m_seg_id;
 };
