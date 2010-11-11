@@ -64,7 +64,7 @@ for k, v in TESTS.items():
         del v2['perms']
         for p in v['perms']:
             test = {
-                'bin'    : 'PERMUTATION="%s" %s' % (p, v['bin']),
+                'bin'    : '%s -t %s' % (v['bin'], p),
                 'author' : v['author'],
             }
             TESTS_ALL['%s_%s' % (k,p)] = test

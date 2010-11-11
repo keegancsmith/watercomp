@@ -7,12 +7,15 @@
 #include "arithmetic/AdaptiveModelEncoder.h"
 #include "arithmetic/AdaptiveModelDecoder.h"
 #include "pdbio/AtomInformation.h"
+#include "Compressor.h"
 
 #include <vector>
 #include <string>
 #include <map>
 
 // Experiments with permutation compressors
+
+extern std::string permutation_compressors[];
 
 class PermutationWriter
 {
@@ -21,7 +24,8 @@ public:
     virtual void next_index(int index) = 0;
     virtual void reset() {}
 
-    static PermutationWriter * get_writer(ArithmeticEncoder * enc,
+    static PermutationWriter * get_writer(Compressor * compressor,
+                                          ArithmeticEncoder * enc,
                                           int size);
 };
 
@@ -32,7 +36,8 @@ public:
     virtual int next_index() = 0;
     virtual void reset() {}
 
-    static PermutationReader * get_reader(ArithmeticDecoder * dec,
+    static PermutationReader * get_reader(Compressor * compressor,
+                                          ArithmeticDecoder * dec,
                                           int size);
 };
 

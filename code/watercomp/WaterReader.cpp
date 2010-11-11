@@ -7,11 +7,11 @@
 
 using std::vector;
 
-WaterReader::WaterReader(FILE * fin, const vector<AtomInformation> & pdb)
-    : m_adaptive(&m_decoder), m_byte(&m_decoder)
+WaterReader::WaterReader(FILE * fin, Compressor * c)
+    : m_adaptive(&m_decoder), m_byte(&m_decoder), m_compressor(c)
 {
     m_decoder.start_decode(fin);
-    split_frame(pdb, m_water_molecules, m_other_atoms);
+    split_frame(c->m_atom_information, m_water_molecules, m_other_atoms);
 }
 
 
@@ -25,7 +25,8 @@ void WaterReader::start()
     //int ISTART = header_int[2];
     //int NSAVC  = header_int[3];
 
-    m_adaptive_water = new SerialiseDecoder(&m_decoder, m_natoms);
+    m_adaptive_water = new SerialiseDecoder(m_compressor, &m_decoder,
+                                            m_natoms);
 
     //double DELTA;
     //dec.decode(&DELTA, sizeof(double), 1);

@@ -8,11 +8,11 @@
 
 using namespace std;
 
-WaterWriter::WaterWriter(FILE * fout, const vector<AtomInformation> & pdb)
-    : m_adaptive(&m_encoder), m_byte(&m_encoder)
+WaterWriter::WaterWriter(FILE * fout, Compressor * c)
+    : m_adaptive(&m_encoder), m_byte(&m_encoder), m_compressor(c)
 {
     m_encoder.start_encode(fout);
-    split_frame(pdb, m_water_molecules, m_other_atoms);
+    split_frame(c->m_atom_information, m_water_molecules, m_other_atoms);
 }
 
 
@@ -29,7 +29,7 @@ void WaterWriter::start(int atoms, int frames, int ISTART,
     m_byte.encode(header_int, sizeof(int), 2);
     //enc.encode(&DELTA, sizeof(double), 1);
 
-    m_adaptive_water = new SerialiseEncoder(&m_encoder, atoms);
+    m_adaptive_water = new SerialiseEncoder(m_compressor, &m_encoder, atoms);
 }
 
 

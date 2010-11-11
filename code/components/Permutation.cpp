@@ -5,23 +5,14 @@
 #include <cstdlib>
 #include <string>
 
-using std::string;
+std::string permutation_compressors[] = {"optimal", "null", "naive", "delta",
+                                         "interframe", "pdb", ""};
 
-string get_permutation_env()
-{
-    char * perm = getenv("PERMUTATION");
-    if (!perm)
-        return "delta";
-    else return perm;
-}
-
-const char * perm_error_msg = "ERROR: PERMUTATION environment variable must "
-    "be 'null', 'naive', 'delta', 'interframe' or 'optimal' (default)\n";
-
-PermutationWriter * PermutationWriter::get_writer(ArithmeticEncoder * enc,
+PermutationWriter * PermutationWriter::get_writer(Compressor * c,
+                                                  ArithmeticEncoder * enc,
                                                   int size)
 {
-    string perm = get_permutation_env();
+    std::string perm = c->m_permutation_compressor;
     if (perm == "null")
         return new NullPermutationWriter();
     if (perm == "naive")
@@ -32,15 +23,17 @@ PermutationWriter * PermutationWriter::get_writer(ArithmeticEncoder * enc,
         return new InterframePermutationWriter(enc, size);
     if (perm == "optimal")
         return new OptimalPermutationWriter(enc, size);
-    fprintf(stderr, "%s", perm_error_msg);
-    exit(1);
+    if (perm == "pdb")
+        return new PDBPermutationWriter(enc, c->m_atom_information);
+    abort();
 }
 
 
-PermutationReader * PermutationReader::get_reader(ArithmeticDecoder * dec,
+PermutationReader * PermutationReader::get_reader(Compressor * c,
+                                                  ArithmeticDecoder * dec,
                                                   int size)
 {
-    string perm = get_permutation_env();
+    std::string perm = c->m_permutation_compressor;
     if (perm == "null")
         return new NullPermutationReader();
     if (perm == "naive")
@@ -51,8 +44,9 @@ PermutationReader * PermutationReader::get_reader(ArithmeticDecoder * dec,
         return new InterframePermutationReader(dec, size);
     if (perm == "optimal")
         return new OptimalPermutationReader(dec, size);
-    fprintf(stderr, "%s", perm_error_msg);
-    exit(1);
+    if (perm == "pdb")
+        return new PDBPermutationReader(dec, c->m_atom_information);
+    abort();
 }
 
 
@@ -287,6 +281,8 @@ PDBPermutationReader::PDBPermutationReader(ArithmeticDecoder * dec,
 
 int PDBPermutationReader::next_index()
 {
+    using std::string;
+
     string atom_name = m_atom_name.decode();
     string residue_name = m_residue_name.decode();
     unsigned int residue_sequence = m_residue_sequence.decode_int();

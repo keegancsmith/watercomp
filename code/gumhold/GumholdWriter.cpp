@@ -2,8 +2,9 @@
 #include "arithmetic/ByteEncoder.h"
 #include "SpanningTree.h"
 
-GumholdWriter::GumholdWriter(FILE * fout, gumhold_predictor * pred)
-    : m_fout(fout), m_pred(pred)
+GumholdWriter::GumholdWriter(FILE * fout, Compressor * c,
+                             gumhold_predictor * pred)
+    : m_fout(fout), m_compressor(c), m_pred(pred)
 {
 }
 
@@ -24,7 +25,7 @@ void GumholdWriter::start(int atoms, int frames, int ISTART,
     enc.encode(header_int, sizeof(int), 2);
     //enc.encode(&DELTA, sizeof(double), 1);
 
-    m_enc = new SerialiseEncoder(&m_encoder, atoms);
+    m_enc = new SerialiseEncoder(m_compressor, &m_encoder, atoms);
 }
 
 

@@ -4,8 +4,9 @@
 
 #include <cassert>
 
-GumholdReader::GumholdReader(FILE * fin, gumhold_predictor * pred)
-    : m_fin(fin), m_pred(pred)
+GumholdReader::GumholdReader(FILE * fin, Compressor * c,
+                             gumhold_predictor * pred)
+    : m_fin(fin), m_compressor(c), m_pred(pred)
 {
 }
 
@@ -23,7 +24,7 @@ void GumholdReader::start()
     //int ISTART = header_int[2];
     //int NSAVC  = header_int[3];
 
-    m_dec = new SerialiseDecoder(&m_decoder, m_natoms);
+    m_dec = new SerialiseDecoder(m_compressor, &m_decoder, m_natoms);
 
     //double DELTA;
     //dec.decode(&DELTA, sizeof(double), 1);

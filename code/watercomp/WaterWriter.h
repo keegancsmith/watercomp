@@ -2,6 +2,7 @@
 
 #include "OxygenGraph.h"
 
+#include "Compressor.h"
 #include "FrameWriter.h"
 #include "arithmetic/AdaptiveModelEncoder.h"
 #include "arithmetic/ArithmeticEncoder.h"
@@ -15,7 +16,7 @@
 class WaterWriter : public FrameWriter
 {
 public:
-    WaterWriter(FILE * fout, const std::vector<AtomInformation> & atom_info);
+    WaterWriter(FILE * fout, Compressor * compressor);
     ~WaterWriter();
 
     void start(int atoms, int frames, int ISTART = 0,
@@ -32,6 +33,7 @@ private:
     AdaptiveModelEncoder m_adaptive;
     SerialiseEncoder * m_adaptive_water;
     ByteEncoder m_byte;
+    Compressor * m_compressor;
 
     // Some stats
     std::vector<int> nClusters;
