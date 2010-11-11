@@ -36,7 +36,7 @@ AdaptiveModelDecoder::AdaptiveModelDecoder(ArithmeticDecoder* arithmetic_decoder
 
 AdaptiveModelDecoder::~AdaptiveModelDecoder()
 {
-    for(int i = 1; i < symbol_table.size(); ++i)
+    for(size_t i = 1; i < symbol_table.size(); ++i)
         delete [] symbol_table[i];
 }
 

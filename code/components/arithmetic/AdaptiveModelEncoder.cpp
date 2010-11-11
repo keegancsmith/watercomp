@@ -25,7 +25,7 @@ void AdaptiveModelEncoder::encode(string symbol)
         unsigned int new_s = tree.add_symbol();
         symbol_table.insert(symbol.c_str(), symbol.length(), new_s);
         
-        for(int i = 0; i < symbol.size(); ++i)
+        for(size_t i = 0; i < symbol.size(); ++i)
             encoder->encode(symbol[i], symbol[i]+1, 256);
         
         encoder->encode(0, 1, 256);

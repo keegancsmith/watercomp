@@ -110,9 +110,9 @@ void WaterWriter::next_frame_other(const QuantisedFrame & qframe)
         int bit_offset = 0;
 
         // Write dimension out into buf
-        for (int i = 0; i < m_other_atoms.size(); i++) {
+        for (size_t i = 0; i < m_other_atoms.size(); i++) {
             unsigned int val = qframe.at(m_other_atoms[i], d);
-            for (int j = 0; j < dims[d]; j++) {
+            for (size_t j = 0; j < dims[d]; j++) {
                 // Get and write j'th bit of val
                 int bit = (val >> j) & 1;
                 buf[byte_offset] |= (bit << bit_offset);
@@ -127,7 +127,7 @@ void WaterWriter::next_frame_other(const QuantisedFrame & qframe)
         }
 
         // Encode buf to file
-        for (int i = 0; i < size; i++)
+        for (size_t i = 0; i < size; i++)
             m_adaptive.encode_bytes(buf + i, 1);
     }
 }

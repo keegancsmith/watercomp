@@ -81,7 +81,7 @@ void WaterReader::next_frame_other(QuantisedFrame & qframe)
         unsigned char buf[size];
 
         // Read into buf from file
-        for (int i = 0; i < size; i++)
+        for (size_t i = 0; i < size; i++)
             m_adaptive.decode_bytes(buf + i);
 
         // Position in buf
@@ -89,10 +89,10 @@ void WaterReader::next_frame_other(QuantisedFrame & qframe)
         int bit_offset = 0;
 
         // Copy to qframe buffer
-        for (int i = 0; i < m_other_atoms.size(); i++) {
+        for (size_t i = 0; i < m_other_atoms.size(); i++) {
             unsigned int val = 0;
 
-            for (int j = 0; j < dims[d]; j++) {
+            for (size_t j = 0; j < dims[d]; j++) {
                 // Get and write j'th bit of val
                 int bit = (buf[byte_offset] >> bit_offset) & 1;
                 val |= (bit << j);

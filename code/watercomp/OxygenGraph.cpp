@@ -14,8 +14,8 @@ using namespace std;
 
 OxygenGraph::OxygenGraph(const QuantisedFrame & qframe,
                          const vector<WaterMolecule> & waters)
-    : m_predictor(qframe), m_qframe(qframe), m_waters(waters),
-      nClusters(0), nConstant(0), nHydrogen(0)
+    : nClusters(0), nConstant(0), nHydrogen(0),
+      m_predictor(qframe), m_qframe(qframe), m_waters(waters)
 {
 }
 
