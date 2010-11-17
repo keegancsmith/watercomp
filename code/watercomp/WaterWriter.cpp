@@ -29,7 +29,10 @@ void WaterWriter::start(int atoms, int frames, int ISTART,
     m_byte.encode(header_int, sizeof(int), 2);
     //enc.encode(&DELTA, sizeof(double), 1);
 
-    m_adaptive_water = new SerialiseEncoder(m_compressor, &m_encoder, atoms);
+    // Don't pass m_natoms since we are only permutation encoding the indicies
+    // of the water molecules.
+    m_adaptive_water = new SerialiseEncoder(m_compressor, &m_encoder,
+                                            m_water_molecules.size());
 }
 
 

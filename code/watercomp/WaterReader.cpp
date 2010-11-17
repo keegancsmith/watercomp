@@ -25,8 +25,10 @@ void WaterReader::start()
     //int ISTART = header_int[2];
     //int NSAVC  = header_int[3];
 
+    // Don't pass m_natoms since we are only permutation encoding the indicies
+    // of the water molecules.
     m_adaptive_water = new SerialiseDecoder(m_compressor, &m_decoder,
-                                            m_natoms);
+                                            m_water_molecules.size());
 
     //double DELTA;
     //dec.decode(&DELTA, sizeof(double), 1);

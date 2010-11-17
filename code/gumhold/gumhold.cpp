@@ -73,6 +73,8 @@ public:
     FrameWriter * frame_writer(FILE * fout) {
         return new GumholdWriter(fout, this, get_gumhold_predictor());
     }
+
+    bool needs_permutation_compressor() const { return true; }
 };
 
 
