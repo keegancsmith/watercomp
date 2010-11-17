@@ -1,6 +1,6 @@
 #include "OxygenGraph.h"
 
-#include "ANN/ANN.h"
+#include <ANN/ANN.h>
 
 #include <algorithm>
 #include <cassert>
@@ -71,8 +71,10 @@ Graph * OxygenGraph::create_oxygen_graph() const
         for (int d = 0; d < 3; d++)
             query[d] = frame.atom_data[O_idx_offset + d];
 
-        int neigh = kd_tree->annkFRSearch(query, radius, oxygen_size,
+        int neigh = kd_tree->annkFRSearch(query, radius, 0,
                                           result, dists, RADIUS_ERROR);
+        kd_tree->annkFRSearch(query, radius, neigh,
+                              result, dists, RADIUS_ERROR);
 
         for (int j = 0; j < neigh; j++)
             if (result[j] != i)
