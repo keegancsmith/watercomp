@@ -9,7 +9,8 @@
 using namespace std;
 
 WaterWriter::WaterWriter(FILE * fout, Compressor * c)
-    : m_adaptive(&m_encoder), m_byte(&m_encoder), m_compressor(c)
+    : m_adaptive(&m_encoder), m_byte(&m_encoder), m_compressor(c),
+      m_previous_frame(0, 8, 8, 8)
 {
     m_encoder.start_encode(fout);
     split_frame(c->m_atom_information, m_water_molecules, m_other_atoms);
@@ -100,37 +101,18 @@ void WaterWriter::next_frame_water(const QuantisedFrame & qframe)
 
 void WaterWriter::next_frame_other(const QuantisedFrame & qframe)
 {
-    // Write out other atoms per dimension
-    size_t dims[3] = { qframe.m_xquant, qframe.m_yquant, qframe.m_zquant };
-    for (int d = 0; d < 3; d++) {
-        // Setup buf
-        size_t size = (m_other_atoms.size() * dims[d] + 7) / 8;
-        unsigned char buf[size];
-        std::fill(buf, buf + size, 0);
+    // Delta encoding on non water molecule atoms.
+    for (size_t i = 0; i < m_other_atoms.size(); i++) {
+        unsigned int idx = m_other_atoms[i];
 
-        // Position in buf
-        int byte_offset = 0;
-        int bit_offset = 0;
+        int prediction[3] = { 0, 0, 0 };
+        if (m_previous_frame.natoms())
+            for (int d = 0; d < 3; d++)
+                prediction[d] = (int)m_previous_frame.at(idx, d);
 
-        // Write dimension out into buf
-        for (size_t i = 0; i < m_other_atoms.size(); i++) {
-            unsigned int val = qframe.at(m_other_atoms[i], d);
-            for (size_t j = 0; j < dims[d]; j++) {
-                // Get and write j'th bit of val
-                int bit = (val >> j) & 1;
-                buf[byte_offset] |= (bit << bit_offset);
-
-                // Adjust the bit and byte offset in buf
-                bit_offset++;
-                if (bit_offset == 8) {
-                    byte_offset++;
-                    bit_offset = 0;
-                }
-            }
-        }
-
-        // Encode buf to file
-        for (size_t i = 0; i < size; i++)
-            m_adaptive.encode_bytes(buf + i, 1);
+        for (int d = 0; d < 3; d++)
+            m_adaptive.encode_int((int)qframe.at(idx, d) - prediction[d]);
     }
+
+    m_previous_frame = qframe;
 }

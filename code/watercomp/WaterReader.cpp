@@ -8,7 +8,8 @@
 using std::vector;
 
 WaterReader::WaterReader(FILE * fin, Compressor * c)
-    : m_adaptive(&m_decoder), m_byte(&m_decoder), m_compressor(c)
+    : m_adaptive(&m_decoder), m_byte(&m_decoder), m_compressor(c),
+      m_previous_frame(0, 8, 8, 8)
 {
     m_decoder.start_decode(fin);
     split_frame(c->m_atom_information, m_water_molecules, m_other_atoms);
@@ -76,39 +77,18 @@ void WaterReader::next_frame_water(QuantisedFrame & qframe)
 
 void WaterReader::next_frame_other(QuantisedFrame & qframe)
 {
-    // Read in qframe per dimension
-    size_t dims[3] = { qframe.m_xquant, qframe.m_yquant, qframe.m_zquant };
-    for (int d = 0; d < 3; d++) {
-        // Setup buf
-        size_t size = (m_other_atoms.size() * dims[d] + 7) / 8;
-        unsigned char buf[size];
+    // Delta decoding on non water molecule atoms.
+    for (size_t i = 0; i < m_other_atoms.size(); i++) {
+        unsigned int idx = m_other_atoms[i];
 
-        // Read into buf from file
-        for (size_t i = 0; i < size; i++)
-            m_adaptive.decode_bytes(buf + i);
+        int prediction[3] = { 0, 0, 0 };
+        if (m_previous_frame.natoms())
+            for (int d = 0; d < 3; d++)
+                prediction[d] = (int)m_previous_frame.at(idx, d);
 
-        // Position in buf
-        int byte_offset = 0;
-        int bit_offset = 0;
-
-        // Copy to qframe buffer
-        for (size_t i = 0; i < m_other_atoms.size(); i++) {
-            unsigned int val = 0;
-
-            for (size_t j = 0; j < dims[d]; j++) {
-                // Get and write j'th bit of val
-                int bit = (buf[byte_offset] >> bit_offset) & 1;
-                val |= (bit << j);
-
-                // Adjust the bit and byte offset in buf
-                bit_offset++;
-                if (bit_offset == 8) {
-                    byte_offset++;
-                    bit_offset = 0;
-                }
-            }
-
-            qframe.at(m_other_atoms[i], d) = val;
-        }
+        for (int d = 0; d < 3; d++)
+            qframe.at(idx, d) = m_adaptive.decode_int() + prediction[d];
     }
+
+    m_previous_frame = qframe;
 }

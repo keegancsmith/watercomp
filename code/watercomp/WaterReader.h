@@ -33,6 +33,7 @@ private:
     void next_frame_water(QuantisedFrame & qframe);
     void next_frame_other(QuantisedFrame & qframe);
 
+    QuantisedFrame m_previous_frame;
     std::vector<WaterMolecule> m_water_molecules;
     std::vector<unsigned int> m_other_atoms;
 };
