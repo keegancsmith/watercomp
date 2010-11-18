@@ -390,14 +390,11 @@ void NearestNeighbourPermutationWriter::next_index(int index,
         indicies[i] = i;
     std::sort(indicies, indicies + k, comparator);
 
-    k--;
-    while (m_nn_idx[indicies[k]] != index) {
-        k--;
-        assert(k >= 0);
-    }
+    while (m_nn_idx[indicies[--k]] != index)
+        assert(k > 0);
 
     m_enc.encode_int(k);
-    
+
     // Cleanup
     annDeallocPt(point);
 }
@@ -410,18 +407,86 @@ void NearestNeighbourPermutationWriter::reset() {
 
     if (m_last_tree)
         delete m_last_tree;
-    else 
+    else
         m_last_points = annAllocPts(m_size, 3);
 
     std::swap(m_last_points, m_current_points);
     m_last_tree = new ANNkd_tree(m_last_points, m_size, 3);
 }
 
-// XXX implement Reader
 NearestNeighbourPermutationReader::NearestNeighbourPermutationReader(
-    ArithmeticDecoder * dec, int size) : m_dec(dec) {}
-int NearestNeighbourPermutationReader::next_index(unsigned int coord[3]) { assert(false); }
-void NearestNeighbourPermutationReader::reset() {}
+    ArithmeticDecoder * dec, int size)
+    : m_current_points(0), m_last_points(0), m_last_tree(0),
+      m_size(size), m_dec(dec)
+{
+    m_nn_idx = new ANNidx[size];
+    m_dd = new ANNdist[size];
+}
+
+int NearestNeighbourPermutationReader::next_index(unsigned int coord[3])
+{
+    assert(coord != 0);
+
+    if (!m_last_points) {
+        // Just read in the index
+        int index = m_dec.decode_int();
+        for (int d = 0; d < 3; d++)
+            m_current_points[index][d] = coord[d];
+        return index;
+    }
+
+    // Otherwise we get the distance rank and decode from there.
+    int rank = m_dec.decode_int();
+    assert(0 <= rank && rank < m_size);
+
+    ANNpoint point = annAllocPt(3);
+    for (int d = 0; d < 3; d++)
+        point[d] = coord[d];
+
+    // Find out how far the kth point is
+    m_last_tree->annkSearch(point, rank + 1, m_nn_idx, m_dd);
+    ANNdist sqRad = 0;
+    for (int i = 0; i <= rank; i++)
+        sqRad = std::max(sqRad, m_dd[i]);
+    sqRad += 1e-9;
+
+    int k = m_last_tree->annkFRSearch(point, sqRad, 0);
+    m_last_tree->annkFRSearch(point, sqRad, k, m_nn_idx, m_dd);
+    assert(k >= rank);
+
+    // We will have to use our own comparator to do tie breaks.
+    SearchResultComparator comparator = { m_last_points, m_nn_idx, m_dd };
+    int indicies[k];
+    for (int i = 0; i < k; i++)
+        indicies[i] = i;
+    std::sort(indicies, indicies + k, comparator);
+
+    int index = m_nn_idx[indicies[rank]];
+
+    for (int d = 0; d < 3; d++)
+        m_current_points[index][d] = coord[d];
+
+    // Cleanup
+    annDeallocPt(point);
+
+    return index;
+}
+
+void NearestNeighbourPermutationReader::reset()
+{
+    if (!m_current_points) { // First run
+        m_current_points = annAllocPts(m_size, 3);
+        return;
+    }
+
+    if (m_last_tree)
+        delete m_last_tree;
+    else
+        m_last_points = annAllocPts(m_size, 3);
+
+    std::swap(m_last_points, m_current_points);
+    m_last_tree = new ANNkd_tree(m_last_points, m_size, 3);
+}
 
 
 #endif // ANN
