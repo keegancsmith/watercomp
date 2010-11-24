@@ -13,7 +13,9 @@ class QuantisedFrame
         QuantisedFrame(const Frame & frame,
                        unsigned int x_subs,
                        unsigned int y_subs,
-                       unsigned int z_subs);
+                       unsigned int z_subs,
+                       float * min_coord = 0,
+                       float * max_coord = 0);
 
         QuantisedFrame(unsigned int size,
                        unsigned int x_subs,

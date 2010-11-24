@@ -69,12 +69,24 @@ bool compress(Compressor & c, string dcdpath, string outpath,
     // Header
     writer->start(reader.natoms(), reader.nframes());
 
+    // Keep track of the bounding box
+    float min_coord[3];
+    float max_coord[3];
+
     // Do each frame
     Frame frame(reader.natoms());
     unsigned int frame_num = 0;
     while(reader.next_frame(frame)) {
         cout << '\r' << progress_bar(frame_num++, reader.nframes()) << flush;
-        QuantisedFrame qframe(frame, quantx, quanty, quantz);
+        QuantisedFrame qframe(frame, quantx, quanty, quantz,
+                              min_coord, max_coord);
+
+        for (int d = 0; d < 3; d++) {
+            min_coord[d] = qframe.min_coord[d] = min(min_coord[d],
+                                                     qframe.min_coord[d]);
+            max_coord[d] = qframe.max_coord[d] = max(max_coord[d],
+                                                     qframe.max_coord[d]);
+        }
 
         // Write out
         writer->next_frame(qframe);

@@ -4,13 +4,26 @@
 using namespace std;
 
 QuantisedFrame::QuantisedFrame(const Frame & frame,
-               unsigned int x_subs, unsigned int y_subs, unsigned int z_subs)
+                               unsigned int x_subs,
+                               unsigned int y_subs,
+                               unsigned int z_subs,
+                               float * _min_coord,
+                               float * _max_coord)
     : m_xquant(x_subs), m_yquant(y_subs), m_zquant(z_subs)
 {
-    for(int d = 0; d < 3; ++d)
-        min_coord[d] = max_coord[d] = frame.atom_data[d];
+    assert((_min_coord == 0) == (_max_coord == 0));
 
-    for(size_t i = 1; i < frame.natoms(); ++i)
+    if (_min_coord) {
+        for(int d = 0; d < 3; ++d) {
+            min_coord[d] = _min_coord[d];
+            max_coord[d] = _max_coord[d];
+        }
+    } else {
+        for (int d = 0; d < 3; ++d)
+            min_coord[d] = max_coord[d] = frame.atom_data[d];
+    }
+
+    for(size_t i = 0; i < frame.natoms(); ++i)
         for(int d = 0; d < 3; ++d)
         {
             min_coord[d] = min(frame.atom_data[3*i + d], min_coord[d]);
@@ -41,7 +54,10 @@ QuantisedFrame::QuantisedFrame(const Frame & frame,
         }
 }
 
-QuantisedFrame::QuantisedFrame(unsigned int size, unsigned int x_subs, unsigned int y_subs, unsigned int z_subs)
+QuantisedFrame::QuantisedFrame(unsigned int size,
+                               unsigned int x_subs,
+                               unsigned int y_subs,
+                               unsigned int z_subs)
    : m_xquant(x_subs), m_yquant(y_subs), m_zquant(z_subs)
 {
     quantised_frame.resize(3*size);
