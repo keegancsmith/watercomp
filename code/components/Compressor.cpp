@@ -15,6 +15,7 @@ extern "C" {
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#include <limits>
 #include <iostream>
 #include <string>
 
@@ -70,8 +71,8 @@ bool compress(Compressor & c, string dcdpath, string outpath,
     writer->start(reader.natoms(), reader.nframes());
 
     // Keep track of the bounding box
-    float min_coord[3];
-    float max_coord[3];
+    float min_coord[3] = { std::numeric_limits<float>::max() };
+    float max_coord[3] = { std::numeric_limits<float>::min() };
 
     // Do each frame
     Frame frame(reader.natoms());
