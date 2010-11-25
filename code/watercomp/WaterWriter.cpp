@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -54,26 +55,21 @@ void WaterWriter::end()
     sort(nConstant.begin(), nConstant.end());
     sort(nHydrogen.begin(), nHydrogen.end());
 
-    // cout << "\nMean Clusters: " << nClusters[nClusters.size()/2] << endl
-    //      <<   "Mean Constant: " << nConstant[nConstant.size()/2] << endl
-    //      <<   "Mean Hydrogen: " << nHydrogen[nHydrogen.size()/2] << endl;
+    ofstream fout("stats.csv");
 
-    // cout << "\nMin Clusters: " << nClusters[0] << endl
-    //      <<   "Min Constant: " << nConstant[0] << endl
-    //      <<   "Min Hydrogen: " << nHydrogen[0] << endl;
+    fout << "Mean Clusters, " << nClusters[nClusters.size()/2] << endl
+         << "Mean Constant, " << nConstant[nConstant.size()/2] << endl
+         << "Mean Hydrogen, " << nHydrogen[nHydrogen.size()/2] << endl;
 
-    // cout << "\nMax Clusters: " << nClusters[nClusters.size()-1] << endl
-    //      <<   "Max Constant: " << nConstant[nConstant.size()-1] << endl
-    //      <<   "Max Hydrogen: " << nHydrogen[nHydrogen.size()-1] << endl;
-    // int l = nClusters.size() - 1;
-    // int m = nClusters.size() / 2;
-    // int vals[9] = { nClusters[m], nClusters[0], nClusters[l],
-    //                 nConstant[m], nConstant[0], nConstant[l],
-    //                 nHydrogen[m], nHydrogen[0], nHydrogen[l] };
-    // cout << "    & ";
-    // for (int i = 0; i < 9; i++)
-    //     cout << "& $" << vals[i] << "$ ";
-    // cout << "\\\\";
+    fout << "Min Clusters, " << nClusters[0] << endl
+         << "Min Constant, " << nConstant[0] << endl
+         << "Min Hydrogen, " << nHydrogen[0] << endl;
+
+    fout << "Max Clusters, " << nClusters[nClusters.size()-1] << endl
+         << "Max Constant, " << nConstant[nConstant.size()-1] << endl
+         << "Max Hydrogen, " << nHydrogen[nHydrogen.size()-1] << endl;
+
+    fout.close();
 }
 
 
