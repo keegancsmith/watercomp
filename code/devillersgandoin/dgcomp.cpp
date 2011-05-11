@@ -23,8 +23,9 @@ using namespace std;
 class DGReader : public FrameReader
 {
 public:
-    DGReader(FILE * fin) 
-        : m_fin(fin), m_dec(&m_decoder), m_byte(&m_decoder) {}
+    DGReader(FILE * fin, Compressor * compressor)
+        : m_fin(fin), m_dec(&m_decoder), m_byte(&m_decoder),
+          m_compressor(compressor), m_perm(0) {}
     ~DGReader() {}
 
     void start() {
@@ -45,7 +46,7 @@ public:
 
     bool next_frame(QuantisedFrame & qframe) {
         if (m_perm == 0)
-            m_perm = PermutationReader::get_reader(&m_decoder, natoms());
+            m_perm = PermutationReader::get_reader(m_compressor, &m_decoder, natoms());
         else
             m_perm->reset();
 
@@ -100,6 +101,7 @@ private:
     ArithmeticDecoder m_decoder;
     AdaptiveModelDecoder m_dec;
     ByteDecoder m_byte;
+    Compressor * m_compressor;
     PermutationReader * m_perm;
 };
 
@@ -107,8 +109,9 @@ private:
 class DGWriter : public FrameWriter
 {
 public:
-    DGWriter(FILE * fout)
-        : m_fout(fout), m_enc(&m_encoder), m_byte(&m_encoder) {}
+    DGWriter(FILE * fout, Compressor * compressor)
+        : m_fout(fout), m_enc(&m_encoder), m_byte(&m_encoder),
+          m_compressor(compressor), m_perm(0) {}
     ~DGWriter() {}
 
     void start(int atoms, int frames, int ISTART = 0,
@@ -124,11 +127,12 @@ public:
 
     void next_frame(const QuantisedFrame & qframe) {
         if (m_perm == 0)
-            m_perm = PermutationWriter::get_writer(&m_encoder,
+            m_perm = PermutationWriter::get_writer(m_compressor,
+                                                   &m_encoder,
                                                    qframe.natoms());
         else
             m_perm->reset();
-        
+
         // Frame header
         unsigned int header_quant[3] = {
             qframe.m_xquant, qframe.m_yquant, qframe.m_zquant
@@ -142,7 +146,7 @@ public:
         unsigned int bits = *max_element(header_quant, header_quant+3);
         vector<point_t> points;
         points.resize(qframe.natoms());
-        for (size_t i = 0; i < qframe.natoms(); i++) {
+        for (int i = 0; i < qframe.natoms(); i++) {
             points[i].index = i;
             for (int d = 0; d < 3; d++)
                 points[i].coords[d] = qframe.quantised_frame[i*3 + d];
@@ -152,14 +156,14 @@ public:
         // Do the devillers and gandoin transformation
         vector<int> perm;
         vector<coord_t> encoded = encode(points, perm, bits);
-        unsigned int size = encoded.size();
-        assert(perm.size() == qframe.natoms());
+        int size = (int)encoded.size();
+        assert((int)perm.size() == qframe.natoms());
 
         // Write out data
         m_byte.encode(&size, sizeof(unsigned int), 1);
-        for (size_t i = 0; i < size; i++)
+        for (int i = 0; i < size; i++)
             m_enc.encode_int(encoded[i]);
-        for (size_t i = 0; i < qframe.natoms(); i++)
+        for (int i = 0; i < qframe.natoms(); i++)
             m_perm->next_index(perm[i]);
     }
 
@@ -173,6 +177,7 @@ private:
     ArithmeticEncoder m_encoder;
     AdaptiveModelEncoder m_enc;
     ByteEncoder m_byte;
+    Compressor * m_compressor;
     PermutationWriter * m_perm;
 };
 
@@ -181,12 +186,14 @@ class DGCompressor : public Compressor
 {
 public:
     FrameReader * frame_reader(FILE * fin) {
-        return new DGReader(fin);
+        return new DGReader(fin, this);
     }
 
     FrameWriter * frame_writer(FILE * fout) {
-        return new DGWriter(fout);
+        return new DGWriter(fout, this);
     }
+
+    bool needs_permutation_compressor() const { return true; }
 };
 
 

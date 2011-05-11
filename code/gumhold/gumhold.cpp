@@ -67,12 +67,14 @@ class GumholdCompressor : public Compressor
 {
 public:
     FrameReader * frame_reader(FILE * fin) {
-        return new GumholdReader(fin, get_gumhold_predictor());
+        return new GumholdReader(fin, this, get_gumhold_predictor());
     }
 
     FrameWriter * frame_writer(FILE * fout) {
-        return new GumholdWriter(fout, get_gumhold_predictor());
+        return new GumholdWriter(fout, this, get_gumhold_predictor());
     }
+
+    bool needs_permutation_compressor() const { return true; }
 };
 
 

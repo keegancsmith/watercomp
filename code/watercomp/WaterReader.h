@@ -2,6 +2,7 @@
 
 #include "OxygenGraph.h"
 
+#include "Compressor.h"
 #include "FrameReader.h"
 #include "arithmetic/AdaptiveModelDecoder.h"
 #include "arithmetic/ArithmeticDecoder.h"
@@ -14,7 +15,7 @@
 class WaterReader : public FrameReader
 {
 public:
-    WaterReader(FILE * fin, const std::vector<AtomInformation> & atom_info);
+    WaterReader(FILE * fin, Compressor * compressor);
     ~WaterReader() {}
 
     void start();
@@ -26,11 +27,13 @@ private:
     AdaptiveModelDecoder m_adaptive;
     SerialiseDecoder * m_adaptive_water;
     ByteDecoder m_byte;
+    Compressor * m_compressor;
 
     void next_frame_header(QuantisedFrame & qframe);
     void next_frame_water(QuantisedFrame & qframe);
     void next_frame_other(QuantisedFrame & qframe);
 
+    QuantisedFrame m_previous_frame;
     std::vector<WaterMolecule> m_water_molecules;
     std::vector<unsigned int> m_other_atoms;
 };

@@ -5,23 +5,18 @@
 #include <cstdlib>
 #include <string>
 
-using std::string;
+std::string permutation_compressors[] = {"optimal", "null", "naive", "delta",
+                                         "interframe", "pdb",
+#ifdef ANN
+                                         "nearest",
+#endif
+                                         ""};
 
-string get_permutation_env()
-{
-    char * perm = getenv("PERMUTATION");
-    if (!perm)
-        return "delta";
-    else return perm;
-}
-
-const char * perm_error_msg = "ERROR: PERMUTATION environment variable must "
-    "be 'null', 'naive', 'delta', 'interframe' or 'optimal' (default)\n";
-
-PermutationWriter * PermutationWriter::get_writer(ArithmeticEncoder * enc,
+PermutationWriter * PermutationWriter::get_writer(Compressor * c,
+                                                  ArithmeticEncoder * enc,
                                                   int size)
 {
-    string perm = get_permutation_env();
+    std::string perm = c->m_permutation_compressor;
     if (perm == "null")
         return new NullPermutationWriter();
     if (perm == "naive")
@@ -32,15 +27,21 @@ PermutationWriter * PermutationWriter::get_writer(ArithmeticEncoder * enc,
         return new InterframePermutationWriter(enc, size);
     if (perm == "optimal")
         return new OptimalPermutationWriter(enc, size);
-    fprintf(stderr, "%s", perm_error_msg);
-    exit(1);
+#ifdef ANN
+    if (perm == "nearest")
+        return new NearestNeighbourPermutationWriter(enc, size);
+#endif
+    if (perm == "pdb")
+        return new PDBPermutationWriter(enc, c->m_atom_information);
+    abort();
 }
 
 
-PermutationReader * PermutationReader::get_reader(ArithmeticDecoder * dec,
+PermutationReader * PermutationReader::get_reader(Compressor * c,
+                                                  ArithmeticDecoder * dec,
                                                   int size)
 {
-    string perm = get_permutation_env();
+    std::string perm = c->m_permutation_compressor;
     if (perm == "null")
         return new NullPermutationReader();
     if (perm == "naive")
@@ -51,8 +52,13 @@ PermutationReader * PermutationReader::get_reader(ArithmeticDecoder * dec,
         return new InterframePermutationReader(dec, size);
     if (perm == "optimal")
         return new OptimalPermutationReader(dec, size);
-    fprintf(stderr, "%s", perm_error_msg);
-    exit(1);
+#ifdef ANN
+    if (perm == "nearest")
+        return new NearestNeighbourPermutationReader(dec, size);
+#endif
+    if (perm == "pdb")
+        return new PDBPermutationReader(dec, c->m_atom_information);
+    abort();
 }
 
 
@@ -66,7 +72,7 @@ NaivePermutationWriter::NaivePermutationWriter(ArithmeticEncoder * enc)
 }
 
 
-void NaivePermutationWriter::next_index(int index)
+void NaivePermutationWriter::next_index(int index, unsigned int coord[3])
 {
     m_enc.encode(&index, sizeof(index), 1);
 }
@@ -78,7 +84,7 @@ NaivePermutationReader::NaivePermutationReader(ArithmeticDecoder * dec)
 }
 
 
-int NaivePermutationReader::next_index()
+int NaivePermutationReader::next_index(unsigned int coord[3])
 {
     int index;
     m_dec.decode(&index, sizeof(index), 1);
@@ -95,7 +101,7 @@ DeltaPermutationWriter::DeltaPermutationWriter(ArithmeticEncoder * enc)
 }
 
 
-void DeltaPermutationWriter::next_index(int index)
+void DeltaPermutationWriter::next_index(int index, unsigned int coord[3])
 {
     int delta = index - m_last;
     m_last    = index;
@@ -109,7 +115,7 @@ DeltaPermutationReader::DeltaPermutationReader(ArithmeticDecoder * dec)
 }
 
 
-int DeltaPermutationReader::next_index()
+int DeltaPermutationReader::next_index(unsigned int coord[3])
 {
     int delta = m_dec.decode_int();
     int index = delta + m_last;
@@ -175,7 +181,7 @@ OptimalPermutationWriter::OptimalPermutationWriter(ArithmeticEncoder * enc,
 }
 
 
-void OptimalPermutationWriter::next_index(int index)
+void OptimalPermutationWriter::next_index(int index, unsigned int coord[3])
 {
     int size = m_indicies.size();
     int val  = m_indicies.pop_index(index);
@@ -190,7 +196,7 @@ OptimalPermutationReader::OptimalPermutationReader(ArithmeticDecoder * dec,
 }
 
 
-int OptimalPermutationReader::next_index()
+int OptimalPermutationReader::next_index(unsigned int coord[3])
 {
     int val = m_dec->decode(m_indicies.size());
     m_dec->decoder_update(val, val+1);
@@ -210,7 +216,7 @@ InterframePermutationWriter::InterframePermutationWriter(ArithmeticEncoder * enc
         m_last[i] = i;
 }
 
-void InterframePermutationWriter::next_index(int index)
+void InterframePermutationWriter::next_index(int index, unsigned int coord[3])
 {
     int delta     = index - m_last[m_pos];
     m_last[m_pos] = index;
@@ -228,7 +234,7 @@ InterframePermutationReader::InterframePermutationReader(ArithmeticDecoder * dec
 }
 
 
-int InterframePermutationReader::next_index()
+int InterframePermutationReader::next_index(unsigned int coord[3])
 {
     int delta     = m_dec.decode_int();
     int index     = delta + m_last[m_pos];
@@ -238,6 +244,9 @@ int InterframePermutationReader::next_index()
 }
 
 
+//
+// PDBPermutation
+//
 
 PDBPermutationWriter::PDBPermutationWriter(ArithmeticEncoder * enc,
                                            const std::vector<AtomInformation> & atom_info)
@@ -247,7 +256,7 @@ PDBPermutationWriter::PDBPermutationWriter(ArithmeticEncoder * enc,
 }
 
 
-void PDBPermutationWriter::next_index(int index)
+void PDBPermutationWriter::next_index(int index, unsigned int coord[3])
 {
     const AtomInformation & info = m_atom_info[index];
     m_atom_name.encode(info.atom_name);
@@ -285,8 +294,10 @@ PDBPermutationReader::PDBPermutationReader(ArithmeticDecoder * dec,
 }
 
 
-int PDBPermutationReader::next_index()
+int PDBPermutationReader::next_index(unsigned int coord[3])
 {
+    using std::string;
+
     string atom_name = m_atom_name.decode();
     string residue_name = m_residue_name.decode();
     unsigned int residue_sequence = m_residue_sequence.decode_int();
@@ -299,3 +310,183 @@ int PDBPermutationReader::next_index()
 
     return m_pdb_to_index[k];
 }
+
+
+#ifdef ANN
+
+//
+// NearestNeighbourPermutation
+//
+
+inline bool fequal(ANNcoord a, ANNcoord b) {
+    return abs(a - b) < 1e-9;
+}
+
+struct SearchResultComparator {
+    ANNpointArray m_points;
+    ANNidxArray m_idx;
+    ANNdistArray m_dist;
+
+    bool operator() (int a, int b) const {
+        if (!fequal(m_dist[a], m_dist[b]))
+            return m_dist[a] < m_dist[b];
+
+        int x = m_idx[a];
+        int y = m_idx[b];
+        for (int d = 0; d < 3; d++)
+            if (!fequal(m_points[x][d], m_points[y][d]))
+                return m_points[x][d] < m_points[y][d];
+
+        return x < y;
+    }
+};
+
+
+
+NearestNeighbourPermutationWriter::NearestNeighbourPermutationWriter(
+    ArithmeticEncoder * enc, int size)
+    : m_current_points(0), m_last_points(0), m_last_tree(0),
+      m_size(size), m_enc(enc)
+{
+    m_nn_idx = new ANNidx[size];
+    m_dd = new ANNdist[size];
+}
+
+void NearestNeighbourPermutationWriter::next_index(int index,
+                                                   unsigned int coord[3])
+{
+    assert(coord != 0);
+
+    ANNpoint point = annAllocPt(3);
+    for (int d = 0; d < 3; d++)
+        m_current_points[index][d] = point[d] = coord[d];
+
+    if (!m_last_points) {
+        // Just write out the index
+        m_enc.encode_int(index);
+        annDeallocPt(point);
+        return;
+    }
+
+    // Otherwise we encode the distance rank the point is from the previous
+    // frame.
+
+    // Distance between the points between this frame and the last.
+    ANNdist sqRad = 0;
+    for (int d = 0; d < 3; d++) {
+        ANNdist delta = coord[d] - m_last_points[index][d];
+        sqRad += (delta * delta);
+    }
+    sqRad += 1e-9;
+
+    // Get all points within sqrt(sqRad) of the current point
+    int k = m_last_tree->annkFRSearch(point, sqRad, 0);
+    m_last_tree->annkFRSearch(point, sqRad, k, m_nn_idx, m_dd);
+
+    // We will have to use our own comparator to do tie breaks.
+    SearchResultComparator comparator = { m_last_points, m_nn_idx, m_dd };
+    int indicies[k];
+    for (int i = 0; i < k; i++)
+        indicies[i] = i;
+    std::sort(indicies, indicies + k, comparator);
+
+    while (m_nn_idx[indicies[--k]] != index)
+        assert(k > 0);
+
+    m_enc.encode_int(k);
+
+    // Cleanup
+    annDeallocPt(point);
+}
+
+void NearestNeighbourPermutationWriter::reset() {
+    if (!m_current_points) { // First run
+        m_current_points = annAllocPts(m_size, 3);
+        return;
+    }
+
+    if (m_last_tree)
+        delete m_last_tree;
+    else
+        m_last_points = annAllocPts(m_size, 3);
+
+    std::swap(m_last_points, m_current_points);
+    m_last_tree = new ANNkd_tree(m_last_points, m_size, 3);
+}
+
+NearestNeighbourPermutationReader::NearestNeighbourPermutationReader(
+    ArithmeticDecoder * dec, int size)
+    : m_current_points(0), m_last_points(0), m_last_tree(0),
+      m_size(size), m_dec(dec)
+{
+    m_nn_idx = new ANNidx[size];
+    m_dd = new ANNdist[size];
+}
+
+int NearestNeighbourPermutationReader::next_index(unsigned int coord[3])
+{
+    assert(coord != 0);
+
+    if (!m_last_points) {
+        // Just read in the index
+        int index = m_dec.decode_int();
+        for (int d = 0; d < 3; d++)
+            m_current_points[index][d] = coord[d];
+        return index;
+    }
+
+    // Otherwise we get the distance rank and decode from there.
+    int rank = m_dec.decode_int();
+    assert(0 <= rank && rank < m_size);
+
+    ANNpoint point = annAllocPt(3);
+    for (int d = 0; d < 3; d++)
+        point[d] = coord[d];
+
+    // Find out how far the kth point is
+    m_last_tree->annkSearch(point, rank + 1, m_nn_idx, m_dd);
+    ANNdist sqRad = 0;
+    for (int i = 0; i <= rank; i++)
+        sqRad = std::max(sqRad, m_dd[i]);
+    sqRad += 1e-9;
+
+    int k = m_last_tree->annkFRSearch(point, sqRad, 0);
+    m_last_tree->annkFRSearch(point, sqRad, k, m_nn_idx, m_dd);
+    assert(k >= rank);
+
+    // We will have to use our own comparator to do tie breaks.
+    SearchResultComparator comparator = { m_last_points, m_nn_idx, m_dd };
+    int indicies[k];
+    for (int i = 0; i < k; i++)
+        indicies[i] = i;
+    std::sort(indicies, indicies + k, comparator);
+
+    int index = m_nn_idx[indicies[rank]];
+
+    for (int d = 0; d < 3; d++)
+        m_current_points[index][d] = coord[d];
+
+    // Cleanup
+    annDeallocPt(point);
+
+    return index;
+}
+
+void NearestNeighbourPermutationReader::reset()
+{
+    if (!m_current_points) { // First run
+        m_current_points = annAllocPts(m_size, 3);
+        return;
+    }
+
+    if (m_last_tree)
+        delete m_last_tree;
+    else
+        m_last_points = annAllocPts(m_size, 3);
+
+    std::swap(m_last_points, m_current_points);
+    m_last_tree = new ANNkd_tree(m_last_points, m_size, 3);
+}
+
+
+#endif // ANN

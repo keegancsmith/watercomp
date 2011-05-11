@@ -76,7 +76,7 @@ vector<coord_t> encode(vector<point_t> points,
         right.S.from[x.dim] = mid;
 
         int pivot = x.lower;
-        for(size_t i = x.lower; i < x.upper; i++) {
+        for(int i = x.lower; i < x.upper; i++) {
             if (points[i].coords[x.dim] < mid) {
                 std::swap(points[pivot], points[i]);
                 pivot++;
@@ -115,7 +115,7 @@ vector<coord_t> encode(vector<point_t> points,
 }
 
 point_t project_1(const segment_t & S) {
-    point_t r;
+    point_t r = {{0}, 0};
     for (int i = 0; i < DIMENSIONS; i++)
         r.coords[i] = S.from[i];
     return r;

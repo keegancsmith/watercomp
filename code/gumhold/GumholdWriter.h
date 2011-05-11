@@ -10,7 +10,8 @@
 class GumholdWriter : public FrameWriter
 {
 public:
-    GumholdWriter(FILE * fout, gumhold_predictor * pred);
+    GumholdWriter(FILE * fout, Compressor * compressor,
+                  gumhold_predictor * pred);
     ~GumholdWriter();
 
     void start(int atoms, int frames, int ISTART = 0,
@@ -22,5 +23,6 @@ private:
     FILE * m_fout;
     ArithmeticEncoder m_encoder;
     SerialiseEncoder * m_enc;
+    Compressor * m_compressor;
     gumhold_predictor * m_pred;
 };

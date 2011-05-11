@@ -14,8 +14,10 @@ public:
     virtual FrameWriter * frame_writer(FILE * fout) = 0;
 
     virtual bool needs_atom_information() const { return false; }
+    virtual bool needs_permutation_compressor() const { return false; }
 
     std::vector<AtomInformation> m_atom_information;
+    std::string m_permutation_compressor;
 };
 
 

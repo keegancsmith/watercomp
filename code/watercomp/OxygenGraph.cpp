@@ -1,6 +1,6 @@
 #include "OxygenGraph.h"
 
-#include "ANN/ANN.h"
+#include <ANN/ANN.h>
 
 #include <algorithm>
 #include <cassert>
@@ -71,8 +71,10 @@ Graph * OxygenGraph::create_oxygen_graph() const
         for (int d = 0; d < 3; d++)
             query[d] = frame.atom_data[O_idx_offset + d];
 
-        int neigh = kd_tree->annkFRSearch(query, radius, oxygen_size,
+        int neigh = kd_tree->annkFRSearch(query, radius, 0,
                                           result, dists, RADIUS_ERROR);
+        kd_tree->annkFRSearch(query, radius, neigh,
+                              result, dists, RADIUS_ERROR);
 
         for (int j = 0; j < neigh; j++)
             if (result[j] != i)
@@ -260,7 +262,6 @@ void OxygenGraph::serialise(Graph * tree, int root,
         }
 
         // Write values to arithmetic encoder
-        enc.perm->next_index(v);
         for (int i = 0; i < 3; i++)
             for (int d = 0; d < 3; d++)
                 enc.err_encoder.encode_int(error[i][d]);
@@ -280,6 +281,14 @@ void OxygenGraph::serialise(Graph * tree, int root,
         }
         // indicate end of children
         enc.tree_encoder.encode_int(3);
+
+        // Write out prediction. We do this last because for nearest neighbour
+        // permutation decoding we require the position of the oxygen molecule
+        // before decoding.
+        unsigned int O_pos[3] = { m_qframe.at(O, 0),
+                                  m_qframe.at(O, 1),
+                                  m_qframe.at(O, 2) };
+        enc.perm->next_index(v, O_pos);
     }
 
     assert(count == nWaters);
@@ -308,19 +317,17 @@ void OxygenGraph::readin(SerialiseDecoder & dec,
         count++;
 
         // Read in values from arithmetic decoder
-        int index = dec.perm->next_index();
         int error[3][3];
         for (int i = 0; i < 3; i++)
             for (int d = 0; d < 3; d++)
                 error[i][d] = dec.err_decoder.decode_int();
 
-        assert(0 <= index && index < nWaters);
-
-        // Get predictors for all the children and add them to the queue
+        // Get predictors for all the children
         int p;
+        vector<int> children;
         while ((p = dec.tree_decoder.decode_int()) != 3) {
             assert(0 <= p && p < 3);
-            q.push(make_pair(index, p));
+            children.push_back(p);
         }
 
         // Get prediction
@@ -335,12 +342,24 @@ void OxygenGraph::readin(SerialiseDecoder & dec,
         else if (prediction == 2)
             pred = predictor.predict_along_h2(parent_mol);
 
+        // Get index of water molecule
+        unsigned int O_pos[3];
+        for (int d = 0; d < 3; d++)
+            O_pos[d] = pred.O[d] + error[0][d];
+        int index = dec.perm->next_index(O_pos);
+        assert(0 <= index && index < nWaters);
+
+        // Add the children to the queue
+        for (vector<int>::iterator it = children.begin();
+             it != children.end(); ++it)
+            q.push(make_pair(index, *it));
+
         // Update qframe
         int O  = waters[index].OH2_index;
         int H1 = waters[index].H1_index;
         int H2 = waters[index].H2_index;
         for (int d = 0; d < 3; d++) {
-            unsigned int o_pos = pred.O[d]  + error[0][d];
+            unsigned int o_pos = pred.O[d] + error[0][d];
             qframe.at(O,  d) = o_pos;
             qframe.at(H1, d) = o_pos + error[1][d];
             qframe.at(H2, d) = o_pos + error[2][d];

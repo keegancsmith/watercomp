@@ -1,4 +1,5 @@
 #include "Compressor.h"
+#include "Permutation.h"
 
 #include "pdbio/DCDReader.h"
 #include "pdbio/DCDWriter.h"
@@ -14,6 +15,7 @@ extern "C" {
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#include <limits>
 #include <iostream>
 #include <string>
 
@@ -68,12 +70,24 @@ bool compress(Compressor & c, string dcdpath, string outpath,
     // Header
     writer->start(reader.natoms(), reader.nframes());
 
+    // Keep track of the bounding box
+    float min_coord[3] = { std::numeric_limits<float>::max() };
+    float max_coord[3] = { std::numeric_limits<float>::min() };
+
     // Do each frame
     Frame frame(reader.natoms());
     unsigned int frame_num = 0;
     while(reader.next_frame(frame)) {
         cout << '\r' << progress_bar(frame_num++, reader.nframes()) << flush;
-        QuantisedFrame qframe(frame, quantx, quanty, quantz);
+        QuantisedFrame qframe(frame, quantx, quanty, quantz,
+                              min_coord, max_coord);
+
+        for (int d = 0; d < 3; d++) {
+            min_coord[d] = qframe.min_coord[d] = min(min_coord[d],
+                                                     qframe.min_coord[d]);
+            max_coord[d] = qframe.max_coord[d] = max(max_coord[d],
+                                                     qframe.max_coord[d]);
+        }
 
         // Write out
         writer->next_frame(qframe);
@@ -146,6 +160,10 @@ void usage(char * prog) {
             "\t-p path\n\t--pdb path "
             "Set the path of the pdb file.\n\n"
 
+            "\t-t perm_compressor\n\t--permutation perm_compressor "
+            "Set the permutation compressor to use. Pass help to see the "
+            "list of permutation compressors.\n\n"
+
             "\t-q b\n\t--quantisation b "
             "Set the quantisation in all dimensions to b bits.\n\n"
 
@@ -158,6 +176,27 @@ void usage(char * prog) {
             "\t-z b\n\t--quantz b\t"
             "Set the quantisation in the z dimension to b bits.\n",
             QUANTISATION);
+}
+
+
+string check_perm_compressor(string perm) {
+    if (perm.size() == 0)
+        return permutation_compressors[0];
+
+    for (int i = 0; permutation_compressors[i] != ""; i++)
+        if (perm == permutation_compressors[i])
+            return perm;
+
+    if (perm != "help")
+        fprintf(stderr, "ERROR: ");
+
+    fprintf(stderr, "The permutation compressor must be one of: ");
+    fprintf(stderr, "'%s' (default)", permutation_compressors[0].c_str());
+    for (int i = 1; permutation_compressors[i] != ""; i++)
+        fprintf(stderr, ", '%s'", permutation_compressors[i].c_str());
+    fprintf(stderr, "\n");
+
+    exit(perm == "help" ? 0 : 1);
 }
 
 
@@ -179,6 +218,7 @@ int do_main(Compressor & c, int argc, char ** argv)
     int quanty = QUANTISATION;
     int quantz = QUANTISATION;
     string pdb_path;
+    string perm_compressor;
     string input_path;
     string output_path;
 
@@ -192,6 +232,7 @@ int do_main(Compressor & c, int argc, char ** argv)
             {"help",         no_argument, 0, 'h'},
             // Options
             {"pdb",          required_argument, 0, 'p'},
+            {"permutation",  required_argument, 0, 't'},
             {"quantisation", required_argument, 0, 'q'},
             {"quantx",       required_argument, 0, 'x'},
             {"quanty",       required_argument, 0, 'y'},
@@ -199,7 +240,7 @@ int do_main(Compressor & c, int argc, char ** argv)
             {0, 0, 0, 0}
         };
         int option_index = 0;
-        int c = getopt_long(argc, argv, "cdp:q:x:y:z:",
+        int c = getopt_long(argc, argv, "cdp:t:q:x:y:z:",
                             long_options, &option_index);
 
         if (c == -1)
@@ -214,8 +255,12 @@ int do_main(Compressor & c, int argc, char ** argv)
             dodecompress = true;
             break;
 
-        case'p':
+        case 'p':
             pdb_path = optarg;
+            break;
+
+        case 't':
+            perm_compressor = optarg;
             break;
 
         case 'q':
@@ -263,8 +308,13 @@ int do_main(Compressor & c, int argc, char ** argv)
         print_error("Could not read '%s'.", input_path.c_str());
 
 
+    if (c.needs_permutation_compressor())
+        c.m_permutation_compressor = check_perm_compressor(perm_compressor);
+    bool perm_compressor_needs_pdb = c.m_permutation_compressor == "pdb";
+
+
     // Check if we need to read in PDB info
-    if (c.needs_atom_information()) {
+    if (c.needs_atom_information() || perm_compressor_needs_pdb) {
         // Guess pdb_path if it is not set
         if (pdb_path.size() == 0) {
             size_t dot_pos = input_path.rfind('.');

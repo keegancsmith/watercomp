@@ -5,14 +5,16 @@
 
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
-WaterWriter::WaterWriter(FILE * fout, const vector<AtomInformation> & pdb)
-    : m_adaptive(&m_encoder), m_byte(&m_encoder)
+WaterWriter::WaterWriter(FILE * fout, Compressor * c)
+    : m_adaptive(&m_encoder), m_byte(&m_encoder), m_compressor(c),
+      m_previous_frame(0, 8, 8, 8)
 {
     m_encoder.start_encode(fout);
-    split_frame(pdb, m_water_molecules, m_other_atoms);
+    split_frame(c->m_atom_information, m_water_molecules, m_other_atoms);
 }
 
 
@@ -29,7 +31,10 @@ void WaterWriter::start(int atoms, int frames, int ISTART,
     m_byte.encode(header_int, sizeof(int), 2);
     //enc.encode(&DELTA, sizeof(double), 1);
 
-    m_adaptive_water = new SerialiseEncoder(&m_encoder, atoms);
+    // Don't pass m_natoms since we are only permutation encoding the indicies
+    // of the water molecules.
+    m_adaptive_water = new SerialiseEncoder(m_compressor, &m_encoder,
+                                            m_water_molecules.size());
 }
 
 
@@ -50,26 +55,21 @@ void WaterWriter::end()
     sort(nConstant.begin(), nConstant.end());
     sort(nHydrogen.begin(), nHydrogen.end());
 
-    // cout << "\nMean Clusters: " << nClusters[nClusters.size()/2] << endl
-    //      <<   "Mean Constant: " << nConstant[nConstant.size()/2] << endl
-    //      <<   "Mean Hydrogen: " << nHydrogen[nHydrogen.size()/2] << endl;
+    ofstream fout("stats.csv");
 
-    // cout << "\nMin Clusters: " << nClusters[0] << endl
-    //      <<   "Min Constant: " << nConstant[0] << endl
-    //      <<   "Min Hydrogen: " << nHydrogen[0] << endl;
+    fout << "Mean Clusters, " << nClusters[nClusters.size()/2] << endl
+         << "Mean Constant, " << nConstant[nConstant.size()/2] << endl
+         << "Mean Hydrogen, " << nHydrogen[nHydrogen.size()/2] << endl;
 
-    // cout << "\nMax Clusters: " << nClusters[nClusters.size()-1] << endl
-    //      <<   "Max Constant: " << nConstant[nConstant.size()-1] << endl
-    //      <<   "Max Hydrogen: " << nHydrogen[nHydrogen.size()-1] << endl;
-    // int l = nClusters.size() - 1;
-    // int m = nClusters.size() / 2;
-    // int vals[9] = { nClusters[m], nClusters[0], nClusters[l],
-    //                 nConstant[m], nConstant[0], nConstant[l],
-    //                 nHydrogen[m], nHydrogen[0], nHydrogen[l] };
-    // cout << "    & ";
-    // for (int i = 0; i < 9; i++)
-    //     cout << "& $" << vals[i] << "$ ";
-    // cout << "\\\\";
+    fout << "Min Clusters, " << nClusters[0] << endl
+         << "Min Constant, " << nConstant[0] << endl
+         << "Min Hydrogen, " << nHydrogen[0] << endl;
+
+    fout << "Max Clusters, " << nClusters[nClusters.size()-1] << endl
+         << "Max Constant, " << nConstant[nConstant.size()-1] << endl
+         << "Max Hydrogen, " << nHydrogen[nHydrogen.size()-1] << endl;
+
+    fout.close();
 }
 
 
@@ -97,37 +97,18 @@ void WaterWriter::next_frame_water(const QuantisedFrame & qframe)
 
 void WaterWriter::next_frame_other(const QuantisedFrame & qframe)
 {
-    // Write out other atoms per dimension
-    size_t dims[3] = { qframe.m_xquant, qframe.m_yquant, qframe.m_zquant };
-    for (int d = 0; d < 3; d++) {
-        // Setup buf
-        size_t size = (m_other_atoms.size() * dims[d] + 7) / 8;
-        unsigned char buf[size];
-        std::fill(buf, buf + size, 0);
+    // Delta encoding on non water molecule atoms.
+    for (size_t i = 0; i < m_other_atoms.size(); i++) {
+        unsigned int idx = m_other_atoms[i];
 
-        // Position in buf
-        int byte_offset = 0;
-        int bit_offset = 0;
+        int prediction[3] = { 0, 0, 0 };
+        if (m_previous_frame.natoms())
+            for (int d = 0; d < 3; d++)
+                prediction[d] = (int)m_previous_frame.at(idx, d);
 
-        // Write dimension out into buf
-        for (size_t i = 0; i < m_other_atoms.size(); i++) {
-            unsigned int val = qframe.at(m_other_atoms[i], d);
-            for (size_t j = 0; j < dims[d]; j++) {
-                // Get and write j'th bit of val
-                int bit = (val >> j) & 1;
-                buf[byte_offset] |= (bit << bit_offset);
-
-                // Adjust the bit and byte offset in buf
-                bit_offset++;
-                if (bit_offset == 8) {
-                    byte_offset++;
-                    bit_offset = 0;
-                }
-            }
-        }
-
-        // Encode buf to file
-        for (size_t i = 0; i < size; i++)
-            m_adaptive.encode_bytes(buf + i, 1);
+        for (int d = 0; d < 3; d++)
+            m_adaptive.encode_int((int)qframe.at(idx, d) - prediction[d]);
     }
+
+    m_previous_frame = qframe;
 }

@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstdio>
+#include <limits>
 #include <iostream>
 
 using namespace std;
@@ -18,7 +19,8 @@ int main(int argc, char ** argv) {
     int quantx = argc > 3 ? atoi(argv[3]) : 8;
     int quanty = argc > 4 ? atoi(argv[4]) : 8;
     int quantz = argc > 5 ? atoi(argv[5]) : 8;
-    bool verbose = argc > 6;
+    bool dynamic_quant = argc > 6;
+    bool verbose = argc > 7;
     bool all_same = true;
 
     DCDReader reader1, reader2;
@@ -28,15 +30,26 @@ int main(int argc, char ** argv) {
     assert(reader1.nframes() == reader2.nframes());
     assert(reader1.natoms() == reader2.natoms());
 
+    float _min_coord[3] = { std::numeric_limits<float>::max() };
+    float _max_coord[3] = { std::numeric_limits<float>::min() };
+    float * min_coord = dynamic_quant ? _min_coord : 0;
+    float * max_coord = dynamic_quant ? _max_coord : 0;
+
     for (size_t frame = 1; frame <= reader1.nframes(); frame++) {
         Frame f1(reader1.natoms());
         Frame f2(reader1.natoms());
         reader1.next_frame(f1);
         reader2.next_frame(f2);
 
-        QuantisedFrame q1(f1, quantx, quanty, quantz);
+        QuantisedFrame q1(f1, quantx, quanty, quantz, min_coord, max_coord);
         Frame qf1 = q1.toFrame();
-        //QuantisedFrame q2(f2, quantx, quanty, quantz);
+
+        if (dynamic_quant) {
+            for (int d = 0; d < 3; d++) {
+                min_coord[d] = q1.min_coord[d];
+                max_coord[d] = q1.max_coord[d];
+            }
+        }
 
         bool same = true;
         for (size_t i = 0; i < qf1.atom_data.size() && same; i++)

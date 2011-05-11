@@ -9,7 +9,8 @@
 class GumholdReader : public FrameReader
 {
 public:
-    GumholdReader(FILE * fin, gumhold_predictor * pred);
+    GumholdReader(FILE * fin, Compressor * compressor,
+                  gumhold_predictor * pred);
     ~GumholdReader() {}
 
     void start();
@@ -20,5 +21,6 @@ private:
     FILE * m_fin;
     ArithmeticDecoder m_decoder;
     SerialiseDecoder * m_dec;
+    Compressor * m_compressor;
     gumhold_predictor * m_pred;
 };

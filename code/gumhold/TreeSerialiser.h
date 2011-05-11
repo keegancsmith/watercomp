@@ -12,9 +12,9 @@ typedef void (gumhold_predictor) (const QuantisedFrame*,
 
 struct SerialiseEncoder
 {
-    SerialiseEncoder(ArithmeticEncoder * ae, int natoms)
+    SerialiseEncoder(Compressor * c, ArithmeticEncoder * ae, int natoms)
         : tree_encoder(ae), err_encoder(ae) {
-        perm = PermutationWriter::get_writer(ae, natoms);
+        perm = PermutationWriter::get_writer(c, ae, natoms);
     }
     ~SerialiseEncoder() { delete perm; }
     AdaptiveModelEncoder tree_encoder;
@@ -24,9 +24,9 @@ struct SerialiseEncoder
 
 struct SerialiseDecoder
 {
-    SerialiseDecoder(ArithmeticDecoder * ad, int natoms)
+    SerialiseDecoder(Compressor * c, ArithmeticDecoder * ad, int natoms)
         : tree_decoder(ad), err_decoder(ad) {
-        perm = PermutationReader::get_reader(ad, natoms);
+        perm = PermutationReader::get_reader(c, ad, natoms);
     }
     ~SerialiseDecoder() { delete perm; }
     AdaptiveModelDecoder tree_decoder;
